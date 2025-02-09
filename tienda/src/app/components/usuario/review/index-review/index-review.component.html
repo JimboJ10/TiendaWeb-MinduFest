@@ -1,0 +1,88 @@
+<app-nav></app-nav>
+
+<main  class="cs-page-wrapper">
+  <nav class="bg-secondary mb-3" aria-label="breadcrumb">
+    <div class="container">
+        <ol class="breadcrumb breadcrumb-alt mb-0">
+            <li>
+                <a [routerLink]="['/inicio']">
+                    <i class="fas fa-home"></i>
+                </a>
+                <i class="fas fa-greater-than text-muted mx-3"></i>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Mis Reseñas</li>
+        </ol>
+    </div>
+  </nav>
+
+    <section class="container pt-3 pt-lg-4 pb-5 pb-lg-6">
+        <div class="row pb-2 pb-lg-0">
+
+            <aside class="col-xl-3 col-lg-4 pb-3 mb-4 mb-lg-0">
+                <!-- Account menu (sticky sidebar) -->
+                <app-siderbar></app-siderbar>
+            </aside>
+          <!-- Content -->
+          <div class="col-lg-8 ml-auto">
+            <div class="d-flex align-items-center justify-content-between mb-4 pb-sm-2">
+              <h1 class="h2 mb-0">Mis Reseñas</h1>
+            </div>
+          
+            <div class="row">
+              <div class="col-12">
+                <!-- Loading spinner -->
+                <div class="text-center" *ngIf="load_data">
+                  <div class="spinner-border" role="status">
+                    <span class="sr-only">Cargando...</span>
+                  </div>
+                </div>
+          
+                <!-- Reviews list -->
+                <div *ngFor="let review of reviews | slice: (page-1) * pageSize : page * pageSize" class="mb-4 pb-4 border-bottom">
+                  <div class="row">
+                    <div class="col-md-3 col-sm-4 mb-sm-0 mb-3">
+                      <h3 class="mb-2 font-size-lg">{{review.nombres}} {{review.apellidos}}</h3>
+                      <span class="d-block mb-3 font-size-sm text-muted">{{review.createdat | date:'mediumDate'}}</span>
+                      <div class="mt-n1 star-rating">
+                        <ng-container *ngFor="let starClass of getStarsArray(review.estrellas)">
+                          <i [class]="starClass" 
+                             style="margin-right: 2px;">
+                          </i>
+                      </ng-container>
+                      </div>
+                      
+                    </div>
+                    <div class="col">
+                      <p class="mb-3">
+                        <a class="mr-1 fw-bold text-decoration-none">{{review.email}}</a>
+                        <br>
+                        {{review.comentario}}
+                      </p>
+                      <p class="mt-2 mb-0 text-muted">{{review.titulo}}</p>
+                    </div>
+                  </div>
+                  
+                </div>
+                
+          
+                <!-- No reviews message -->
+                <div *ngIf="!load_data && reviews.length === 0" class="text-center py-4">
+                  <p>No hay reseñas disponibles.</p>
+                </div>
+                
+              </div>
+              
+            </div>
+            <div class="col-12">
+              <ngb-pagination
+                [(page)]="page"
+                [pageSize]="pageSize"
+                [collectionSize]="reviews.length">
+              </ngb-pagination>
+            </div>
+          </div>
+          
+        </div>
+      </section>
+</main>
+<app-footer></app-footer>

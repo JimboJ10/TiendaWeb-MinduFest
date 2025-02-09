@@ -1,0 +1,36 @@
+<app-nav></app-nav>
+
+<main class="cs-page-wrapper">
+  <section class="container pt-3 pt-md-4 pb-3 pb-sm-4 pb-lg-5 mb-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="card">
+          <div class="card-body text-center">
+            <h3 class="mb-4">Verificación de dos factores</h3>
+            <p>Por favor ingresa el código de 6 dígitos de tu aplicación autenticadora</p>
+            
+            <div class="form-group">
+              <input 
+                type="text" 
+                class="form-control text-center" 
+                [(ngModel)]="twoFactorCode"
+                maxlength="6"
+                pattern="[0-9]*"
+                placeholder="000000"
+                autofocus>
+            </div>
+
+            <button 
+              class="btn btn-primary"
+              [disabled]="twoFactorCode.length !== 6"
+              (click)="verifyCode()">
+              Verificar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<app-footer></app-footer>

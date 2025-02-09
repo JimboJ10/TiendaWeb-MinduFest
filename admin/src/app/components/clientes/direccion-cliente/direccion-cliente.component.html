@@ -1,0 +1,84 @@
+<app-sidebar></app-sidebar>
+
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Direcciones</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted"></p>
+      <p class="font-size-sm font-weight-medium pl-md-4">
+      </p>
+    </div>
+  </div>
+
+   <div class="card box-shadow-sm">
+        <div class="card-header">
+            <h5 style="margin-bottom: 0px;">Direcciones de los clientes</h5>
+        </div>
+        <div class="card-header">
+            <form class="form-inline pt-2">
+                <label class="sr-only" for="inline-form-input-name">Apellidos</label>
+                <input class="form-control mb-3 mr-sm-4" name="filtro_apellidos" [(ngModel)]="filtro_apellidos" type="text" id="inline-form-input-name" placeholder="Apellidos del cliente" (input)="onFilterChange()">
+                <label class="sr-only" for="inline-form-input-username">Correo</label>
+                <div class="input-group mb-3 mr-sm-4">
+                <div class="input-group-prepend">
+                </div>
+                </div>
+            </form>
+        </div>
+        <div class="card-header">
+          <div class="import-export-container">
+            <!-- Sección para importar -->
+            <div class="import-section">
+               <!-- Botón para seleccionar archivo -->
+                <input type="file" (change)="seleccionarArchivo($event)" accept=".csv" />
+                <!-- Botón para importar el archivo seleccionado -->
+                <button (click)="importarDireccion()">Importar CSV</button>
+            </div>
+        
+            <!-- Sección para exportar -->
+            <div class="export-section">
+              <button (click)="exportarDireccion()" class="btn-export-excel">Exportar</button>
+              <button (click)="generarPDF()" class="btn-export-pdf">Exportar PDF</button>
+            </div>
+    
+          </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="tabla-direcciones" class="table table-bordered">
+                  <thead class="thead-dark">
+                    <tr>
+                      <th>#</th>
+                      <th>Cliente</th>
+                      <th>Destinatario</th>
+                      <th>Pais</th>
+                      <th>Provincia</th>
+                      <th>Ciudad</th>
+                      <th>Telefono</th>
+                      <th>Codigo Postal</th>
+                      <th>Direccion</th>
+                    </tr>
+                  </thead>
+                  <tbody *ngFor="let item of direcciones| slice:(page-1)*pageSize : (page-1)*pageSize + pageSize  ; let indice = index">
+                    <tr>
+                      <td>{{indice + 1}}</td>
+                      <td>{{item.nombres}} {{item.apellidos}}</td>
+                      <td>{{item.destinatario}}</td>
+                      <td>{{item.pais}}</td>
+                      <td>{{item.provincia}}</td>
+                      <td>{{item.ciudad}}</td>
+                      <td>{{item.telefono}}</td>
+                      <td>{{item.codigopostal}}</td>
+                      <td>{{item.direcciontexto}}</td>
+                    </tr>
+                  </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer">
+           <ngb-pagination
+             [(page)]="page"
+             [pageSize]="pageSize"
+             [collectionSize]="direcciones.length"
+            > </ngb-pagination>
+        </div>
+  </div>

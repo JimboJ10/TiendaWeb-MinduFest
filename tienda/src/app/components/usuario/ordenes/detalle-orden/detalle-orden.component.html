@@ -1,0 +1,227 @@
+<app-nav></app-nav>
+
+<main  class="cs-page-wrapper">
+  <nav class="bg-secondary mb-3" aria-label="breadcrumb">
+    <div class="container">
+        <ol class="breadcrumb breadcrumb-alt mb-0">
+            <li>
+                <a [routerLink]="['/inicio']">
+                    <i class="fas fa-home"></i>
+                </a>
+                <i class="fas fa-greater-than text-muted mx-3"></i>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Mis Ordenes</li>
+        </ol>
+    </div>
+  </nav>
+
+    <section class="container pt-3 pt-lg-4 pb-5 pb-lg-6">
+        <div class="row pb-2 pb-lg-0">
+          
+            <aside class="col-xl-3 col-lg-4 pb-3 mb-4 mb-lg-0">
+                <!-- Account menu (sticky sidebar) -->
+                <app-siderbar></app-siderbar>
+            </aside>
+          <!-- Content -->
+          <div class="col-lg-8 ml-auto">
+           
+            <div class="d-flex align-items-center justify-content-between mb-4 pb-sm-2">
+                <h1 class="h2 mb-0">Mi orden #{{ventaid}}</h1>
+                <a [routerLink]="['/cuenta/ordenes']" routerLinkActive="router-link-active" ><strong>Regresar</strong></a>
+              </div>
+  
+              <div class="row">
+                <div class="col-12 mb-4">
+                  <div class="card card-body py-3 box-shadow ">
+                    <div class="row">
+                      <div class="col-lg-6">
+                        <table class="table mb-0">
+                          <tbody>
+                            <tr>
+                              <th class="border-0 py-2 pl-0">Order No:</th>
+                              <td class="border-0 py-2 px-0 text-muted">{{ventaid}}</td>
+                            </tr>
+                            <tr>
+                              <th class="border-0 py-2 pl-0">Envio:</th>
+                              <td class="border-0 py-2 px-0 text-muted">{{ orden.enviotitulo }}</td>
+                            </tr>
+                            <tr>
+                              <th class="border-0 py-2 pl-0">Fecha:</th>
+                              <td class="border-0 py-2 px-0 text-muted">{{ orden.fecha | date }}</td>
+                            </tr>
+                           
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="col-lg-6">
+                        <table class="table mb-0">
+                          <tbody>
+                          
+                            <tr>
+                              <th class="border-0 py-2 pl-0">Venta:</th>
+                              <td class="border-0 py-2 px-0 text-muted">{{ orden.nventa }}</td>
+                            </tr>
+                            <tr>
+                              <th class="border-0 py-2 pl-0">Transaccion:</th>
+                              <td class="border-0 py-2 px-0 text-muted">{{ orden.transaccion }}</td>
+                            </tr>
+                            <tr>
+                              <th class="border-0 py-2 pl-0">Estado:</th>
+                              <td class="border-0 py-2 px-0 text-muted">{{ orden.estado }}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                    
+                  </div>
+                </div>
+                <div class="col-12 mb-4">
+                  <div class="card">
+                    <div class="card-body">
+                        <div class="row " >
+                            <div class="col-md-3 col-sm-4 mb-sm-0 mb-3">
+                              <h3 class="mb-2 fs-lg" style="font-size: 20px !important;">{{ orden.destinatario }}</h3>
+                              <span class="d-block mb-3 fs-sm text-muted">{{ orden.codigopostal }}</span>
+                              <a  class="badge badge-primary">Dirección de envio</a>
+                            </div>
+                            <div class="col">
+                              <p class="mb-3">
+                                {{ orden.direcciontexto }}
+                              </p>
+                              <p class="mb-3">
+                                {{ orden.pais }} -
+                                <span *ngIf="orden.provincia">{{ orden.provincia }}</span> -
+                                <span *ngIf="orden.ciudad">{{ orden.ciudad }}</span>
+                              </p>
+                             
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+              </div>
+              
+              <div class="card border-bottom">
+                <div id="order-1" class="collapse show" data-parent="#orders">
+                  <div class="bg-secondary rounded mb-4">
+                    <div class="table-responsive">
+                      <table class="table mb-0">
+                        <tbody>
+                          <tr *ngFor="let item of detalles">
+                            <td class="border-top-0">
+                              <div class="media pl-2 py-2">
+                                <a href="shop-single.html" style="min-width: 80px;">
+                                  <img [src]="url + '' +item.portada" width="80" alt="Product thumb">
+                                </a>
+                                <div class="media-body pl-3">
+                                  <h3 class="font-size-sm mb-3">
+                                    <a class="nav-link font-weight-bold">{{ item.titulo }}</a>
+                                  </h3>
+                                  <a *ngIf="!item.resenaEmitida" style="cursor: pointer;" class="text-primary" (click)="modal.show()">[Emitir reseña]</a>
+                                  <span *ngIf="item.resenaEmitida" class="text-warning">Comentario emitido</span>
+                                  <div class="modal fade" bsModal #modal="bs-modal" tabindex="-1" role="dialog" aria-labelledby="dialog-auto-name" aria-hidden="true">
+                                    <div class="modal-dialog" role="document">
+                                      <div class="modal-content">
+                                        <div class="modal-header">
+                                          <h4 class="modal-title">Reseña</h4>
+                                          <button type="button" class="close" (click)="modal.hide()" aria-label="Close">&times;</button>
+                                        </div>
+                                        <div class="modal-body">
+                                          <h5 class="mb-3">Califica este producto</h5>
+                                          <div class="rating">
+                                            <span class="fas fa-star" 
+                                                  (mouseenter)="setTempRating(5)"
+                                                  (mouseleave)="resetTempRating()"
+                                                  (click)="setRating(5)"
+                                                  [class.selected]="tempRating >= 5 || review.estrellas >= 5">
+                                            </span>
+                                            <span class="fas fa-star"
+                                                  (mouseenter)="setTempRating(4)"
+                                                  (mouseleave)="resetTempRating()"
+                                                  (click)="setRating(4)"
+                                                  [class.selected]="tempRating >= 4 || review.estrellas >= 4">
+                                            </span>
+                                            <span class="fas fa-star"
+                                                  (mouseenter)="setTempRating(3)"
+                                                  (mouseleave)="resetTempRating()"
+                                                  (click)="setRating(3)"
+                                                  [class.selected]="tempRating >= 3 || review.estrellas >= 3">
+                                            </span>
+                                            <span class="fas fa-star"
+                                                  (mouseenter)="setTempRating(2)"
+                                                  (mouseleave)="resetTempRating()"
+                                                  (click)="setRating(2)"
+                                                  [class.selected]="tempRating >= 2 || review.estrellas >= 2">
+                                            </span>
+                                            <span class="fas fa-star"
+                                                  (mouseenter)="setTempRating(1)"
+                                                  (mouseleave)="resetTempRating()"
+                                                  (click)="setRating(1)"
+                                                  [class.selected]="tempRating >= 1 || review.estrellas >= 1">
+                                            </span>
+                                          </div>
+                                          <div class="text-muted mb-3">
+                                            {{review.estrellas}} de 5 estrellas
+                                          </div>
+                                          <textarea [(ngModel)]="review.comentario" 
+                                                    class="form-control" 
+                                                    rows="4"
+                                                    placeholder="Escribe tu comentario aquí...">
+                                          </textarea>
+                                        </div>
+                                        <div class="modal-footer">
+                                          <button type="button" class="btn btn-secondary" (click)="modal.hide()">Cerrar</button>
+                                          <button type="button" class="btn btn-primary" (click)="emitirResena(item.productoid, modal)">Enviar</button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                </div>
+                              </div>
+                            </td>
+                            <td class="border-top-0">
+                              <div class="py-2">
+                                <div class="font-size-xs text-muted mb-1">Price:</div>
+                                <div class="font-size-sm text-dark">${{ item.precio }}</div>
+                              </div>
+                            </td>
+                            <td class="border-top-0">
+                              <div class="py-2">
+                                <div class="font-size-xs text-muted mb-1">Cantidad:</div>
+                                <div class="font-size-sm text-dark">{{ item.cantidad }}</div>
+                              </div>
+                            </td>
+                            <td class="border-top-0">
+                              <div class="py-2 pr-3 text-right">
+                                <div class="font-size-xs text-muted mb-1">Subtotal:</div>
+                                <div class="font-size-sm font-weight-bold text-dark">${{ item.subtotal_detalle }}</div>
+                              </div>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td>
+                              <div class="py-2">
+                                <span class="font-size-xs text-muted">Precio Envio: </span>
+                                <span class="font-size-sm text-dark">${{ orden.envioprecio }}</span>
+                              </div>
+                            </td>
+                            <td>
+                              <div class="py-2 pr-3 text-right">
+                                <span class="font-size-xs text-muted">Total: </span>
+                                <span class="font-size-sm font-weight-bold text-dark">${{orden.subtotal| number:'1.2-2'}}</span>
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+          </div>
+        </div>
+      </section>
+</main>
+<app-footer></app-footer>

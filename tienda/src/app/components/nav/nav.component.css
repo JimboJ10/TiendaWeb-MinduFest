@@ -1,0 +1,255 @@
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 1000;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.search-item {
+  border-bottom: 1px solid #eee;
+}
+
+.search-item:last-child {
+  border-bottom: none;
+}
+
+.search-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.search-link:hover {
+  background-color: #f8f9fa;
+}
+
+.search-img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.search-info {
+  flex: 1;
+}
+
+.brand-logo {
+  margin-right: -0.5rem !important;
+  transition: transform 0.3s ease;
+}
+
+.brand-logo:hover {
+  transform: scale(1.05);
+}
+
+.logo-text {
+  font-size: 1.6rem !important;
+  margin-left: 0.5rem;
+  letter-spacing: 0.5px;
+  color: #333;
+}
+.logo-text:hover {
+  transform: scale(1.05);
+}
+
+
+/* Ajuste responsive */
+@media (max-width: 992px) {
+  .navbar-brand {
+    margin-right: 0;
+  }
+
+  .brand-logo {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .logo-text {
+    font-size: 1.2rem !important;
+  }
+}
+
+.navbar-nav {
+  margin-left: 2rem;
+}
+
+/* Estilos generales del navbar */
+.navbar {
+  background-color: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 1rem 0;
+}
+
+.navbar-brand h1{
+  margin-right: 2rem;
+  font-weight: bold;
+  background: linear-gradient(to right, #1073BA 0%, #00DA55 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  
+}
+
+.navbar-nav .nav-link {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
+  color: #1073BA;
+}
+
+.navbar-toggler {
+  border: none;
+}
+
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba%28107, 115, 119, 0.5%29' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+}
+
+.input-group-overlay .form-control {
+  border: 1px solid #ddd;
+  border-radius: 30px;
+  padding: 0.5rem 1rem;
+}
+
+.input-group-overlay .input-group-text {
+  background: none;
+  border: none;
+  color: #333;
+}
+
+.nav-tools .nav-tool {
+  display: flex;
+  align-items: center;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.nav-tools .nav-tool:hover {
+  color: #1073BA;
+}
+
+.nav-tools .nav-tool-icon {
+  font-size: 1.5rem;
+  margin-right: 0.5rem;
+}
+
+.nav-tools .badge {
+  background-color: #1073BA;
+  color: #fff;
+  font-size: 0.75rem;
+  border-radius: 10px;
+  padding: 0.25rem 0.5rem;
+}
+
+.dropdown-menu {
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-item {
+  font-size: 1rem;
+  color: #333;
+  transition: background-color 0.3s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #f8f9fa;
+}
+
+/* Estilos responsive */
+@media (max-width: 992px) {
+  .navbar-nav {
+    text-align: center;
+  }
+
+  .navbar-nav .nav-link {
+    padding: 0.5rem 1rem;
+  }
+
+  .input-group-overlay {
+    margin: 1rem 0;
+  }
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+@media (max-width: 992px) {
+  .navbar-collapse {
+    position: fixed;
+    top: 0;
+    left: -100%;  /* Cambio aquí */
+    padding: 20px;
+    width: 280px;
+    height: 100vh;
+    background-color: #fff;
+    transition: 0.3s ease-in-out;
+    z-index: 1050;
+    overflow-y: auto;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  }
+
+  .navbar-collapse.show {
+    left: 0;  /* Cambio aquí */
+  }
+
+  /* Overlay oscuro cuando el menú está abierto */
+  .navbar-collapse::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: 0.3s ease-in-out;
+    z-index: -1;
+  }
+
+  .navbar-collapse.show::before {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Ajustes adicionales para el menú móvil */
+  .navbar-nav {
+    margin-top: 20px;
+  }
+
+  .nav-item {
+    margin: 10px 0;
+  }
+
+  .nav-link {
+    padding: 10px 0;
+    font-size: 16px;
+  }
+
+  /* Ajustes para el dropdown en móvil */
+  .dropdown-menu {
+    position: static !important;
+    float: none;
+    width: 100%;
+    margin-top: 0;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+  }
+}

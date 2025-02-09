@@ -1,0 +1,75 @@
+<app-nav></app-nav>
+
+<main  class="cs-page-wrapper">
+  <nav class="bg-secondary mb-3" aria-label="breadcrumb">
+    <div class="container">
+        <ol class="breadcrumb breadcrumb-alt mb-0">
+            <li>
+                <a [routerLink]="['/inicio']">
+                    <i class="fas fa-home"></i>
+                </a>
+                <i class="fas fa-greater-than text-muted mx-3"></i>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Doble Autenticación</li>
+        </ol>
+    </div>
+  </nav>
+
+    <section class="container pt-3 pt-lg-4 pb-5 pb-lg-6">
+        <div class="row pb-2 pb-lg-0">
+            <aside class="col-xl-3 col-lg-4 pb-3 mb-4 mb-lg-0">
+                <!-- Account menu (sticky sidebar) -->
+                <app-siderbar></app-siderbar>
+            </aside>
+
+            <div class="col-lg-8 ml-auto">
+                <div class="card-header">
+                  <h5 class="mb-0">Autenticación de dos factores (2FA)</h5>
+                </div>
+                <div class="card-body">
+                  <div *ngIf="!twoFactorEnabled && !showQR">
+                    <p>La autenticación de dos factores no está activada.</p>
+                    <button class="btn btn-primary" (click)="configurar2FA()">
+                      Activar 2FA
+                    </button>
+                  </div>
+              
+                  <div *ngIf="showQR" class="text-center">
+                    <p>Escanea este código QR con tu aplicación de autenticación:</p>
+                    <img [src]="qrCode" alt="QR Code" class="mb-3">
+                    <div class="form-group">
+                      <label>Ingresa el código de verificación:</label>
+                      <input 
+                        type="text" 
+                        class="form-control text-center" 
+                        [(ngModel)]="verificationCode"
+                        maxlength="6"
+                        pattern="[0-9]*"
+                        placeholder="000000"
+                        autofocus>
+                    </div>
+                    
+                    <button 
+                      class="btn btn-primary" 
+                      [disabled]="verificationCode.length !== 6"
+                      (click)="verificarYActivar2FA()">
+                      Verificar y Activar
+                    </button>
+                  </div>
+              
+                  <div *ngIf="twoFactorEnabled">
+                    <p class="text-success">
+                      <i class="cxi-check-circle"></i>
+                      La autenticación de dos factores está activada
+                    </p>
+                    <button class="btn btn-danger" (click)="desactivar2FA()">
+                      Desactivar 2FA
+                    </button>
+                  </div>
+                </div>
+              </div>
+        </div>
+    </section>
+</main>
+
+<app-footer></app-footer>

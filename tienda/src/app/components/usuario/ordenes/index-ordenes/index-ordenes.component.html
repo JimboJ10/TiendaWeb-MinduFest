@@ -1,0 +1,83 @@
+<app-nav></app-nav>
+
+<main  class="cs-page-wrapper">
+  <nav class="bg-secondary mb-3" aria-label="breadcrumb">
+    <div class="container">
+        <ol class="breadcrumb breadcrumb-alt mb-0">
+            <li>
+                <a [routerLink]="['/inicio']">
+                    <i class="fas fa-home"></i>
+                </a>
+                <i class="fas fa-greater-than text-muted mx-3"></i>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Mis Ordenes</li>
+        </ol>
+    </div>
+  </nav>
+
+    <section class="container pt-3 pt-lg-4 pb-5 pb-lg-6">
+        <div class="row pb-2 pb-lg-0">
+
+            <aside class="col-xl-3 col-lg-4 pb-3 mb-4 mb-lg-0">
+                <!-- Account menu (sticky sidebar) -->
+                <app-siderbar></app-siderbar>
+            </aside>
+          <!-- Content -->
+          <div class="col-lg-8 ml-auto">
+            <div class="d-flex align-items-center justify-content-between mb-4 pb-sm-2">
+                <h1 class="h2 mb-0">Mis Ordenes</h1>
+              </div>
+  
+              <!-- Orders accordion -->
+            <div class="accordion-alt" *ngIf="!load_data && !noOrdenes" id="orders">
+              <ng-container>
+                <!-- Order -->
+                <div class="card border-bottom" *ngFor="let item of ordenes | slice:(page-1)*pageSize : (page-1)*pageSize + pageSize; let indice = index">
+                  <div class="card-header accordion-heading py-1">
+                    <a [routerLink]="['/cuenta/ordenes',item.ventaid]" routerLinkActive="router-link-active" class="d-flex flex-wrap justify-content-between py-3" data-toggle="collapse" aria-expanded="false">
+                      <span class="pr-2">#{{item.ventaid}}</span>
+                      <span class="font-size-sm text-muted text-nowrap px-2">
+                        <i class="fas fa-clock font-size-base align-middle mt-n1 mr-1"></i>
+                        {{item.fecha | date}}
+                      </span>
+                      <span class="badge badge-info">{{item.estado}}</span>
+                      <span class="text-dark pl-1">${{item.subtotal | number:'1.2-2'}}</span>
+                    </a>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
+
+            <div class="row" *ngIf="load_data">
+              <div class="col-12 text-center">
+                <!-- Custom size border spinner -->
+                <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
+                  <span class="sr-only">Loading...</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="row" *ngIf="!load_data && noOrdenes">
+              <div class="col-12 text-center">
+                <div class="alert alert-warning" role="alert">
+                  No tienes órdenes😞. <a [routerLink]="['/productos']" class="alert-link">Ir a comprar</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="row mt-4" *ngIf="!noOrdenes">
+              <div class="col-12">
+                <ngb-pagination
+                  [(page)]="page"
+                  [pageSize]="pageSize"
+                  [collectionSize]="ordenes.length"
+                  aria-label="Default pagination">
+                </ngb-pagination>
+              </div>
+            </div>
+              
+          </div>
+        </div>
+      </section>
+</main>
+<app-footer></app-footer>

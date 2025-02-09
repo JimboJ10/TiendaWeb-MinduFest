@@ -1,0 +1,25 @@
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.cs-page-wrapper {
+    animation: fadeIn 1s ease-in-out;
+}
+
+.star-rating {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 5px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+}
+
+.fa-star {
+    transition: color 0.2s;
+}
+

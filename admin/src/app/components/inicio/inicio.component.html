@@ -1,0 +1,85 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+  <h1 class="mt-2 mt-md-4 mb-3 pt-5">Dashboard</h1>
+  
+  <!-- Selector de año mejorado -->
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row align-items-center">
+        <div class="col-auto">
+          <i class="fas fa-calendar-alt fa-2x text-primary"></i>
+        </div>
+        <div class="col">
+          <div class="form-group mb-0">
+            <label for="yearSelect" class="form-label text-muted mb-1">
+              <small class="text-uppercase fw-bold">Periodo Anual</small>
+            </label>
+            <select 
+              id="yearSelect" 
+              class="form-select form-select-lg border-0 bg-light"
+              [(ngModel)]="selectedYear" 
+              (change)="onYearChange(selectedYear)">
+              <option disabled selected>Seleccione un año</option>
+              <option *ngFor="let year of availableYears" [value]="year">
+                {{ year }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="row">
+  <div class="col-md-3 col-sm-6 mb-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h5 class="card-title">GANANCIA TOTAL</h5>
+        <p class="card-text">${{ total_ganancia }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6 mb-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h5 class="card-title">GANANCIA DEL MES</h5>
+        <p class="card-text">${{ total_mes }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6 mb-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h5 class="card-title">Nº VENTAS</h5>
+        <p class="card-text">{{ count_ventas }}</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6 mb-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h5 class="card-title">MES ANTERIOR</h5>
+        <p class="card-text">${{ total_mes_anterior }}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card box-shadow-sm">
+  <div class="card-header">
+    <h5 style="margin-bottom: 0px;">Ventas Mensuales</h5>
+  </div>
+
+  <div class="card-body">
+    <div class="row">
+      <div class="col-12">
+        <canvas id="myChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>

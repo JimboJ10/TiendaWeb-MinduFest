@@ -1,0 +1,118 @@
+<app-nav></app-nav>
+
+<main class="cs-page-wrapper">
+  <!-- Hero Section -->
+  <section class="cs-hero-section">
+    <div class="cs-hero-inner" data-carousel-options=''>
+      <!-- Slide 1 -->
+      <div class="cs-hero-slide" style="background-image: url(../../assets/img/ecommerce/home/hero-slider/fondo4.jpg);">
+        <div class="container pt-5 pb-6">
+          <div class="row pb-lg-6">
+            <div class="col-lg-6 offset-lg-1 offset-xl-0 pb-4 pb-md-6">
+              <div class="cs-hero-content">
+                <h1 class="cs-hero-title logo animated fadeInLeft">Bienvenido a MinduFest</h1>
+                <p class="cs-hero-subtitle animated fadeInRight">Descubre lo último en tecnología</p>
+                <a [routerLink]="['/productos']" routerLinkActive="router-link-active" class="btn btn-outline-primary 
+                    btn-lg cs-hero-btn animated fadeInUp">
+                  Ver productos
+                  <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Productos Destacados -->
+  <section class="cs-featured-products">
+    <div class="container">
+      <h2 class="cs-section-title ">Nuestros Productos</h2>
+      <div class="carousel">
+        <div class="carousel-container">
+          <div class="carousel-track">
+            <!-- Solo necesitamos un conjunto de productos duplicados -->
+            <div class="cs-product-card" *ngFor="let producto of productosFiltrados">
+              <app-product-rating [rating]="productRatings[producto.productoid] || 0"></app-product-rating>
+              <img [src]="url + '' + producto.portada" alt="{{producto.nombre}}" class="cs-product-image">
+              <h3 class="cs-product-title">{{producto.nombre}}</h3>
+              <p class="cs-product-price">${{producto.precio | number:'1.2-2'}}</p>
+              <a [routerLink]="['/productos', producto.titulo]" class="btn btn-primary cs-product-btn">Ver producto</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sobre Nosotros -->
+  <section class="cs-about-us">
+    <div class="container">
+      <h2 class="cs-section-title">Sobre Nosotros</h2>
+      <div class="row">
+        <div class="col-md-6">
+          <p class="cs-about-text">
+            Bienvenido a MinduFest, tu tienda en línea de confianza para descubrir lo último en tecnología. Nos enorgullece ofrecer una amplia gama de productos de alta calidad que se adaptan a tus necesidades y estilo de vida. Nuestro equipo está dedicado a brindarte la mejor experiencia de compra posible, con un enfoque en la satisfacción del cliente y la innovación constante.
+          </p>
+          <p class="cs-about-text">
+            En MinduFest, creemos en la importancia de mantenerse al día con las tendencias más recientes y ofrecer productos que no solo sean funcionales, sino también elegantes y modernos. Ya sea que estés buscando el último gadget tecnológico o una prenda de moda a la vanguardia, estamos aquí para ayudarte a encontrar exactamente lo que necesitas.
+          </p>
+        </div>
+        <div class="col-md-6">
+          <!-- Aquí debe ir una imagen -->
+          <img src="../../assets/img/ecommerce/home/hero-slider/sobre-nosotros.avif" alt="Sobre Nosotros" class="cs-about-image">
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="bg-dark">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-5">
+          <img src="../../assets/img/ecommerce/home/mobile-app-illustration.png" class="d-block mx-auto my-4 mb-lg-0 mt-lg-n4" width="498" alt="Illustartion">
+        </div>
+        <div class="col-md-7 col-lg-6 pt-3 pb-5 pt-md-5 pb-md-4 ml-auto">
+          <h2 class="text-light text-center text-md-left pb-3">¡Disfrute de las compras!</h2>
+          <div class="d-flex flex-wrap flex-sm-nowrap justify-content-center justify-content-md-start">
+            <a class="btn-market btn-apple mb-3 mx-2 ml-md-0 mr-md-3" role="button">
+              <span class="btn-market-subtitle">Download on the</span>
+              <span class="btn-market-title">App Store</span>
+            </a>
+            <a class="btn-market btn-google mb-3 mx-2 mx-md-0" role="button">
+              <span class="btn-market-subtitle">Download on the</span>
+              <span class="btn-market-title">Google Play</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+</section>
+  <!-- Services -->
+  <section class="container pt-5 pb-2 pb-sm-5 py-md-5 py-lg-6">
+    <div class="row py-3">
+      <div class="col-sm-6 col-md-3 text-center mb-md-0 mb-4 pb-md-0 pb-3">
+        <img class="mb-4" src="../../assets/img/ecommerce/home/services/delivery.svg" width="48" alt="Worldwide Shipping">
+        <h5 class="h5 mb-2">Envío rápido a todo el mundo</h5>
+      </div>
+      <span class="divider-vertical d-sm-block d-none"></span>
+      <div class="col-sm-6 col-md-3 text-center mb-md-0 mb-4 pb-md-0 pb-3">
+        <img class="mb-4" src="../../assets/img/ecommerce/home/services/support.svg" width="48" alt="Customer Support">
+        <h5 class="h5 mb-2">Atención al cliente 24 horas al día, 7 días a la semana</h5>
+      </div>
+      <span class="divider-vertical d-sm-block d-none"></span>
+      <div class="col-sm-6 col-md-3 text-center mb-md-0 mb-4 pb-md-0 pb-3">
+        <img class="mb-4" src="../../assets/img/ecommerce/home/services/guarantee.svg" width="48" alt="Customer Support">
+        <h5 class="h5 mb-2">Garantía de devolución del dinero</h5>
+        <p class="mb-0 text-muted">Devolvemos dinero en 30 días</p>
+      </div>
+      <span class="divider-vertical d-sm-block d-none"></span>
+      <div class="col-sm-6 col-md-3 text-center mb-md-0 mb-4 pb-md-0 pb-3">
+        <img class="mb-4" src="../../assets/img/ecommerce/home/services/payment.svg" width="48" alt="Customer Support">
+        <h5 class="h5 mb-2">Pago seguro en línea</h5>
+      </div>
+    </div>
+</section>
+</main>
+
+<app-footer></app-footer>

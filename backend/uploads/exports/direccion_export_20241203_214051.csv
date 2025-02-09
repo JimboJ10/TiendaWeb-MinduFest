@@ -1,0 +1,5 @@
+direccionid,usuarioid,codigopostal,direcciontexto,pais,provincia,ciudad,telefono,principal,destinatario
+27,18,070101,Ave. principal y acapulco este,Ecuador,El Oro,Arenillas,0987564732,true,Yoselin Anibal
+24,14,407083,av29 y calle jose,Ecuador,El Oro,Machala,0987453423,false,Jordy Jimbo
+28,14,232123,Calle pichincha y sucre,Ecuador,Pichincha,Quito,0987657424,true,Cristiano Ronaldo
+29,19,94848,porlo y kmsfp,Ecuador,Guayas,Guayaquil,0987656638,true,Jordy Jimbo

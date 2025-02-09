@@ -1,0 +1,305 @@
+<app-nav></app-nav>
+<main class="cs-page-wrapper fadeIn">
+    <nav class="bg-secondary mb-3" aria-label="breadcrumb">
+        <div class="container">
+          <ol class="breadcrumb breadcrumb-alt mb-0">
+            <li>
+              <a [routerLink]="['/inicio']">
+                  <i class="fas fa-home"></i>
+              </a>
+              <i class="fas fa-greater-than text-muted mx-3"></i>
+            </li>
+            <li>
+              <a class="text-decoration-none" *ngIf="producto.categoria" [routerLink]="['/productos/categoria/',producto.categoria.toLowerCase()]" routerLinkActive="router-link-active" >{{producto.categoria}}</a>
+              <i class="fas fa-greater-than mx-3"></i>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">{{producto.titulo}}</li>
+          </ol>
+        </div>
+      </nav>
+      <!-- Page title -->
+      <section class="container d-md-flex align-items-center justify-content-between py-3 py-md-4 mb-3">
+        <h1 class="mb-2 mb-md-0">{{producto.titulo}}</h1>
+        <span class="text-muted"><strong>Art. No.</strong> {{producto.productoid}}</span>
+      </section>
+      <!-- Single product -->
+      <section class="container py-md-6 py-5 mb-2">
+        <div class="row">
+          <div class="col-md-6 mb-md-0 mb-4">
+            <!-- Rating sobre la imagen del producto -->
+            <div class="cs-carousel cs-gallery cs-product-gallery mx-auto position-relative" style="max-width: 570px;">
+              <!-- Rating Badge -->
+              <app-product-rating [rating]="rating"></app-product-rating>
+              
+              <!-- Imagen del producto -->
+              <a class="cs-gallery-item" style="cursor: pointer;">
+                <img class="rounded" [src]="url + '' + producto.portada" alt="Carousel image">
+                <span class="cs-gallery-caption">{{producto.titulo}}</span>
+              </a>
+            </div>
+          </div>
+          <div class="col-md-6 pl-xl-5">
+            <div class="d-sm-flex align-items-center justify-content-between mb-4">
+
+              <!-- Price -->
+              <div class="d-flex align-items-center mb-sm-0 mb-4">
+                <span class="h3 d-inline-block mb-0 ">${{producto.precio | number:'1.2-2'}}</span>
+              </div>
+
+              <!-- Indicador de stock -->
+              <div class="ml-auto">
+                <span *ngIf="producto.stock > 5" class="badge badge-success mr-5">
+                  En stock
+                </span>
+                <span *ngIf="producto.stock > 0 && producto.stock <= 5" class="badge badge-warning mr-5">
+                  ¡Solo quedan {{producto.stock}} unidades!
+                </span>
+                <span *ngIf="producto.stock <= 0" class="badge badge-danger">
+                  No disponible
+                </span>
+              </div>
+
+              <!-- Rating -->
+              <div class="text-sm-right">
+                <div class="star-rating ml-auto">
+                  <ng-container *ngFor="let starClass of getStarsArray(rating)">
+                      <i [class]="starClass" 
+                         style="color: #ffc107; margin-right: 2px;">
+                      </i>
+                  </ng-container>
+              </div>
+                <span class="font-size-sm text-muted">{{reviews.length}} reseñas</span>
+              </div>
+            </div>
+
+            <!-- Ordering form -->
+            <form class="row">
+              <div class="col-sm-8 order-sm-1 order-2">
+              </div>
+              <div class="col-sm-4 order-sm-2 order-1 text-sm-right" >
+                <a data-toggle="modal" class="d-inline-block mt-sm-4 mb-sm-0 mb-4 pt-sm-3 font-weight-bold text-decoration-0 text-dark" style="margin-bottom: 15px !important; cursor: pointer;">
+                  <i class="fas fa-gamepad mr-2w"></i>
+                  Gaming
+                </a>
+              </div>
+              <div class="col-lg-2 col-4 order-lg-3 order-3">
+                <div class="form-group">
+                    <input type="number" 
+                           class="form-control form-control-sm bg-light mr-3" 
+                           style="width: 4.5rem;" 
+                           name="cantidad" 
+                           [(ngModel)]="carrito_data.cantidad"
+                           [disabled]="producto.stock <= 0"
+                           min="1"
+                           [max]="producto.stock"
+                           [ngClass]="{'bg-secondary': producto.stock <= 0}">
+                </div>
+              </div>
+              <div class="col-lg-6 order-lg-4 order-4">
+                
+                <!-- Muestra mensaje cuando no hay stock -->
+                <div *ngIf="producto.stock <= 0" class="alert alert-danger text-center">
+                  <i class="fas fa-exclamation-circle mr-2"></i>
+                  Actualmente no disponible
+                </div>
+                <button class="btn btn-block btn-primary" (click)="agregar_producto()" *ngIf="nombres != undefined && producto.stock > 0">
+                  <i class="fas fa-shopping-cart mr-2"></i>
+                  Agregar al carrito
+                </button>
+                <button class="btn btn-block btn-primary" *ngIf="nombres == undefined && producto.stock > 0" [routerLink]="['/login']">
+                  <i class="fas fa-shopping-cart mr-2"></i>
+                  Agregar al carrito
+                </button>
+              </div>
+              <div class="col-lg-4 col-8 order-lg-5 order-2">
+              </div>
+            </form>
+
+            <!-- Accordion made of cards -->
+            <div class="accordion-alt mb-4" id="productTerms">
+              <!-- Card -->
+              <div class="card border-bottom">
+                <div class="card-header">
+                  <h6 class="mb-0">
+                    <a class="d-flex align-items-center justify-content-between text-dark text-decoration-none" data-toggle="collapse">
+                      <span class="font-weight-medium">Descripción</span>
+                      <i class="fas fa-angle-down"></i>
+                    </a>
+                  </h6>
+                </div>
+                <div id="productTermsOne" class="collapse show" data-parent="#productTerms">
+                  <div class="card-body">
+                    <p>{{producto.descripcion}}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Share -->
+            <div class="mb-5 text-nowrap">
+              <h6 class="d-inline-block align-middle mr-2 mb-0">Share:</h6>
+              <a  class="social-btn sb-solid align-middle mr-2" data-toggle="tooltip" title="Facebook" style="cursor: pointer;">
+                <i class="fab fa-facebook"></i>
+              </a>
+              <a  class="social-btn sb-solid align-middle mr-2" data-toggle="tooltip" title="Twitter"style="cursor: pointer;">
+                <i class="fab fa-x"></i>
+              </a>
+              <a  class="social-btn sb-solid align-middle" data-toggle="tooltip" title="Pinterest"style="cursor: pointer;">
+                <i class="fab fa-instagram"></i>
+              </a>
+            </div>
+
+            <!-- Payment -->
+            <div class="pb-3 text-nowrap" data-simplebar data-simplebar-auto-hide="false">
+              <a  class="d-inline-block mb-3 mr-xl-4 mr-3">
+                <img src="assets/img/visa.jpg" alt="Visa" class="border rounded">
+              </a>
+              <a  class="d-inline-block mb-3 mr-xl-4 mr-3">
+                <img src="assets/img/master-card.jpg" alt="Mastercard" class="border rounded">
+              </a>
+              <a class="d-inline-block mb-3">
+                <img src="assets/img/pay-pal.jpg" alt="PayPal" class="border rounded">
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="py-5" style="background-color: #e5e8ed;">
+        <section  class="container my-lg-2 py-2 py-md-4" >
+          <div class="row">
+            <div class="col-lg-7 col-md-8 mb-md-0 mb-4" [innerHTML]="producto.contenido">
+              
+            </div>
+            <div class="col-md-4 offset-lg-1">
+  
+              <!-- Product card carousel -->
+              <div class="card card-product">
+                <div class="card-product-img">
+                  <app-product-rating [rating]="rating" [showValue]="false"></app-product-rating>
+                  <div class="cs-carousel cs-controls-onhover">
+                    <a class="cs-gallery-item"  style="cursor: pointer;">
+                        <img class="rounded" [src]="url + '' +producto.portada"  alt="Carousel image">
+                        <span class="cs-gallery-caption">{{producto.titulo}}</span>
+                      </a>
+                  </div>
+                  <div class="card-product-widgets-top">
+                    <div class="ml-auto star-rating">
+                        <i class="fas fa-star active"></i>
+                        <i class="fas fa-star active"></i>
+                        <i class="fas fa-star active"></i>
+                        <i class="fas fa-star active"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                </div>
+                  <div class="card-product-widgets-bottom">
+                    <a class="btn-wishlist ml-auto" data-toggle="tooltip" data-placement="left" title="Add to wishlist"></a>
+                  </div>
+                </div>
+                <div class="card-body pb-2" style="background-color: white;">
+                  <h3 class="card-product-title text-truncate mb-2">
+                    <a class="nav-link">{{producto.titulo}}</a>
+                  </h3>
+                  <div class="d-flex align-items-center">
+                    <span class="h5 d-inline-block mb-0" style="margin-bottom: 15px !important;">${{producto.precio | number:'1.2-2'}}</span>
+                  </div>
+                  <button class="btn btn-block btn-primary" (click)="agregar_producto()" *ngIf="nombres != undefined">
+                    <i class="fas fa-shopping-cart mr-2"></i>
+                    Agregar al carrito
+                  </button>
+                  <button class="btn btn-block btn-primary" (click)="agregar_producto()" *ngIf="nombres == undefined" [routerLink]="['/login']">
+                    <i class="fas fa-shopping-cart mr-2"></i>
+                    Agregar al carrito
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Añadir esta sección para mostrar las reseñas -->
+      <section class="container py-md-6 py-5 mb-2">
+        <div class="row">
+          <div class="col-lg-8 col-md-10 mb-md-0 mb-5">
+            <!-- Rating Summary -->
+            <div class="mb-4">
+              <h3 class="h2 mb-4">Valoraciones y Reseñas</h3>
+              <div *ngIf="reviews.length === 0">
+                <p class="text-muted">Este producto no tiene valoraciones ni reseñas.</p>
+              </div>
+              <div *ngIf="reviews.length > 0">
+                <div class="row align-items-center">
+                  <!-- Overall Rating -->
+                  <div class="col-md-4 text-center mb-4 mb-md-0">
+                    <div class="h1 mb-2">{{rating | number:'1.1-1'}}</div>
+                    <div class="star-rating mb-2 justify-content-center">
+                      <ng-container *ngFor="let starClass of getStarsArray(rating)">
+                        <i [class]="starClass" 
+                           style="color: #ffc107; margin-right: 2px;">
+                        </i>
+                    </ng-container>
+                    </div>
+                    <p class="font-size-sm text-muted mb-0">
+                      Basado en {{reviews.length}} reseñas
+                    </p>
+                  </div>
+
+                  <!-- Rating Breakdown -->
+                  <div class="col-md-8">
+                    <!-- Stars distribution -->
+                    <ng-container *ngFor="let count of starCount.slice().reverse(); let i = index">
+                      <div class="d-flex align-items-center mb-2">
+                        <div class="text-nowrap text-muted mr-3">
+                          <span class="d-inline-block align-middle">{{5 - i}}</span>
+                          <i class="fas fa-star ml-1" style="color: #ffc107;"></i>
+                        </div>
+                        <div class="w-100">
+                          <div class="progress" style="height: 4px;">
+                            <div class="progress-bar bg-warning" 
+                                [style.width]="(count / reviews.length * 100) + '%'">
+                            </div>
+                          </div>
+                        </div>
+                        <span class="text-muted ml-3">{{count}}</span>
+                      </div>
+                    </ng-container>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Reviews List -->
+            <div class="pt-4">
+              <div *ngFor="let review of reviews | slice: (page-1) * pageSize : page * pageSize" 
+                  class="mb-4 pb-4 border-bottom">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <div>
+                    <h6 class="mb-0">{{review.nombres}} {{review.apellidos}}</h6>
+                    <span class="font-size-sm text-muted">{{review.createdat | date:'mediumDate'}}</span>
+                  </div>
+                  <div class="star-rating">
+                    <ng-container *ngFor="let starClass of getStarsArray(review.estrellas)">
+                        <i [class]="starClass" 
+                           style="color: #ffc107; margin-right: 2px;">
+                        </i>
+                    </ng-container>
+                </div>
+                </div>
+                <p class="mb-0">{{review.comentario}}</p>
+              </div>
+              <!-- Pagination -->
+              <div class="col-12">
+                <ngb-pagination
+                  [(page)]="page"
+                  [pageSize]="pageSize"
+                  [collectionSize]="reviews.length">
+                </ngb-pagination>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+</main>
+
+<app-footer></app-footer>

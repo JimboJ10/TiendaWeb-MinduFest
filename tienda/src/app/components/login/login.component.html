@@ -1,0 +1,59 @@
+<app-nav></app-nav>
+
+<main class="cs-page-wrapper fadeIn">
+    <nav class="bg-secondary mb-3" aria-label="breadcrumb">
+        <div class="container">
+            <ol class="breadcrumb breadcrumb-alt mb-0">
+                <li>
+                    <a [routerLink]="['/inicio']">
+                        <i class="fas fa-home"></i>
+                    </a>
+                    <i class="fas fa-greater-than text-muted mx-3"></i>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Iniciar sesión</li>
+            </ol>
+        </div>
+      </nav>
+
+    <section class="container pt-3 pt-md-4 pb-3 pb-sm-4 pb-lg-5 mb-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="px-md-5">
+                    <h3 class="modal-title mt-4 mb-0 text-center">Iniciar Sesión</h3>
+                    <p class="font-size-sm text-muted text-center">Inicia sesión en tu cuenta con el correo electrónico y la contraseña proporcionados durante el registro.</p>
+                    <form #loginForm="ngForm" (ngSubmit)="login(loginForm)">
+                        <div class="form-group">
+                            <label for="signin-email">Correo electrónico</label>
+                            <input type="email" class="form-control" placeholder="Tu correo electrónico" required name="email" [(ngModel)]="user.email">
+                        </div>
+                        <div class="form-group">
+                            <label for="signin-password" class="form-label">Contraseña</label>
+                            <div class="cs-password-toggle input-group-overlay">
+                                <input [type]="showPassword ? 'text' : 'password'" class="form-control appended-form-control" id="signin-password" placeholder="Tu contraseña" required name="password" [(ngModel)]="user.password">
+                                <div class="input-group-append-overlay">
+                                    <label class="btn cs-password-toggle-btn input-group-text">
+                                        <input type="checkbox" 
+                                                class="custom-control-input" 
+                                                (change)="togglePasswordVisibility()">
+                                        <i class="fas" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                        <span class="sr-only">Mostrar contraseña</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center form-group">
+                            <a [routerLink]="['/solicitar-cambio']" class="font-size-sm text-decoration-none">Olvidaste tu contraseña?</a>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Iniciar sesión</button>
+                        <p class="font-size-sm pt-4 mb-0">
+                            ¿No tienes una cuenta?
+                            <a routerLink="/registro" class="font-weight-bold text-decoration-none">Regístrate</a>
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<app-footer></app-footer>

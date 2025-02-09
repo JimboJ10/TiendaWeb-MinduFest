@@ -1,0 +1,17 @@
+.star-rating {
+  padding: 5px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+}
+
+.star-rating i {
+  font-size: 14px;
+  margin-right: 2px;
+}
+
+/* Colores para los diferentes tipos de estrellas */
+.star-rating .fas.fa-star,
+.star-rating .fas.fa-star-half-alt {
+  color: #ffc107;
+}

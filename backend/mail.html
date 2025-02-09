@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factura de Compra</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #000; /* Color del texto en negro */
+        }
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: auto;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 8px 8px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .details {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        .details table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .details table td {
+            padding: 10px;
+            font-size: 16px;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .table th, .table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .table th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .table tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .total {
+            text-align: right;
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        .total p {
+            margin: 5px 0;
+            font-size: 16px;
+        }
+        @media (max-width: 600px) {
+            .details table, .table {
+                font-size: 14px;
+            }
+            .details table td, .table th, .table td {
+                padding: 8px;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            .total p {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Gracias por su compra</h1>
+        </div>
+        <div class="details">
+            <table>
+                <tr>
+                    <td><strong>Cliente:</strong> <%= venta.nombres %> <%= venta.apellidos %></td>
+                    <td><strong>N° Venta:</strong> <%= venta.ventaid %></td>
+                    <td><strong>Fecha:</strong> <%= new Date(venta.fecha).toLocaleDateString() %></td>
+                </tr>
+            </table>
+        </div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% venta.detalles.forEach(item => { %>
+                <tr>
+                    <td><%= item.titulo %></td>
+                    <td><%= item.cantidad %></td>
+                    <td>$<%= parseFloat(item.precio).toFixed(2) %></td>
+                    <td>$<%= (item.cantidad * parseFloat(item.precio)).toFixed(2) %></td>
+                </tr>
+                <% }) %>
+            </tbody>
+        </table>
+        <div class="total">
+            <p><strong>Envío:</strong> $<%= parseFloat(venta.envioprecio).toFixed(2) %></p>
+            <p><strong>Total Pagado:</strong> $<%= parseFloat(venta.subtotal).toFixed(2) %></p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Ventas</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted">Ventas de la tienda.</p>
+      
+    </div>
+</div>
+
+<div class="card box-shadow-sm">
+    <div class="card-header">
+        <h5 style="margin-bottom: 0px;">Filtro de ventas</h5>
+    </div>
+    <div class="card-header">
+        <div class="row">
+            <div class="col-6">
+                <div class="form-group">
+                    <label class="form-label" for="desde">Desde</label>
+                    <input class="form-control" id="desde" type="date" [(ngModel)]="desde">
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="form-group">
+                    <label class="form-label" for="hasta">Hasta</label>
+                    <input class="form-control" id="hasta" type="date" [(ngModel)]="hasta">
+                </div>
+            </div>            
+        </div>
+    </div>
+    <div class="card-header">
+        <div class="import-export-container">
+          <!-- Sección para importar -->
+          <div class="import-section">
+             <!-- Botón para seleccionar archivo -->
+              <input type="file" (change)="seleccionarArchivo($event)" accept=".csv" />
+              <!-- Botón para importar el archivo seleccionado -->
+              <button (click)="importarVenta()" class="btn-import-">Importar CSV</button>
+          </div>
+      
+          <!-- Sección para exportar -->
+          <div class="export-section">
+            <button (click)="exportarVenta()" class="btn-export-excel">Exportar</button>
+            <button (click)="generarPDF()" class="btn-export-pdf">Exportar PDF</button>
+        </div>
+  
+        </div>
+    </div>
+    <div class="card-footer">
+        <button type="button" class="btn btn-primary" (click)="filtrar()">Filtrar</button>
+    </div>
+    <div class="card-body">
+        <ng-container *ngFor="let venta of ventas | slice:(page-1)*pageSize : (page-1)*pageSize + pageSize; let indice = index">
+            <div class="row mt-3 justify-content-between">
+                <div class="col">
+                    <h3 class="h5 mb-2 nav-dark">
+                        <a class="nav-link">{{venta.nombres}} {{venta.apellidos}} </a>
+                    </h3>
+                </div>
+                <div class="col text-right">
+                    <!-- Dropdown de estados -->
+                    <div class="dropdown d-inline-block mr-2">
+                        <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-toggle="dropdown">
+                            Cambiar Estado
+                        </button>
+                        <div class="dropdown-menu">
+                            <button *ngFor="let estado of estados" 
+                                    class="dropdown-item" 
+                                    type="button"
+                                    (click)="$event.preventDefault(); abrirModalNota(venta, estado)">
+                                {{estado.nombre}}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="modal-overlay" [ngStyle]="{'display': mostrarModal ? 'flex' : 'none'}">
+                        <div class="modal-custom" (click)="$event.stopPropagation()">
+                            <div class="modal-header">
+                                <h5>Cambiar Estado de Venta</h5>
+                                <button type="button" class="close" (click)="cerrarModal()">×</button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Estado seleccionado: {{estadoSeleccionado?.nombre}}</p>
+                                <textarea [(ngModel)]="nota_estado" 
+                                         class="form-control" 
+                                         rows="3"
+                                         placeholder="Ingrese una nota para este cambio de estado..."></textarea>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" (click)="cerrarModal()">Cancelar</button>
+                                <button type="button" class="btn btn-primary" (click)="confirmarCambioEstado()">Guardar</button>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <!-- Badge del estado actual -->
+                    <span class="badge" 
+                          [ngClass]="{
+                            'badge-warning': venta.estado === 'Procesando',
+                            'badge-info': venta.estado === 'Confirmado',
+                            'badge-primary': venta.estado === 'Enviado',
+                            'badge-success': venta.estado === 'Entregado',
+                            'badge-danger': venta.estado === 'Cancelado'
+                          }">
+                        {{venta.estado}}
+                    </span>
+                
+                    <!-- Mantener el dropdown de acciones existente -->
+                    <div class="dropdown d-inline-block ml-2">
+                        <a style="cursor: pointer;" class="dropdown-toggle" data-toggle="dropdown">
+                            <span class="cxi-settings"></span>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a [routerLink]="['/panel/ventas', venta.ventaid]" 
+                               routerLinkActive="active" 
+                               class="dropdown-item">Ver detalles</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <ul class="nav nav-muted mb-2 pb-1">
+                        <li class="nav-item mr-2">
+                          <span class="badge badge-dark MR-3">#{{venta.nventa}}</span>
+                          <span class="text-border px-1">|</span>
+                        </li>
+                        <li class="nav-item mr-2">
+                          <a class="nav-link d-inline-block mr-2 p-0 font-size-sm font-weight-normal">
+                            {{ venta.fecha | date }}
+                          </a>
+                          <span class="text-border px-1">|</span>
+                        </li>
+                        <li class="nav-item mr-2">
+                          <a class="nav-link d-inline-block mr-2 p-0 font-size-sm font-weight-normal">
+                            <i class="cxi-truck mt-n1 mr-2 font-size-base align-middle"></i>
+                            {{venta.enviotitulo}}
+                          </a>
+                        </li>
+                      </ul>
+                </div>
+                <div class="col-12 mb-3">
+                    <div class="d-flex align-items-center">
+                        <span class="h5 d-inline-block mb-0">${{venta.subtotal}}</span>
+                    </div>
+                </div>
+            </div>
+            <hr>
+        </ng-container>
+    </div>
+    
+    <div class="card-footer">
+        <ngb-pagination
+          [(page)]="page"
+          [pageSize]="pageSize"
+          [collectionSize]="ventas.length"
+         > </ngb-pagination>
+     </div>
+</div> 

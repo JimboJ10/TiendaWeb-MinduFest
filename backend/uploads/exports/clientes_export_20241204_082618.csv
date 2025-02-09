@@ -1,0 +1,4 @@
+usuarioid,dni,nombres,apellidos,email,pais,password,telefono,fNacimiento,genero
+14,LOI124932,Pier,Ortiz,pier@gmail.com,Ecuador,$2a$10$K4CoRvmvw4yAgyRlYRvt3u6aHkRiNsa.w5393C.aR6/DRFLMqCtle,555-3231,2011-02-23 00:00:00,Masculino
+18,,Leonel,Messi,messi@gmail.com,Argentina,$2a$10$IUwwjwFpY43lKO4ITI4gUOMlQbmTDd9hArzsfwwzIfPAsdwMQQIyy,0987567483,1996-07-11 00:00:00,Masculino
+19,,Cristiano,Ronaldo,ronaldo@gmail.com,Ecuador,$2a$10$K0heX3lWlo4MUyQl4PpOS.yqgu1Xk5/W1vl4UHVRVJEodvn.A2q8G,0987654732,1996-02-29 00:00:00,Masculino

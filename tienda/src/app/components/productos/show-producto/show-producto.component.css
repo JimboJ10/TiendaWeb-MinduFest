@@ -1,0 +1,33 @@
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.cs-page-wrapper {
+    animation: fadeIn 1s ease-in-out;
+}
+
+.star-rating {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px;
+    border-radius: 3px;
+}
+
+.star-rating i {
+    font-size: 14px;
+    transition: color 0.2s;
+}
+
+.progress {
+    background-color: #e9ecef;
+    border-radius: 0.25rem;
+}
+
+.progress-bar {
+    transition: width 0.6s ease;
+}

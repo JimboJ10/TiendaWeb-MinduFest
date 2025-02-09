@@ -1,0 +1,155 @@
+/* Aplicar box-sizing globalmente */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    justify-content: center; /* Centra las filas incompletas */
+    align-items: center; /* Alinea verticalmente las tarjetas */
+}
+
+.developer-card {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.4s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+}
+
+.developer-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.developer-card:hover {
+    z-index: 10;
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+.developer-card:hover .developer-info {
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.developer-card:hover .developer-info img {
+    margin-right: 20px;
+    transform: scale(1.1);
+}
+
+.developer-card img {
+    width: 100px;
+    height: 150px;
+    border-radius: 50%;
+    margin-bottom: 15px;
+    transition: transform 0.3s ease;
+}
+
+.details {
+    max-width: 300px;
+    text-align: left;
+}
+
+.developer-card h3 {
+    margin-top: 10px;
+    color: #333;
+}
+
+.developer-card p {
+    color: #555;
+}
+
+.developer-card .contact-info {
+    margin-top: 10px;
+    font-size: 0.9em;
+}
+
+/* Media Queries for Responsive Design */
+
+/* Tablets (768px to 1024px) */
+@media (max-width: 1024px) {
+    .container {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+
+    .developer-card img {
+        width: 80px;
+        height: 120px;
+    }
+}
+
+/* Mobile devices (up to 768px) */
+@media (max-width: 768px) {
+    .container {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .developer-card {
+        padding: 15px;
+    }
+
+    .developer-card img {
+        width: 70px;
+        height: 100px;
+    }
+
+    .details {
+        max-width: 100%;
+    }
+}
+
+/* Small phones (up to 480px) */
+@media (max-width: 480px) {
+    body {
+        justify-content: flex-start;
+        height: auto;
+    }
+
+    .container {
+        width: 100%;
+        padding: 10px;
+    }
+
+    .developer-card {
+        padding: 10px;
+        font-size: 0.9em;
+    }
+
+    .developer-card img {
+        width: 60px;
+        height: 90px;
+    }
+}
+
+.social-icons {
+    display: flex;
+    gap: 10px; /* Espaciado entre íconos */
+    margin-top: 10px;
+}
+
+.social-icons a {
+    color: #555;
+    font-size: 1.2em;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.social-icons a:hover {
+    color: #6e0979; /* Color de hover */
+    transform: scale(1.2); /* Aumentar tamaño al pasar el mouse */
+}

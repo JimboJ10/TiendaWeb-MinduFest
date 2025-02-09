@@ -1,0 +1,18 @@
+.star-rating {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.star-rating i {
+    font-size: 16px;
+    margin-right: 2px;
+}
+
+.star-rating .fas.fa-star {
+    color: #ffc107;
+}
+
+.star-rating .far.fa-star {
+    color: #e4e5e9;
+}

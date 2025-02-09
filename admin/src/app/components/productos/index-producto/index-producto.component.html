@@ -1,0 +1,118 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Productos</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted"></p>
+      <p class="font-size-sm font-weight-medium pl-md-4">
+        <a class="text-nowrap" [routerLink]="['/panel/productos/registro']">Registrar nuevo<i class="cxi-angle-right font-size-base align-middle ml-1"></i></a>
+      </p>
+    </div>
+  </div>
+
+  <div class="card box-shadow-sm">
+        <div class="card-header">
+            <h5 style="margin-bottom: 0px;">Filtro de productos</h5>
+        </div>
+        <div class="card-header">
+          <div class="row">
+            <div class="col-6">
+              <!-- Button addon on the right -->
+              <div class="input-group">
+                <input class="form-control" type="text" placeholder="Titulo del producto"  name="filtro" [(ngModel)]="filtro">
+                <div class="input-group-append">
+                  <button class="btn btn-primary" type="button" (click)="filtrar()">Filtrar</button>
+                  <button class="btn btn-info" type="button" (click)="resetear()">Resetear</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-header">
+          <div class="import-export-container">
+            <!-- Sección para importar -->
+            <div class="import-section">
+               <!-- Botón para seleccionar archivo -->
+                <input type="file" (change)="seleccionarArchivo($event)" accept=".csv" />
+                <!-- Botón para importar el archivo seleccionado -->
+                <button (click)="importarProducto()">Importar CSV</button>
+            </div>
+        
+            <!-- Sección para exportar -->
+            <div class="export-section">
+              <button (click)="exportarProducto()" class="btn-export-excel">Exportar</button>
+              <button (click)="generarPDF()" class="btn-export-pdf">Exportar PDF</button>
+            </div>
+    
+          </div>
+        </div>
+        
+        <div class="card-body">
+            <div class="table-responsive">
+              <table id="tabla-productos" class="table table-bordered">
+                <thead class="thead-dark">
+                  <tr>
+                    <th>#</th>
+                    <th class="portada-column">Portada</th>
+                    <th>Titulo</th>
+                    <th>Stock</th>
+                    <th>Precio</th>
+                    <th>Categoria</th>
+                    <th class="opciones-column">Opciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let item of productosFiltrados | slice:(page-1)*pageSize : (page-1)*pageSize + pageSize; let indice = index">
+                    <td>{{indice + 1}}</td>
+                    <td class="portada-column">
+                      <img style="width: 50px; display: block; margin: 0 auto;"  [src]="url + '' + item.portada" class="img-thumbnail rounded-0" alt="Portada" (error)="onImageError($event)">
+                    </td>
+                    
+                    <td>{{item.titulo}}</td>
+                    <td>{{item.stock}}</td>
+                    <td>{{item.precio}}</td>
+                    <td>{{item.categoria}}</td>
+                    <td class="opciones-column">
+                      <div class="btn-group dropdown d-inline-block">
+                        <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          Opciones
+                        </button>
+                        <div class="dropdown-menu">
+                          <a class="dropdown-item" [routerLink]="['/panel/productos', item.productoid]">Editar producto</a>
+                          <a href="#" class="dropdown-item" style="cursor: pointer;" data-toggle="modal" [attr.data-target]="'#delete-'+item.productoid">Eliminar producto</a>
+                          <a class="dropdown-item" [routerLink]="['/panel/productos/inventario', item.productoid]">Inventario</a>
+                          <a class="dropdown-item" [routerLink]="['/panel/productos/reviews', item.productoid]">Reseñas</a>
+                        </div>
+                        <div class="modal fade" id="delete-{{item.productoid}}" tabindex="-1" style="display: none;" aria-hidden="true">
+                          <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h4 class="modal-title">Confirmación de Eliminar</h4>
+                                <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true"></span></button>
+                              </div>
+                              <div class="modal-body">
+                                <p>{{item.titulo}}, Desea eliminar este producto?</p>
+                              </div>
+                              <div class="modal-footer">
+                                <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancelar</button>
+                                <button class="btn btn-primary btn-shadow btn-sm" (click)="eliminar(item.productoid)" type="button">Si, eliminar</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+        </div>
+        <div class="card-footer">
+           <ngb-pagination
+             [(page)]="page"
+             [pageSize]="pageSize"
+             [collectionSize]="productosFiltrados.length"
+            > </ngb-pagination>
+        </div>
+  </div>

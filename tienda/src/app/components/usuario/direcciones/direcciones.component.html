@@ -1,0 +1,179 @@
+<app-nav></app-nav>
+
+<main  class="cs-page-wrapper">
+    <nav class="bg-secondary mb-3" aria-label="breadcrumb">
+        <div class="container">
+            <ol class="breadcrumb breadcrumb-alt mb-0">
+                <li>
+                    <a [routerLink]="['/inicio']">
+                        <i class="fas fa-home"></i>
+                    </a>
+                    <i class="fas fa-greater-than text-muted mx-3"></i>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Mis Direcciones</li>
+            </ol>
+        </div>
+    </nav>
+    <section class="container pt-3 pt-lg-4 pb-5 pb-lg-6">
+        <div class="row pb-2 pb-lg-0">
+
+            <aside class="col-xl-3 col-lg-4 pb-3 mb-4 mb-lg-0">
+                <!-- Account menu (sticky sidebar) -->
+                <app-siderbar></app-siderbar>
+            </aside>
+          <!-- Content -->
+          
+          <div class="col-lg-8 ml-auto">
+            <div class="d-flex align-items-center justify-content-between mb-4 pb-1 pb-sm-3">
+              <h1 class="h2 mb-0">Nuevas direcciones</h1>
+            </div>
+
+            <div class="form-group mb-3">
+                <div class="input-group">
+                    <input
+                        #searchInput
+                        class="form-control form-control-lg"
+                        type="text"
+                        placeholder="Buscar una dirección..."
+                        (keydown.enter)="$event.preventDefault()"
+                    >
+                    <div class="input-group-append">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Google Map -->
+            <div class="map-container mb-4">
+                <google-map 
+                  height="400px" 
+                  width="100%" 
+                  [zoom]="zoom" 
+                  [center]="center" 
+                  (mapClick)="onMapClick($event)">
+                  <map-marker 
+                    [position]="markerPosition" 
+                    [options]="markerOptions"
+                    (mapDragend)="onMarkerDragEnd($event)">
+                  </map-marker>
+                </google-map>
+            </div>
+          <!-- Formulario y Lista de Direcciones -->
+            <form class="mb-5" #registroForm="ngForm" (ngSubmit)="registrar(registroForm)">
+                <div class="row mb-3">
+                    <div class="col-sm-6 form-group">
+                        <label for="ac-fn">Nombres</label>
+                        <input type="text" required class="form-control form-control-lg" name="destinatario" [(ngModel)]="direccion.destinatario" placeholder="Nombres completos del destinatario" required>
+                    </div>
+                    <div class="col-sm-6 form-group">
+                      <label for="pais">País</label>
+                      <input type="text" class="form-control form-control-lg" name="pais" [(ngModel)]="direccion.pais" readonly required>
+                    </div>
+                    <div class="col-sm-6 form-group">
+                      <label for="provincia">Provincia</label>
+                      <input type="text" class="form-control form-control-lg" name="provincia" [(ngModel)]="direccion.provincia" readonly required>
+                    </div>
+                    <div class="col-sm-6 form-group">
+                      <label for="ciudad">Ciudad</label>
+                      <input type="text" class="form-control form-control-lg" name="ciudad" [(ngModel)]="direccion.ciudad" readonly required>
+                    </div>
+                    <div class="col-sm-6 form-group">
+                      <label for="codigopostal">Código Postal</label>
+                      <input 
+                          type="text" 
+                          class="form-control form-control-lg" 
+                          name="codigopostal" 
+                          [(ngModel)]="direccion.codigopostal" 
+                          [readonly]="codigoPostalReadonly"
+                          [class.bg-light]="codigoPostalReadonly"
+                          required>
+                  </div>
+                  <div class="col-sm-6 form-group">
+                    <label for="telefono">Teléfono de contacto</label>
+                    <input type="tel" required class="form-control form-control-lg" name="telefono" [(ngModel)]="direccion.telefono" placeholder="Tu numero telefonico" required>
+                  </div>
+                    <div class="col-sm-6 form-group">
+                      <label for="direcciontexto">Dirección Completa</label>
+                      <textarea class="form-control form-control-lg" name="direcciontexto" [(ngModel)]="direccion.direcciontexto" readonly rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="col-sm-12 form-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="ex-check-1" name="principal" [(ngModel)]="direccion.principal">
+                            <label class="form-check-label" for="ex-check-1">Activar dirección principal</label>
+                          </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg">&nbsp;Crear Dirección&nbsp;</button>
+            </form>
+           <!-- Lista de Direcciones con Paginación -->
+           <div class="row">
+            <div class="col-12">
+                <!-- Loader -->
+                <div class="row" *ngIf="load_data">
+                    <div class="col-12 text-center">
+                        <div class="spinner-border" style="width: 3rem; height: 3rem;" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- No direcciones message -->
+                <div class="row" *ngIf="!load_data && noDirecciones">
+                    <div class="col-12 text-center">
+                        <div class="alert alert-warning" role="alert">
+                            No tienes direcciones registradas😞.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Direcciones list -->
+                <div class="row" *ngIf="!load_data && !noDirecciones">
+                    <div class="col-12">
+                        <ng-container *ngFor="let item of direcciones | slice:(page-1)*pageSize : (page-1)*pageSize + pageSize">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3 col-sm-4 mb-sm-0 mb-3">
+                                            <h3 class="mb-2 fs-lg" style="font-size: 20px !important;">
+                                                {{item.destinatario}}</h3>
+                                            <span class="d-block mb-3 fs-sm text-muted">{{item.codigopostal}}</span>
+                                            <a class="badge badge-primary" *ngIf="item.principal">Dirección de
+                                                envio</a>
+                                            <a class="badge badge-success" style="cursor: pointer;"
+                                                *ngIf="!item.principal"
+                                                (click)="establecer_principal(item.direccionid)">Establecer
+                                                principal</a>
+                                        </div>
+                                        <div class="col">
+                                            <p class="mb-3">{{item.direcciontexto}}</p>
+                                            <p class="mb-3">
+                                                {{item.pais}}
+                                                <span *ngIf="item.provincia">{{item.provincia}}</span>-
+                                                <span *ngIf="item.ciudad">{{item.ciudad}}</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </ng-container>
+
+                        <!-- Pagination -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <ngb-pagination [(page)]="page" [pageSize]="pageSize"
+                                    [collectionSize]="direcciones.length" aria-label="Default pagination">
+                                </ngb-pagination>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+          </div>
+        </div>
+      </section>
+</main>
+<app-footer></app-footer>

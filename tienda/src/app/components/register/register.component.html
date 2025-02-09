@@ -1,0 +1,99 @@
+<app-nav></app-nav>
+
+<main class="cs-page-wrapper">
+    <nav class="bg-secondary mb-3" aria-label="breadcrumb">
+        <div class="container">
+            <ol class="breadcrumb breadcrumb-alt mb-0">
+                <li>
+                    <a [routerLink]="['/inicio']">
+                        <i class="fas fa-home"></i>
+                    </a>
+                    <i class="fas fa-greater-than text-muted mx-3"></i>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Registro</li>
+            </ol>
+        </div>
+      </nav>
+
+    <section class="container pt-3 pt-md-4 pb-3 pb-sm-4 pb-lg-5 mb-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="px-md-5">
+                    <h3 class="modal-title mt-4 mb-0 text-center">Registro rápido</h3>
+                    <p class="font-size-sm text-muted text-center">Regístrate con tu información.</p>
+                    <form #registerForm="ngForm" (ngSubmit)="register(registerForm)">
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <label for="register-nombres">Nombres completos</label>
+                                    <input type="text" class="form-control" placeholder="Nombres" required name="nombres" [(ngModel)]="newUser.nombres">
+                                </div>
+                                <div class="col-lg-6">
+                                    <label for="register-apellidos">Apellidos completos</label>
+                                    <input type="text" class="form-control" placeholder="Apellidos" required name="apellidos" [(ngModel)]="newUser.apellidos">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-email">Email</label>
+                            <input type="email" class="form-control" placeholder="Tu correo electrónico" required name="email" [(ngModel)]="newUser.email">
+                        </div>
+                        <div class="form-group">
+                            <label for="register-password">Contraseña</label>
+                            <div class="cs-password-toggle input-group-overlay">
+                                <input [type]="showPassword ? 'text' : 'password'" 
+                                       class="form-control appended-form-control" 
+                                       id="register-password" 
+                                       placeholder="Tu contraseña" 
+                                       required 
+                                       name="password" 
+                                       [(ngModel)]="newUser.password">
+                                <div class="input-group-append-overlay">
+                                    <label class="btn cs-password-toggle-btn input-group-text">
+                                        <input type="checkbox" 
+                                                class="custom-control-input" 
+                                                (change)="togglePasswordVisibility()">
+                                        <i class="fas" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                        <span class="sr-only">Mostrar contraseña</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <small class="form-text text-warning">
+                                La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial(&#64;$)
+                            </small>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-pais">País</label>
+                            <select class="form-control" required name="pais" [(ngModel)]="newUser.pais" id="register-pais">
+                                <option value="" disabled selected>Seleccionar</option>
+                                <option *ngFor="let pais of paises" [value]="pais">{{pais}}</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-telefono">Teléfono</label>
+                            <input type="text" class="form-control" placeholder="Teléfono" required name="telefono" [(ngModel)]="newUser.telefono">
+                        </div>
+                        <div class="form-group">
+                            <label for="register-fNacimiento">Fecha de Nacimiento</label>
+                            <input type="date" class="form-control" required name="fNacimiento" [(ngModel)]="newUser.fNacimiento">
+                        </div>
+                        <div class="form-group">
+                            <label for="register-genero">Género</label>
+                            <select class="form-control" required name="genero" [(ngModel)]="newUser.genero">
+                                <option value="Masculino">Masculino</option>
+                                <option value="Femenino">Femenino</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">Registrarme</button>
+                        <p class="font-size-sm pt-4 mb-0">
+                            ¿Ya tienes una cuenta?
+                            <a routerLink="/login" class="font-weight-bold text-decoration-none">Iniciar sesión</a>
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<app-footer></app-footer>

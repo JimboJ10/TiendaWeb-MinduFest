@@ -1,0 +1,126 @@
+.table-responsive {
+    overflow-x: auto;
+}
+
+.table th, .table td {
+    white-space: nowrap; /* Evita que el contenido de las celdas se rompa en varias líneas */
+}
+
+.table td, .table th {
+    text-align: center; /* Centra el texto en las celdas */
+    vertical-align: middle; /* Centra el contenido verticalmente en las celdas */
+}
+    
+.employee-container {
+width: 80%;
+margin: 0 auto;
+}
+
+table {
+width: 100%;
+margin-bottom: 30px;
+}
+
+table th, table td {
+text-align: left;
+padding: 8px;
+}
+
+.employee-form-container {
+margin-top: 20px;
+}
+
+.employee-form-container h2 {
+margin-bottom: 15px;
+}
+
+.employee-form .form-group {
+margin-bottom: 15px;
+}
+
+.employee-form label {
+font-weight: bold;
+}
+
+.employee-form .form-control {
+padding: 10px;
+width: 100%;
+box-sizing: border-box;
+}
+
+.employee-form button {
+margin-right: 10px;
+}
+
+/* Contenedor general para las secciones de importar y exportar */
+.import-export-container {
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+margin-bottom: 20px;
+padding: 10px 20px;
+border: 1px solid #ddd;
+border-radius: 8px;
+background-color: #f9f9f9;
+}
+
+/* Estilo para cada sección individual */
+.import-section,
+.export-section {
+width: 45%;
+padding: 10px;
+border: 1px solid #ccc;
+border-radius: 8px;
+background-color: #fff;
+box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.import-section {
+    width: 50%;
+}
+
+/* Títulos de las secciones */
+.import-section h3,
+.export-section h3 {
+font-size: 1.2rem;
+font-weight: bold;
+margin-bottom: 10px;
+color: #333;
+}
+
+/* Botones */
+.import-section button,
+.export-section button {
+background-color: #007bff;
+color: white;
+border: none;
+padding: 10px 15px;
+font-size: 0.9rem;
+border-radius: 5px;
+cursor: pointer;
+}
+
+.import-section button:hover,
+.export-section button:hover {
+background-color: #0056b3;
+}
+
+.import-section input[type="file"] {
+margin-top: 10px;
+}
+
+button:disabled {
+background-color: #cccccc;
+cursor: not-allowed;
+}
+
+.export-section .btn-export-excel {
+    background-color: green;
+    color: white;
+    margin-right: 10px;
+  }
+  
+  .export-section .btn-export-pdf {
+    background-color: red;
+    color: white;
+  }
