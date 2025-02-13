@@ -243,32 +243,32 @@ export class CarritoComponent implements OnInit {
     this._clienteService.registrarVenta(data).subscribe(
       response => {
         if (response.ventaid) {
-          this._clienteService.enviarCorreoCompra(response.ventaid).subscribe(
-            res => {
-              setTimeout(() => {
-                this.loading = false;
-                iziToast.show({
-                  title: 'Éxito',
-                  titleColor: '#1DC74C',
-                  class: 'text-success',
-                  position: 'topRight',
-                  message: 'Compra realizada con éxito. Se ha enviado una factura a su correo.'
-                });
-                this._router.navigate(['/inicio']);
-              }, 1000);
+          this._clienteService.enviarCorreoCompra(response.ventaid).subscribe({
+            next: (res) => {
+                setTimeout(() => {
+                    this.loading = false;
+                    iziToast.show({
+                        title: 'Éxito',
+                        titleColor: '#1DC74C',
+                        class: 'text-success',
+                        position: 'topRight',
+                        message: 'Compra realizada con éxito. Se ha enviado una factura a su correo.'
+                    });
+                    this._router.navigate(['/cuenta/ordenes']);
+                }, 1000);
             },
-            err => {
-              this.loading = false;
-              console.error('Error al enviar el correo:', err);
-              iziToast.show({
-                title: 'Error',
-                titleColor: '#FF0000',
-                class: 'text-danger',
-                position: 'topRight',
-                message: 'Hubo un problema al enviar la factura por correo.'
-              });
+            error: (err) => {
+                this.loading = false;
+                console.error('Error al enviar el correo:', err);
+                iziToast.show({
+                    title: 'Error',
+                    titleColor: '#FF0000',
+                    class: 'text-danger',
+                    position: 'topRight',
+                    message: `Error al enviar el correo: ${err.error?.details || 'Error desconocido'}`
+                });
             }
-          );
+          });
         } else {
           this.loading = false;
           iziToast.show({

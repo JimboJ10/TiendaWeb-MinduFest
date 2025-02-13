@@ -63,15 +63,42 @@ export class NavComponent implements OnInit{
     this.nombres = localStorage.getItem('nombres');
     this.usuarioid = localStorage.getItem('usuarioid');
 
+    if (!this.usuarioid || this.usuarioid === 'null' || this.usuarioid === 'undefined') {
+      console.error('No hay un ID de usuario válido');
+      return;
+    }
+
     this.guardarCarritoEnLocalStorage();
 
-    this.clienteService.obtenerCarritoCliente(this.usuarioid).subscribe(
-      response => {
-        this.carrito_arr = response;
-        this.calcular_carrito();
-        this.guardarCarritoEnLocalStorage();
+    this.clienteService.obtenerCarritoCliente(this.usuarioid).subscribe({
+      next: (response) => {
+          this.carrito_arr = response;
+          this.calcular_carrito();
+          this.guardarCarritoEnLocalStorage();
+      },
+      error: (error) => {
+          console.error('Error al obtener el carrito:', error);
+          if (error.status === 400) {
+              // Error de validación
+              iziToast.show({
+                  title: 'Error',
+                  titleColor: '#FF0000',
+                  class: 'text-danger',
+                  position: 'topRight',
+                  message: error.error.message || 'Error de validación'
+              });
+          } else {
+              // Otros errores
+              iziToast.show({
+                  title: 'Error',
+                  titleColor: '#FF0000',
+                  class: 'text-danger',
+                  position: 'topRight',
+                  message: 'Error al cargar el carrito'
+              });
+          }
       }
-    );
+    });
     this.obtenerCategorias();
 
     this.socket.on('new-carrito', (data) => {

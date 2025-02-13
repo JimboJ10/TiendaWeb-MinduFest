@@ -36,27 +36,57 @@ const agregarCarritoCliente = async(req, res) => {
 const obtenerCarritoCliente = async(req, res) => {
     const { id } = req.params;
 
+    // Validación del ID
+    if (!id || id === 'null' || id === 'undefined') {
+        return res.status(400).json({ 
+            message: 'ID de usuario inválido',
+            error: 'Se requiere un ID de usuario válido'
+        });
+    }
+
+    // Convertir ID a número
+    const usuarioId = parseInt(id);
+    if (isNaN(usuarioId)) {
+        return res.status(400).json({
+            message: 'ID de usuario inválido',
+            error: 'El ID debe ser un número'
+        });
+    }
+
     try {
+        // Verificar rol de cliente
         const resultRol = await pool.query(
-            'SELECT r.nombre FROM rol_usuario ru JOIN rol r ON ru.rolid = r.rolid WHERE ru.usuarioid = $1 AND r.nombre = $2', [id, 'Cliente']
+            'SELECT r.nombre FROM rol_usuario ru JOIN rol r ON ru.rolid = r.rolid WHERE ru.usuarioid = $1 AND r.nombre = $2', 
+            [usuarioId, 'Cliente']
         );
 
         if (resultRol.rowCount === 0) {
             return res.status(403).json({ message: 'El usuario no tiene el rol de Cliente' });
         }
 
+        // Obtener carrito
         const resultCarrito = await pool.query(
-            `SELECT c.carritoid, c.usuarioid, p.*, c.cantidad, c.precio AS precio_carrito, cat.nombrecategoria
+            `SELECT 
+                c.carritoid, 
+                c.usuarioid, 
+                p.*, 
+                c.cantidad, 
+                c.precio AS precio_carrito, 
+                cat.nombrecategoria
              FROM carrito c
              JOIN producto p ON c.productoid = p.productoid
              JOIN categoria cat ON p.categoriaid = cat.categoriaid
-             WHERE c.usuarioid = $1`, [id]
+             WHERE c.usuarioid = $1`,
+            [usuarioId]
         );
 
         res.status(200).json(resultCarrito.rows);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Error al obtener el carrito del cliente' });
+        console.error('Error en obtenerCarritoCliente:', error);
+        res.status(500).json({ 
+            message: 'Error al obtener el carrito del cliente',
+            error: error.message 
+        });
     }
 };
 

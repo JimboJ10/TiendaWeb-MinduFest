@@ -145,7 +145,13 @@ const enviarCorreoCompraCliente = async (req, res) => {
 
         const venta = ventaResult.rows[0];
 
-        // Obtener los detalles de los productos de la venta
+        // Verificar que el email existe
+        if (!venta.email) {
+            client.release();
+            return res.status(400).json({ error: 'No se encontró el email del cliente' });
+        }
+
+        // Obtener los detalles de los productos
         const detallesQuery = `
             SELECT p.titulo, dv.cantidad, p.precio::numeric
             FROM detalleventa dv
@@ -157,58 +163,44 @@ const enviarCorreoCompraCliente = async (req, res) => {
 
         venta.detalles = detallesResult.rows;
 
-        // Configurar el transporte de correo
+        // Configurar el transporte
         const transporter = nodemailer.createTransport(smtpTransport({
             service: 'gmail',
-            host: 'smtp.gmail.com',
+            host: process.env.EMAIL_HOST,
+            port: process.env.EMAIL_PORT,
             auth: {
-                user: 'jimbojordy383@gmail.com',
-                pass: 'pjrmfnatarzjoooa'
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
             },
             tls: {
                 rejectUnauthorized: false
             }
         }));
 
-        // Leer y renderizar la plantilla HTML
-        const readHTMLFile = (path, callback) => {
-            fs.readFile(path, { encoding: 'utf-8' }, (err, html) => {
-                if (err) {
-                    callback(err);
-                } else {
-                    callback(null, html);
-                }
-            });
+        // Verificar la conexión del transporte
+        await transporter.verify();
+
+        // Leer la plantilla HTML
+        const template = await fs.promises.readFile(process.cwd() + '/mail.html', 'utf-8');
+        const renderedHtml = ejs.render(template, { venta });
+
+        // Enviar el correo
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: venta.email,
+            subject: `Confirmación de Compra #${ventaid}`,
+            html: renderedHtml
         };
 
-        readHTMLFile(process.cwd() + '/mail.html', (err, html) => {
-            if (err) {
-                console.error('Error al leer la plantilla HTML:', err);
-                return res.status(500).json({ error: 'Error en el servidor' });
-            }
+        await transporter.sendMail(mailOptions);
+        res.status(200).json({ message: 'Correo enviado con éxito' });
 
-            const renderedHtml = ejs.render(html, { venta });
-
-            // Configurar el correo electrónico
-            const mailOptions = {
-                from: 'jimbojordy383@gmail.com',
-                to: venta.email, // Utiliza el correo del cliente
-                subject: 'Detalles de su compra',
-                html: renderedHtml
-            };
-
-            // Envia el correo electrónico
-            transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    console.error('Error al enviar el correo:', error);
-                    return res.status(500).json({ error: 'Error al enviar el correo' });
-                }
-                res.status(200).json({ message: 'Correo enviado con éxito' });
-            });
-        });
     } catch (err) {
-        console.error('Error en el servidor:', err);
-        res.status(500).json({ error: 'Error en el servidor' });
+        console.error('Error en enviarCorreoCompraCliente:', err);
+        res.status(500).json({ 
+            error: 'Error al enviar el correo',
+            details: err.message 
+        });
     }
 };
 
