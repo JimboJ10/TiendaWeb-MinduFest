@@ -4,6 +4,7 @@
 ### Frontend
 - Angular 15+
 - TypeScript
+- JavaScript
 - HTML5/CSS3
 
 ### Backend
