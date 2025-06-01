@@ -115,12 +115,12 @@ const crearOrdenCompra = async (req, res) => {
             fecha_entrega_esperada,
             observaciones,
             metodo_pago,
-            productos, // Array de productos con: productoid, cantidad, precio_unitario
-            descuento = 0,
-            impuestos = 0
+            productos, // Array de productos con: productoid, cantidad, precio_unitario, descuento_porcentaje
+            descuento_porcentaje = 0, // Porcentaje de descuento general (ej: 0.05 = 5%)
+            impuesto_porcentaje = 0   // Porcentaje de impuesto (ej: 0.12 = 12%)
         } = req.body;
         
-        const usuarioid = req.user.id; // Del middleware de autenticación
+        const usuarioid = req.user.id;
         
         // Validar campos requeridos
         if (!proveedorid || !productos || productos.length === 0) {
@@ -133,12 +133,37 @@ const crearOrdenCompra = async (req, res) => {
         
         // Calcular totales
         let subtotal = 0;
+        let productos_calculados = [];
+        
         for (const producto of productos) {
-            const itemSubtotal = producto.cantidad * producto.precio_unitario - (producto.descuento_item || 0);
-            subtotal += itemSubtotal;
+            const precio_base = parseFloat(producto.precio_unitario);
+            const cantidad = parseInt(producto.cantidad);
+            const descuento_item_porcentaje = parseFloat(producto.descuento_porcentaje || 0);
+            
+            // Calcular descuento por item en dólares
+            const descuento_item_dolares = precio_base * cantidad * descuento_item_porcentaje;
+            const subtotal_item = (precio_base * cantidad) - descuento_item_dolares;
+            
+            productos_calculados.push({
+                ...producto,
+                descuento_item: descuento_item_dolares, // Guardar en dólares
+                subtotal: subtotal_item
+            });
+            
+            subtotal += subtotal_item;
         }
         
-        const total = subtotal - descuento + impuestos;
+        // Calcular descuento general en dólares
+        const descuento_dolares = subtotal * parseFloat(descuento_porcentaje);
+        
+        // Calcular base para impuestos (subtotal - descuento general)
+        const base_impuesto = subtotal - descuento_dolares;
+        
+        // Calcular impuestos en dólares
+        const impuestos_dolares = base_impuesto * parseFloat(impuesto_porcentaje);
+        
+        // Total final
+        const total = base_impuesto + impuestos_dolares;
         
         // Crear la orden de compra
         const ordenResult = await client.query(`
@@ -151,15 +176,13 @@ const crearOrdenCompra = async (req, res) => {
         `, [
             numero_orden, proveedorid, fecha_entrega_esperada,
             observaciones, usuarioid, metodo_pago, subtotal,
-            impuestos, descuento, total
+            impuestos_dolares, descuento_dolares, total
         ]);
         
         const ordencompraid = ordenResult.rows[0].ordencompraid;
         
-        // Insertar detalles de la orden
-        for (const producto of productos) {
-            const itemSubtotal = producto.cantidad * producto.precio_unitario - (producto.descuento_item || 0);
-            
+        // Insertar detalles de la orden con descuentos calculados
+        for (const producto of productos_calculados) {
             await client.query(`
                 INSERT INTO detalle_orden_compra (
                     ordencompraid, productoid, cantidad, precio_unitario,
@@ -167,7 +190,7 @@ const crearOrdenCompra = async (req, res) => {
                 ) VALUES ($1, $2, $3, $4, $5, $6)
             `, [
                 ordencompraid, producto.productoid, producto.cantidad,
-                producto.precio_unitario, producto.descuento_item || 0, itemSubtotal
+                producto.precio_unitario, producto.descuento_item, producto.subtotal
             ]);
         }
         
@@ -176,7 +199,15 @@ const crearOrdenCompra = async (req, res) => {
         res.status(201).json({
             message: 'Orden de compra creada con éxito',
             ordencompraid,
-            numero_orden
+            numero_orden,
+            calculo_detalle: {
+                subtotal: subtotal,
+                descuento_porcentaje: descuento_porcentaje,
+                descuento_dolares: descuento_dolares,
+                impuesto_porcentaje: impuesto_porcentaje,
+                impuestos_dolares: impuestos_dolares,
+                total: total
+            }
         });
         
     } catch (err) {
@@ -202,8 +233,8 @@ const actualizarOrdenCompra = async (req, res) => {
             observaciones,
             metodo_pago,
             productos,
-            descuento = 0,
-            impuestos = 0
+            descuento_porcentaje = 0, // Cambiar a porcentaje
+            impuesto_porcentaje = 0   // Cambiar a porcentaje
         } = req.body;
         
         // Verificar que la orden existe y está en estado modificable
@@ -222,14 +253,39 @@ const actualizarOrdenCompra = async (req, res) => {
             return res.status(400).json({ error: 'No se puede modificar una orden en estado ' + estadoActual });
         }
         
-        // Calcular nuevos totales
+        // Calcular nuevos totales con la misma lógica
         let subtotal = 0;
+        let productos_calculados = [];
+        
         for (const producto of productos) {
-            const itemSubtotal = producto.cantidad * producto.precio_unitario - (producto.descuento_item || 0);
-            subtotal += itemSubtotal;
+            const precio_base = parseFloat(producto.precio_unitario);
+            const cantidad = parseInt(producto.cantidad);
+            const descuento_item_porcentaje = parseFloat(producto.descuento_porcentaje || 0);
+            
+            // Calcular descuento por item en dólares
+            const descuento_item_dolares = precio_base * cantidad * descuento_item_porcentaje;
+            const subtotal_item = (precio_base * cantidad) - descuento_item_dolares;
+            
+            productos_calculados.push({
+                ...producto,
+                descuento_item: descuento_item_dolares,
+                subtotal: subtotal_item
+            });
+            
+            subtotal += subtotal_item;
         }
         
-        const total = subtotal - descuento + impuestos;
+        // Calcular descuento general en dólares
+        const descuento_dolares = subtotal * parseFloat(descuento_porcentaje);
+        
+        // Calcular base para impuestos
+        const base_impuesto = subtotal - descuento_dolares;
+        
+        // Calcular impuestos en dólares
+        const impuestos_dolares = base_impuesto * parseFloat(impuesto_porcentaje);
+        
+        // Total final
+        const total = base_impuesto + impuestos_dolares;
         
         // Actualizar la orden de compra
         await client.query(`
@@ -246,15 +302,13 @@ const actualizarOrdenCompra = async (req, res) => {
             WHERE ordencompraid = $9
         `, [
             proveedorid, fecha_entrega_esperada, observaciones,
-            metodo_pago, subtotal, impuestos, descuento, total, id
+            metodo_pago, subtotal, impuestos_dolares, descuento_dolares, total, id
         ]);
         
         // Eliminar detalles existentes y crear nuevos
         await client.query('DELETE FROM detalle_orden_compra WHERE ordencompraid = $1', [id]);
         
-        for (const producto of productos) {
-            const itemSubtotal = producto.cantidad * producto.precio_unitario - (producto.descuento_item || 0);
-            
+        for (const producto of productos_calculados) {
             await client.query(`
                 INSERT INTO detalle_orden_compra (
                     ordencompraid, productoid, cantidad, precio_unitario,
@@ -262,14 +316,22 @@ const actualizarOrdenCompra = async (req, res) => {
                 ) VALUES ($1, $2, $3, $4, $5, $6)
             `, [
                 id, producto.productoid, producto.cantidad,
-                producto.precio_unitario, producto.descuento_item || 0, itemSubtotal
+                producto.precio_unitario, producto.descuento_item, producto.subtotal
             ]);
         }
         
         await client.query('COMMIT');
         
         res.status(200).json({
-            message: 'Orden de compra actualizada con éxito'
+            message: 'Orden de compra actualizada con éxito',
+            calculo_detalle: {
+                subtotal: subtotal,
+                descuento_porcentaje: descuento_porcentaje,
+                descuento_dolares: descuento_dolares,
+                impuesto_porcentaje: impuesto_porcentaje,
+                impuestos_dolares: impuestos_dolares,
+                total: total
+            }
         });
         
     } catch (err) {
@@ -323,12 +385,39 @@ const recibirProductos = async (req, res) => {
         await client.query('BEGIN');
         
         const { id } = req.params;
-        const { productos_recibidos } = req.body; // Array: [{ detalleordencompraid, cantidad_recibida }]
+        const { productos_recibidos } = req.body;
+        
+        // Validar que productos_recibidos existe y es un array
+        if (!productos_recibidos || !Array.isArray(productos_recibidos) || productos_recibidos.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ error: 'No se proporcionaron productos para recibir' });
+        }
         
         let todosRecibidos = true;
         
+        // Obtener información de la orden para el proveedor
+        const ordenResult = await client.query(`
+            SELECT proveedorid FROM orden_compra WHERE ordencompraid = $1
+        `, [parseInt(id)]);
+        
+        if (ordenResult.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ error: 'Orden de compra no encontrada' });
+        }
+        
+        const proveedorid = parseInt(ordenResult.rows[0].proveedorid);
+        
         for (const item of productos_recibidos) {
             const { detalleordencompraid, cantidad_recibida } = item;
+            
+            // Validar que los datos requeridos estén presentes
+            if (!detalleordencompraid || !cantidad_recibida || cantidad_recibida <= 0) {
+                await client.query('ROLLBACK');
+                return res.status(400).json({ error: 'Datos de recepción inválidos' });
+            }
+            
+            const detalleId = parseInt(detalleordencompraid);
+            const cantidadRecibida = parseInt(cantidad_recibida);
             
             // Obtener información del detalle
             const detalleResult = await client.query(`
@@ -336,14 +425,28 @@ const recibirProductos = async (req, res) => {
                 FROM detalle_orden_compra doc
                 JOIN producto p ON doc.productoid = p.productoid
                 WHERE doc.detalleordencompraid = $1
-            `, [detalleordencompraid]);
+            `, [detalleId]);
             
-            if (detalleResult.rows.length === 0) continue;
+            if (detalleResult.rows.length === 0) {
+                await client.query('ROLLBACK');
+                return res.status(404).json({ error: 'Detalle de orden no encontrado' });
+            }
             
             const detalle = detalleResult.rows[0];
-            const nueva_cantidad_recibida = detalle.recibido + cantidad_recibida;
+            const productoid = parseInt(detalle.productoid);
+            const cantidadOrdenada = parseInt(detalle.cantidad);
+            const cantidadRecibidaAntes = parseInt(detalle.recibido || 0);
+            const nueva_cantidad_recibida = cantidadRecibidaAntes + cantidadRecibida;
             
-            // Actualizar cantidad recibida
+            // Validar que no se reciba más de lo ordenado
+            if (nueva_cantidad_recibida > cantidadOrdenada) {
+                await client.query('ROLLBACK');
+                return res.status(400).json({ 
+                    error: `No se puede recibir más cantidad de la ordenada para el producto ${productoid}` 
+                });
+            }
+            
+            // Actualizar cantidad recibida en detalle_orden_compra
             await client.query(`
                 UPDATE detalle_orden_compra SET
                     recibido = $1,
@@ -352,24 +455,21 @@ const recibirProductos = async (req, res) => {
                         ELSE fecha_recepcion 
                     END
                 WHERE detalleordencompraid = $2
-            `, [nueva_cantidad_recibida, detalleordencompraid]);
+            `, [nueva_cantidad_recibida, detalleId]);
             
             // Actualizar stock del producto
             await client.query(`
                 UPDATE producto SET stock = stock + $1 WHERE productoid = $2
-            `, [cantidad_recibida, detalle.productoid]);
+            `, [cantidadRecibida, productoid]);
             
-            // Actualizar inventario
+            // SIMPLIFICADO: Insertar en inventario sin campo proveedor duplicado
             await client.query(`
-                INSERT INTO inventario (productoid, cantidad, proveedor, proveedorid)
-                SELECT $1, $2, p.nombre, $3
-                FROM orden_compra oc
-                JOIN proveedor p ON oc.proveedorid = p.proveedorid
-                WHERE oc.ordencompraid = $4
-            `, [detalle.productoid, cantidad_recibida, detalle.proveedorid, id]);
+                INSERT INTO inventario (productoid, cantidad, proveedorid)
+                VALUES ($1, $2, $3)
+            `, [productoid, cantidadRecibida, proveedorid]);
             
             // Verificar si este producto está completamente recibido
-            if (nueva_cantidad_recibida < detalle.cantidad) {
+            if (nueva_cantidad_recibida < cantidadOrdenada) {
                 todosRecibidos = false;
             }
         }
@@ -381,9 +481,10 @@ const recibirProductos = async (req, res) => {
             const pendientesResult = await client.query(`
                 SELECT COUNT(*) FROM detalle_orden_compra 
                 WHERE ordencompraid = $1 AND recibido < cantidad
-            `, [id]);
+            `, [parseInt(id)]);
             
-            nuevoEstado = parseInt(pendientesResult.rows[0].count) === 0 ? 'Recibida Completa' : 'Parcialmente Recibida';
+            const cantidadPendientes = parseInt(pendientesResult.rows[0].count);
+            nuevoEstado = cantidadPendientes === 0 ? 'Recibida Completa' : 'Parcialmente Recibida';
         } else {
             nuevoEstado = 'Parcialmente Recibida';
         }
@@ -391,14 +492,14 @@ const recibirProductos = async (req, res) => {
         // Actualizar estado de la orden
         await client.query(`
             UPDATE orden_compra SET
-                estado = $1,
+                estado = $1::varchar,
                 fecha_entrega_real = CASE 
-                    WHEN $1 = 'Recibida Completa' THEN CURRENT_TIMESTAMP 
+                    WHEN $1::varchar = 'Recibida Completa' THEN CURRENT_TIMESTAMP 
                     ELSE fecha_entrega_real 
                 END,
                 fecha_actualizacion = CURRENT_TIMESTAMP
             WHERE ordencompraid = $2
-        `, [nuevoEstado, id]);
+        `, [nuevoEstado, parseInt(id)]);
         
         await client.query('COMMIT');
         

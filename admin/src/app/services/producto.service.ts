@@ -45,10 +45,21 @@ export class ProductoService {
     return this._http.post(`${this.apiUrl}/registrar_producto`, formData, { headers });
   }
 
-  listarProductos(): Observable<any> {
-    const headers = this.getAuthHeaders();
+  listarProductos(token?: string): Observable<any> {
+    let headers: HttpHeaders;
+    
+    if (token) {
+      headers = new HttpHeaders({
+        'Content-Type': 'application/json',
+        'Authorization': token
+      });
+    } else {
+      headers = this.getAuthHeaders();
+    }
+    
     return this._http.get(`${this.apiUrl}/listar_productos`, { headers });
   }
+
 
   obtenerCategorias(): Observable<any> {
     const headers = this.getAuthHeaders();

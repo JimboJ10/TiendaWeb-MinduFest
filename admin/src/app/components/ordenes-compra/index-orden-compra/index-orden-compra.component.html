@@ -1,0 +1,187 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Órdenes de Compra</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted">Gestión de órdenes de compra a proveedores</p>
+      <p class="font-size-sm font-weight-medium pl-md-4">
+        <a class="text-nowrap" [routerLink]="['/panel/ordenes-compra/registro']">Nueva orden<i class="cxi-angle-right font-size-base align-middle ml-1"></i></a>
+      </p>
+    </div>
+</div>
+
+<!-- Estadísticas -->
+<div class="row mb-4" *ngIf="!load_estadisticas">
+  <div class="col-md-3">
+    <div class="card bg-primary text-white">
+      <div class="card-body text-center">
+        <h3>{{ estadisticas.total_ordenes || 0 }}</h3>
+        <p>Total Órdenes</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card bg-warning text-white">
+      <div class="card-body text-center">
+        <h3>{{ estadisticas.pendientes || 0 }}</h3>
+        <p>Pendientes</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card bg-success text-white">
+      <div class="card-body text-center">
+        <h3>{{ estadisticas.completadas || 0 }}</h3>
+        <p>Completadas</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card bg-info text-white">
+      <div class="card-body text-center">
+        <h3>${{ (estadisticas.valor_total ?? 0) | number:'1.2-2' }}</h3>
+        <p>Valor Total</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card box-shadow-sm">
+    <div class="card-header">
+        <h5 style="margin-bottom: 0px;">Filtros de búsqueda</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Buscar</label>
+            <input class="form-control" type="text" placeholder="Número de orden o proveedor" 
+                   [(ngModel)]="filtro">
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div class="form-group">
+            <label>Estado</label>
+            <select class="form-control" [(ngModel)]="estadoFiltro">
+              <option value="">Todos</option>
+              <option value="Pendiente">Pendiente</option>
+              <option value="Enviada">Enviada</option>
+              <option value="Confirmada">Confirmada</option>
+              <option value="En Tránsito">En Tránsito</option>
+              <option value="Parcialmente Recibida">Parcialmente Recibida</option>
+              <option value="Recibida Completa">Recibida Completa</option>
+              <option value="Cancelada">Cancelada</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div class="form-group">
+            <label>Proveedor</label>
+            <select class="form-control" [(ngModel)]="proveedorFiltro">
+              <option value="">Todos</option>
+              <option *ngFor="let proveedor of proveedores" [value]="proveedor.proveedorid">
+                {{ proveedor.nombre }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div class="form-group">
+            <label>Desde</label>
+            <input type="date" class="form-control" [(ngModel)]="desdeFiltro">
+          </div>
+        </div>
+        <div class="col-md-2">
+          <div class="form-group">
+            <label>Hasta</label>
+            <input type="date" class="form-control" [(ngModel)]="hastaFiltro">
+          </div>
+        </div>
+        <div class="col-md-1">
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <div>
+              <button class="btn btn-primary btn-block" (click)="filtrar()">
+                <i class="cxi-search"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-12">
+          <button class="btn btn-success mr-2" (click)="resetear()">
+            <i class="cxi-reload"></i> Resetear
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body">
+        <div *ngIf="load_data" class="text-center">
+            <div class="spinner-border" role="status">
+              <span class="sr-only">Cargando...</span>
+            </div>
+        </div>
+
+        <div *ngIf="!load_data">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Número Orden</th>
+                  <th scope="col">Proveedor</th>
+                  <th scope="col">Fecha Orden</th>
+                  <th scope="col">Fecha Entrega</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Items</th>
+                  <th scope="col">Total</th>
+                  <th scope="col">Opciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of ordenesFiltradas | paginate: { itemsPerPage: pageSize, currentPage: page }; let i = index">
+                  <th scope="row">{{ (page - 1) * pageSize + i + 1 }}</th>
+                  <td>{{ item.numero_orden }}</td>
+                  <td>{{ item.nombre_proveedor }}</td>
+                  <td>{{ item.fecha_orden | date:'dd/MM/yyyy' }}</td>
+                  <td>{{ item.fecha_entrega_esperada ? (item.fecha_entrega_esperada | date:'dd/MM/yyyy') : 'N/A' }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="getEstadoClass(item.estado)">
+                      {{ item.estado }}
+                    </span>
+                  </td>
+                  <td>{{ item.total_items }}</td>
+                  <td>${{ item.total | number:'1.2-2' }}</td>
+                  <td>
+                    <div class="dropdown">
+                      <a class="btn btn-secondary btn-sm dropdown-toggle" href="#" role="button" data-toggle="dropdown">
+                        Opciones
+                      </a>
+                      <div class="dropdown-menu">
+                        <a class="dropdown-item" [routerLink]="['/panel/ordenes-compra', item.ordencompraid]">Ver detalles</a>
+                        <a *ngIf="item.estado === 'Pendiente'" class="dropdown-item" [routerLink]="['/panel/ordenes-compra/editar', item.ordencompraid]">Editar</a>
+                        <a *ngIf="['Enviada', 'Confirmada', 'En Tránsito', 'Parcialmente Recibida'].includes(item.estado)" 
+                           class="dropdown-item" [routerLink]="['/panel/ordenes-compra/recibir', item.ordencompraid]">Recibir productos</a>
+                        <a *ngIf="!['Recibida Completa', 'Cancelada'].includes(item.estado)" 
+                           href="javascript:void(0)" class="dropdown-item" style="cursor: pointer;" (click)="cancelar_orden(item.ordencompraid)">Cancelar</a>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+    </div>
+    
+    <div class="card-footer">
+       <ngb-pagination
+         [(page)]="page"
+         [pageSize]="pageSize"
+         [collectionSize]="ordenesFiltradas.length">
+       </ngb-pagination>
+    </div>
+</div>

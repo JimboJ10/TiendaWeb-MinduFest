@@ -1,0 +1,161 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Recibir Productos</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted">Registrar recepción de productos de la orden</p>
+      <p class="font-size-sm font-weight-medium pl-md-4">
+        <a class="text-nowrap" [routerLink]="['/panel/ordenes-compra', id]">Regresar<i class="cxi-angle-right font-size-base align-middle ml-1"></i></a>
+      </p>
+    </div>
+</div>
+
+<div *ngIf="load_data" class="text-center">
+    <div class="spinner-border" role="status">
+      <span class="sr-only">Cargando...</span>
+    </div>
+</div>
+
+<div *ngIf="!load_data">
+    <!-- Información de la orden -->
+    <div class="card box-shadow-sm mb-4">
+        <div class="card-header">
+            <h5 style="margin-bottom: 0px;">Información de la Orden</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <p><strong>Número Orden:</strong> {{ orden.numero_orden }}</p>
+                    <p><strong>Proveedor:</strong> {{ orden.nombre_proveedor }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p><strong>Fecha Orden:</strong> {{ orden.fecha_orden | date:'dd/MM/yyyy' }}</p>
+                    <p><strong>Estado:</strong> <span class="badge badge-info">{{ orden.estado }}</span></p>
+                </div>
+                <div class="col-md-4">
+                    <p><strong>Total:</strong> ${{ orden.total | number:'1.2-2' }}</p>
+                    <p><strong>Entrega Esperada:</strong> {{ orden.fecha_entrega_esperada ? (orden.fecha_entrega_esperada | date:'dd/MM/yyyy') : 'N/A' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos para recibir -->
+    <div class="card box-shadow-sm mb-4">
+        <div class="card-header">
+            <h5 style="margin-bottom: 0px;">Productos a Recibir</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Ordenado</th>
+                            <th>Recibido Anteriormente</th>
+                            <th>Pendiente</th>
+                            <th>Progreso Actual</th>
+                            <th>Cantidad a Recibir</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let producto of productos_recepcion; let i = index">
+                            <td>
+                                <strong>{{ producto.producto_titulo }}</strong><br>
+                                <small class="text-muted">Precio: ${{ producto.precio_unitario | number:'1.2-2' }}</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-primary">{{ producto.cantidad_ordenada }}</span>
+                            </td>
+                            <td>
+                                <span class="badge badge-info">{{ producto.cantidad_recibida_anteriormente }}</span>
+                            </td>
+                            <td>
+                                <span class="badge badge-warning">{{ producto.cantidad_pendiente }}</span>
+                            </td>
+                            <td>
+                                <div class="progress" style="height: 20px; width: 100px;">
+                                    <div class="progress-bar" 
+                                         [ngClass]="get_progreso_class(calcular_porcentaje_recibido(producto))"
+                                         [style.width.%]="calcular_porcentaje_recibido(producto)">
+                                        {{ calcular_porcentaje_recibido(producto) | number:'1.0-0' }}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <input type="number" 
+                                       class="form-control" 
+                                       style="width: 100px;"
+                                       min="0" 
+                                       [max]="producto.cantidad_pendiente"
+                                       [(ngModel)]="producto.cantidad_a_recibir"
+                                       (keyup)="validar_cantidad(producto)"
+                                       (change)="validar_cantidad(producto)">
+                            </td>
+                            <td>
+                                <button *ngIf="producto.cantidad_pendiente > 0" 
+                                        type="button" 
+                                        class="btn btn-success btn-sm" 
+                                        (click)="recibir_todo(producto)"
+                                        title="Recibir todo">
+                                    <i class="cxi-check"></i> Todo
+                                </button>
+                                <span *ngIf="producto.cantidad_pendiente === 0" 
+                                      class="badge badge-success">
+                                    Completo
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen de recepción -->
+    <div class="card box-shadow-sm mb-4">
+        <div class="card-header">
+            <h5 style="margin-bottom: 0px;">Resumen de Recepción</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Productos que se van a recibir:</h6>
+                    <ul class="list-unstyled">
+                        <li *ngFor="let producto of productos_recepcion" 
+                            class="mb-2" 
+                            [ngClass]="producto.cantidad_a_recibir > 0 ? 'text-success' : 'text-muted'">
+                            <i class="cxi-check-circle" *ngIf="producto.cantidad_a_recibir > 0"></i>
+                            <i class="cxi-circle" *ngIf="producto.cantidad_a_recibir === 0"></i>
+                            {{ producto.producto_titulo }}: 
+                            <strong>{{ producto.cantidad_a_recibir }}</strong> unidades
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <div class="alert alert-info">
+                        <h6>Información importante:</h6>
+                        <ul class="mb-0">
+                            <li>El stock de los productos se actualizará automáticamente</li>
+                            <li>Se registrará en el inventario la entrada de productos</li>
+                            <li>El estado de la orden se actualizará según el progreso</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer text-right">
+            <button class="btn btn-primary mr-3" 
+                    (click)="recibir_productos()" 
+                    [disabled]="load_btn">
+                <span *ngIf="load_btn" class="spinner-border spinner-border-sm mr-2"></span>
+                <i class="cxi-package"></i> Confirmar Recepción
+            </button>
+            <a [routerLink]="['/panel/ordenes-compra', id]" class="btn btn-secondary">
+                Cancelar
+            </a>
+        </div>
+    </div>
+</div>

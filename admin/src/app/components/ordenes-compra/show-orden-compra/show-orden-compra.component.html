@@ -1,0 +1,198 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Detalles de Orden de Compra</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted">Información completa de la orden</p>
+      <p class="font-size-sm font-weight-medium pl-md-4">
+        <a class="text-nowrap" [routerLink]="['/panel/ordenes-compra']">Regresar<i class="cxi-angle-right font-size-base align-middle ml-1"></i></a>
+      </p>
+    </div>
+</div>
+
+<div *ngIf="load_data" class="text-center">
+    <div class="spinner-border" role="status">
+      <span class="sr-only">Cargando...</span>
+    </div>
+</div>
+
+<div *ngIf="!load_data">
+    <!-- Información de la orden -->
+    <div class="card box-shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 style="margin-bottom: 0px;">Información de la Orden</h5>
+            <div>
+                <span class="badge badge-lg" [ngClass]="getEstadoClass(orden.estado)">
+                    {{ orden.estado }}
+                </span>
+                <button *ngIf="!['Recibida Completa', 'Cancelada'].includes(orden.estado)" 
+                        class="btn btn-primary btn-sm ml-2" type="button" (click)="cambiar_estado()">
+                    <i class="cxi-edit"></i> Cambiar Estado
+                </button>
+                <a *ngIf="orden.estado === 'Pendiente'" [routerLink]="['/panel/ordenes-compra/editar', orden.ordencompraid]" 
+                   class="btn btn-warning btn-sm ml-2">
+                    <i class="cxi-edit"></i> Editar
+                </a>
+                <button *ngIf="!['Recibida Completa', 'Cancelada'].includes(orden.estado)" 
+                        class="btn btn-danger btn-sm ml-2" type="button" (click)="cancelar_orden()">
+                    <i class="cxi-close"></i> Cancelar
+                </button>
+            </div>
+        </div>
+        <!-- ...existing card content... -->
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="30%">Número Orden:</th>
+                            <td>{{ orden.numero_orden }}</td>
+                        </tr>
+                        <tr>
+                            <th>Proveedor:</th>
+                            <td>{{ orden.nombre_proveedor }}</td>
+                        </tr>
+                        <tr>
+                            <th>Email Proveedor:</th>
+                            <td>{{ orden.email_proveedor || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Teléfono Proveedor:</th>
+                            <td>{{ orden.telefono_proveedor || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Método de Pago:</th>
+                            <td>{{ orden.metodo_pago || 'N/A' }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="30%">Fecha Orden:</th>
+                            <td>{{ orden.fecha_orden | date:'dd/MM/yyyy HH:mm' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Fecha Entrega Esperada:</th>
+                            <td>{{ orden.fecha_entrega_esperada ? (orden.fecha_entrega_esperada | date:'dd/MM/yyyy') : 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Fecha Entrega Real:</th>
+                            <td>{{ orden.fecha_entrega_real ? (orden.fecha_entrega_real | date:'dd/MM/yyyy HH:mm') : 'Pendiente' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Usuario:</th>
+                            <td>{{ orden.usuario_nombres }} {{ orden.usuario_apellidos }}</td>
+                        </tr>
+                        <tr>
+                            <th>Última Actualización:</th>
+                            <td>{{ orden.fecha_actualizacion | date:'dd/MM/yyyy HH:mm' }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="row" *ngIf="orden.observaciones">
+                <div class="col-12">
+                    <h6>Observaciones:</h6>
+                    <p class="text-muted">{{ orden.observaciones }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalles de productos -->
+    <div class="card box-shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 style="margin-bottom: 0px;">Productos de la Orden</h5>
+            <a *ngIf="['Enviada', 'Confirmada', 'En Tránsito', 'Parcialmente Recibida'].includes(orden.estado)" 
+               [routerLink]="['/panel/ordenes-compra/recibir', orden.ordencompraid]" 
+               class="btn btn-success btn-sm">
+                <i class="cxi-package"></i> Recibir Productos
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th>Cantidad Ordenada</th>
+                            <th>Cantidad Recibida</th>
+                            <th>Progreso</th>
+                            <th>Precio Unitario</th>
+                            <th>Descuento</th>
+                            <th>Subtotal</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let detalle of orden.detalles">
+                            <td>
+                                <strong>{{ detalle.producto_titulo }}</strong><br>
+                                <small class="text-muted">Stock actual: {{ detalle.stock_actual }}</small>
+                            </td>
+                            <td>{{ detalle.categoria }}</td>
+                            <td>{{ detalle.cantidad }}</td>
+                            <td>{{ detalle.recibido }}</td>
+                            <td>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar" 
+                                         [ngClass]="get_progreso_class(calcular_porcentaje_recibido(detalle))"
+                                         [style.width.%]="calcular_porcentaje_recibido(detalle)">
+                                        {{ calcular_porcentaje_recibido(detalle) | number:'1.0-0' }}%
+                                    </div>
+                                </div>
+                            </td>
+                            <td>${{ detalle.precio_unitario | number:'1.2-2' }}</td>
+                            <td>${{ detalle.descuento_item | number:'1.2-2' }}</td>
+                            <td>${{ detalle.subtotal | number:'1.2-2' }}</td>
+                            <td>
+                                <span *ngIf="detalle.recibido === 0" class="badge badge-secondary">Pendiente</span>
+                                <span *ngIf="detalle.recibido > 0 && detalle.recibido < detalle.cantidad" class="badge badge-warning">Parcial</span>
+                                <span *ngIf="detalle.recibido >= detalle.cantidad" class="badge badge-success">Completo</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Totales -->
+    <div class="card box-shadow-sm">
+        <div class="card-header">
+            <h5 style="margin-bottom: 0px;">Resumen Financiero</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h4>${{ orden.subtotal | number:'1.2-2' }}</h4>
+                        <p class="text-muted">Subtotal</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h4>${{ orden.descuento | number:'1.2-2' }}</h4>
+                        <p class="text-muted">Descuento</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h4>${{ orden.impuestos | number:'1.2-2' }}</h4>
+                        <p class="text-muted">Impuestos</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <h3 class="text-primary">${{ orden.total | number:'1.2-2' }}</h3>
+                        <p class="text-muted"><strong>Total</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

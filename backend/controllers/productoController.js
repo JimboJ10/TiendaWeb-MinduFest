@@ -18,9 +18,10 @@ const registrarProducto = async (req, res) => {
 
         const productoid = productoResult.rows[0].productoid;
 
+        // CORREGIDO: Solo insertar productoid, cantidad y proveedorid
         await pool.query(
-            'INSERT INTO inventario (productoid, cantidad, proveedor) VALUES ($1, $2, $3)',
-            [productoid, stock, proveedor || 'Finixware']
+            'INSERT INTO inventario (productoid, cantidad, proveedorid) VALUES ($1, $2, $3)',
+            [productoid, stock, 1] // Usar proveedorid 1 como defecto (Finix Ware)
         );
 
         res.status(201).json(productoResult.rows[0]);
@@ -128,10 +129,16 @@ const listarInventarioProducto = async (req, res) => {
     try {
         const { id } = req.params;
 
+        // CORREGIDO: Obtener el nombre del proveedor mediante JOIN
         const result = await pool.query(`
-            SELECT i.inventarioid, p.titulo AS nombreproducto, i.cantidad, i.proveedor
+            SELECT 
+                i.inventarioid, 
+                p.titulo AS nombreproducto, 
+                i.cantidad, 
+                pr.nombre AS proveedor
             FROM inventario i
             JOIN producto p ON i.productoid = p.productoid
+            LEFT JOIN proveedor pr ON i.proveedorid = pr.proveedorid
             WHERE i.productoid = $1
         `, [id]);
 
@@ -179,9 +186,10 @@ const registrarInventarioProducto = async (req, res) => {
             }
         }
 
+        // CORREGIDO: Solo insertar productoid, cantidad y proveedorid
         const result = await pool.query(
-            'INSERT INTO inventario (productoid, cantidad, proveedor, proveedorid) VALUES ($1, $2, $3, $4) RETURNING *',
-            [productoid, cantidad, proveedor || 'Proveedor General', finalProveedorId]
+            'INSERT INTO inventario (productoid, cantidad, proveedorid) VALUES ($1, $2, $3) RETURNING *',
+            [productoid, cantidad, finalProveedorId || 1] // Usar 1 como defecto
         );
 
         await pool.query(
