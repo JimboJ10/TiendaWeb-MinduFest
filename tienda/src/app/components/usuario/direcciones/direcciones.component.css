@@ -1,13 +1,26 @@
-.pac-container {
-    z-index: 9999;
-}
-
-.input-group-text {
-    background-color: #f8f9fa;
-    cursor: pointer;
-}
-
 .form-control:focus {
     border-color: #80bdff;
     box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+
+.text-muted {
+    font-size: 0.9rem;
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
 }

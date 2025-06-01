@@ -204,8 +204,9 @@ export class ClienteService {
   }
 
   // funcion para obtener paises con API externa
+  // funcion para obtener paises con API externa
   obtenerPaises(): Observable<any> {
-    return this.http.get('https://restcountries.com/v3.1/all');
+    return this.http.get('https://restcountries.com/v3.1/all?fields=name');
   }
 
 }

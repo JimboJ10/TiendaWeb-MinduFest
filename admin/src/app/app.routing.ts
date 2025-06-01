@@ -15,6 +15,11 @@ import { DireccionClienteComponent } from "./components/clientes/direccion-clien
 import { IndexVentasComponent } from "./components/ventas/index-ventas/index-ventas.component";
 import { DetalleVentasComponent } from "./components/ventas/detalle-ventas/detalle-ventas.component";
 import { ReviewsProductoComponent } from "./components/productos/reviews-producto/reviews-producto.component";
+import { IndexProveedorComponent } from "./components/proveedores/index-proveedor/index-proveedor.component";
+import { CreateProveedorComponent } from "./components/proveedores/create-proveedor/create-proveedor.component";
+import { EditProveedorComponent } from "./components/proveedores/edit-proveedor/edit-proveedor.component";
+import { ShowProveedorComponent } from "./components/proveedores/show-proveedor/show-proveedor.component";
+import { ProductosProveedorComponent } from "./components/proveedores/productos-proveedor/productos-proveedor.component";
 
 const appRoutes : Routes = [
     {path:'', redirectTo: 'admin', pathMatch:'full'},
@@ -29,6 +34,12 @@ const appRoutes : Routes = [
         {path: 'productos/:id', component:UpdateProductoComponent, canActivate:[AuthGuard]},
         {path: 'productos/inventario/:id', component:InventarioProductoComponent, canActivate:[AuthGuard]},
         {path: 'productos/reviews/:id', component:ReviewsProductoComponent, canActivate:[AuthGuard]},
+        
+        { path: 'proveedores', component: IndexProveedorComponent, canActivate: [AuthGuard] },
+        { path: 'proveedores/registro', component: CreateProveedorComponent, canActivate: [AuthGuard] },
+        { path: 'proveedores/editar/:id', component: EditProveedorComponent, canActivate: [AuthGuard] },
+        { path: 'proveedores/:id', component: ShowProveedorComponent, canActivate: [AuthGuard] },
+        { path: 'proveedores/productos/:id', component: ProductosProveedorComponent, canActivate: [AuthGuard] },
 
         {path: 'direcciones', component:DireccionClienteComponent, canActivate:[AuthGuard]},
         {path: 'ventas', component:IndexVentasComponent, canActivate:[AuthGuard]},

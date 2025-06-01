@@ -1,0 +1,214 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Detalles del Proveedor</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted">Información completa del proveedor</p>
+      <p class="font-size-sm font-weight-medium pl-md-4">
+        <a class="text-nowrap" [routerLink]="['/panel/proveedores']">Regresar<i class="cxi-angle-right font-size-base align-middle ml-1"></i></a>
+      </p>
+    </div>
+</div>
+
+<div *ngIf="load_data" class="text-center">
+    <div class="spinner-border" role="status">
+      <span class="sr-only">Cargando...</span>
+    </div>
+</div>
+
+<div *ngIf="!load_data">
+    <!-- Información del proveedor -->
+    <div class="card box-shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 style="margin-bottom: 0px;">Información del Proveedor</h5>
+            <div>
+                <a [routerLink]="['/panel/proveedores/editar', proveedor.proveedorid]" class="btn btn-primary btn-sm mr-2">
+                    <i class="cxi-edit"></i> Editar
+                </a>
+                <button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal">
+                    <i class="cxi-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="30%">Nombre:</th>
+                            <td>{{ proveedor.nombre }}</td>
+                        </tr>
+                        <tr>
+                            <th>Contacto:</th>
+                            <td>{{ proveedor.contacto || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Email:</th>
+                            <td>{{ proveedor.email || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Teléfono:</th>
+                            <td>{{ proveedor.telefono || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Estado:</th>
+                            <td>
+                                <span class="badge" [ngClass]="proveedor.estado === 'Activo' ? 'badge-success' : 'badge-danger'">
+                                    {{ proveedor.estado }}
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="30%">Dirección:</th>
+                            <td>{{ proveedor.direccion || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Ciudad:</th>
+                            <td>{{ proveedor.ciudad || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <th>País:</th>
+                            <td>{{ proveedor.pais || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Código Postal:</th>
+                            <td>{{ proveedor.codigo_postal || 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Fecha Registro:</th>
+                            <td>{{ proveedor.fecha_registro | date:'dd/MM/yyyy HH:mm' }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="card box-shadow-sm mb-4">
+        <div class="card-header">
+            <h5 style="margin-bottom: 0px;">Estadísticas</h5>
+        </div>
+        <div class="card-body">
+            <div *ngIf="load_estadisticas" class="text-center">
+                <div class="spinner-border spinner-border-sm" role="status"></div>
+            </div>
+            <div *ngIf="!load_estadisticas" class="row">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <h3>{{ estadisticas.total_productos || 0 }}</h3>
+                            <p>Total Productos</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body text-center">
+                            <h3>{{ estadisticas.total_stock || 0 }}</h3>
+                            <p>Stock Total</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body text-center">
+                            <h3>$ {{ (estadisticas?.precio_promedio != null ? (estadisticas.precio_promedio | number:'1.2-2') : '0.00') }}</h3>
+                            <p>Precio Promedio</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body text-center">
+                            <h3>{{ estadisticas.stock_maximo || 0 }}</h3>
+                            <p>Stock Máximo</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos del proveedor -->
+    <div class="card box-shadow-sm">
+        <div class="card-header">
+            <h5 style="margin-bottom: 0px;">Productos del Proveedor</h5>
+        </div>
+        <div class="card-body">
+            <div *ngIf="load_productos" class="text-center">
+                <div class="spinner-border" role="status">
+                  <span class="sr-only">Cargando productos...</span>
+                </div>
+            </div>
+
+            <div *ngIf="!load_productos && productos.length === 0" class="text-center text-muted">
+                <p>Este proveedor no tiene productos asociados</p>
+            </div>
+
+            <div *ngIf="!load_productos && productos.length > 0">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Producto</th>
+                                <th>Precio</th>
+                                <th>Stock Producto</th>
+                                <th>Stock Inventario</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let producto of productos">
+                                <td>{{ producto.productoid }}</td>
+                                <td>{{ producto.titulo }}</td>
+                                <td>${{ producto.precio | number:'1.2-2' }}</td>
+                                <td>
+                                    <span class="badge" [ngClass]="producto.stock > 10 ? 'badge-success' : producto.stock > 5 ? 'badge-warning' : 'badge-danger'">
+                                        {{ producto.stock }}
+                                    </span>
+                                </td>
+                                <td>{{ producto.cantidad }}</td>
+                                <td>
+                                    <a [routerLink]="['/panel/productos', producto.productoid]" class="btn btn-sm btn-outline-primary">
+                                        Ver Producto
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación de eliminación -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Eliminar Proveedor</h4>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Está seguro de que desea eliminar el proveedor <strong>{{ proveedor.nombre }}</strong>?</p>
+                    <p class="text-muted">Si tiene productos asociados, solo se marcará como inactivo.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" (click)="eliminar()" data-dismiss="modal">
+                        Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

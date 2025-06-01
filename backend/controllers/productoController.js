@@ -156,11 +156,32 @@ const eliminarInventarioProducto = async (req, res) => {
 
 const registrarInventarioProducto = async (req, res) => {
     try {
-        const { productoid, cantidad, proveedor } = req.body;
+        const { productoid, cantidad, proveedor, proveedorid } = req.body;
+
+        // Si se proporciona proveedorid, usarlo; si no, buscar por nombre del proveedor
+        let finalProveedorId = proveedorid;
+        
+        if (!proveedorid && proveedor) {
+            const proveedorResult = await pool.query(
+                'SELECT proveedorid FROM proveedor WHERE nombre = $1',
+                [proveedor]
+            );
+            
+            if (proveedorResult.rows.length > 0) {
+                finalProveedorId = proveedorResult.rows[0].proveedorid;
+            } else {
+                // Crear nuevo proveedor si no existe
+                const nuevoProveedor = await pool.query(
+                    'INSERT INTO proveedor (nombre) VALUES ($1) RETURNING proveedorid',
+                    [proveedor]
+                );
+                finalProveedorId = nuevoProveedor.rows[0].proveedorid;
+            }
+        }
 
         const result = await pool.query(
-            'INSERT INTO inventario (productoid, cantidad, proveedor) VALUES ($1, $2, $3) RETURNING *',
-            [productoid, cantidad, proveedor]
+            'INSERT INTO inventario (productoid, cantidad, proveedor, proveedorid) VALUES ($1, $2, $3, $4) RETURNING *',
+            [productoid, cantidad, proveedor || 'Proveedor General', finalProveedorId]
         );
 
         await pool.query(

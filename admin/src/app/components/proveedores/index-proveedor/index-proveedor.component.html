@@ -1,0 +1,143 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Proveedores</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted">Gestión de proveedores del sistema</p>
+      <p class="font-size-sm font-weight-medium pl-md-4">
+        <a class="text-nowrap" [routerLink]="['/panel/proveedores/registro']">Registrar nuevo<i class="cxi-angle-right font-size-base align-middle ml-1"></i></a>
+      </p>
+    </div>
+</div>
+
+<div class="card box-shadow-sm">
+    <div class="card-header">
+        <h5 style="margin-bottom: 0px;">Filtro de proveedores</h5>
+    </div>
+    <div class="card-header">
+      <div class="row">
+        <div class="col-6">
+          <div class="input-group">
+            <input class="form-control" type="text" placeholder="Buscar por nombre, email o contacto" 
+                   [(ngModel)]="filtro" (keyup)="filtrar()">
+            <div class="input-group-append">
+              <button class="btn btn-primary" type="button" (click)="filtrar()">
+                <i class="cxi-search"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="col-3">
+          <select class="form-control" [(ngModel)]="estadoFiltro" (change)="filtrar()">
+            <option value="">Todos los estados</option>
+            <option value="Activo">Activo</option>
+            <option value="Inactivo">Inactivo</option>
+          </select>
+        </div>
+        <div class="col-3">
+          <button class="btn btn-success mr-2" type="button" (click)="resetear()">
+            <i class="cxi-reload"></i> Resetear
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-header">
+        <div class="import-export-container">
+          <!-- Sección para exportar -->
+          <div class="export-section">
+            <h3>Exportar Datos</h3>
+            <button class="btn-export-excel">Exportar CSV</button>
+            <button class="btn-export-pdf">Exportar PDF</button>
+          </div>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div *ngIf="load_data" class="text-center">
+            <div class="spinner-border" role="status">
+              <span class="sr-only">Cargando...</span>
+            </div>
+        </div>
+
+        <div *ngIf="!load_data">
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Contacto</th>
+                <th scope="col">Email</th>
+                <th scope="col">Teléfono</th>
+                <th scope="col">Ciudad</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Fecha Registro</th>
+                <th scope="col">Opciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of proveedoresFiltrados | paginate: { itemsPerPage: pageSize, currentPage: page }; let i = index">
+                <th scope="row">{{ (page - 1) * pageSize + i + 1 }}</th>
+                <td>{{ item.nombre }}</td>
+                <td>{{ item.contacto || 'N/A' }}</td>
+                <td>{{ item.email || 'N/A' }}</td>
+                <td>{{ item.telefono || 'N/A' }}</td>
+                <td>{{ item.ciudad || 'N/A' }}</td>
+                <td>
+                  <span class="badge" [ngClass]="item.estado === 'Activo' ? 'badge-success' : 'badge-danger'">
+                    {{ item.estado }}
+                  </span>
+                </td>
+                <td>{{ item.fecha_registro | date:'dd/MM/yyyy' }}</td>
+                <td>
+                  <div class="dropdown">
+                    <a class="btn btn-secondary btn-sm dropdown-toggle" href="#" role="button" data-toggle="dropdown">
+                      Opciones
+                    </a>
+                    <div class="dropdown-menu">
+                      <a class="dropdown-item" [routerLink]="['/panel/proveedores', item.proveedorid]">Ver detalles</a>
+                      <a class="dropdown-item" [routerLink]="['/panel/proveedores/editar', item.proveedorid]">Editar</a>
+                      <a class="dropdown-item" [routerLink]="['/panel/proveedores/productos', item.proveedorid]">Ver productos</a>
+                      <a href="#" class="dropdown-item" style="cursor: pointer;" data-toggle="modal" [attr.data-target]="'#delete-'+item.proveedorid">Eliminar</a>
+                    </div>
+                  </div>
+
+                  <!-- Modal de confirmación -->
+                  <div class="modal fade" id="delete-{{item.proveedorid}}" tabindex="-1" style="display: none;" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h4 class="modal-title">Eliminar Proveedor</h4>
+                          <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                          </button>
+                        </div>
+                        <div class="modal-body">
+                          <p>¿Está seguro de que desea eliminar el proveedor <strong>{{item.nombre}}</strong>?</p>
+                          <p class="text-muted">Si tiene productos asociados, solo se marcará como inactivo.</p>
+                        </div>
+                        <div class="modal-footer">
+                          <button class="btn btn-secondary btn-sm" type="button" data-dismiss="modal">Cancelar</button>
+                          <button class="btn btn-danger btn-sm" (click)="eliminar(item.proveedorid)" type="button">
+                            Si, eliminar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+    </div>
+    
+    <div class="card-footer">
+       <ngb-pagination
+         [(page)]="page"
+         [pageSize]="pageSize"
+         [collectionSize]="proveedoresFiltrados.length">
+       </ngb-pagination>
+    </div>
+</div>

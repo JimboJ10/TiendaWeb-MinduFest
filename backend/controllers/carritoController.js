@@ -38,19 +38,13 @@ const obtenerCarritoCliente = async(req, res) => {
 
     // Validación del ID
     if (!id || id === 'null' || id === 'undefined') {
-        return res.status(400).json({ 
-            message: 'ID de usuario inválido',
-            error: 'Se requiere un ID de usuario válido'
-        });
+        return res.status(200).json([]);
     }
 
     // Convertir ID a número
     const usuarioId = parseInt(id);
     if (isNaN(usuarioId)) {
-        return res.status(400).json({
-            message: 'ID de usuario inválido',
-            error: 'El ID debe ser un número'
-        });
+        return res.status(200).json([]);
     }
 
     try {
@@ -61,7 +55,7 @@ const obtenerCarritoCliente = async(req, res) => {
         );
 
         if (resultRol.rowCount === 0) {
-            return res.status(403).json({ message: 'El usuario no tiene el rol de Cliente' });
+            return res.status(200).json([]);
         }
 
         // Obtener carrito
@@ -83,10 +77,7 @@ const obtenerCarritoCliente = async(req, res) => {
         res.status(200).json(resultCarrito.rows);
     } catch (error) {
         console.error('Error en obtenerCarritoCliente:', error);
-        res.status(500).json({ 
-            message: 'Error al obtener el carrito del cliente',
-            error: error.message 
-        });
+        return res.status(200).json([]);
     }
 };
 

@@ -63,9 +63,16 @@ export class NavComponent implements OnInit{
     this.nombres = localStorage.getItem('nombres');
     this.usuarioid = localStorage.getItem('usuarioid');
 
+    // Cargar categorías y configurar búsqueda independientemente del inicio de sesión
+    this.obtenerCategorias();
+    this.configurarBusqueda();
+
+
     if (!this.usuarioid || this.usuarioid === 'null' || this.usuarioid === 'undefined') {
-      console.error('No hay un ID de usuario válido');
-      return;
+      this.cargarCarritoUsuario();
+    }else {
+      this.carrito_arr = [];
+      this.calcular_carrito();
     }
 
     this.guardarCarritoEnLocalStorage();
@@ -140,6 +147,77 @@ export class NavComponent implements OnInit{
           this.searchResults = [];
           this.showResults = false;
       }
+    });
+  }
+
+  // Nuevo método para configurar la funcionalidad de búsqueda
+  configurarBusqueda(): void {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(term => {
+      if (term.length >= 2) {
+          this.buscarProductos(term);
+      } else {
+          this.searchResults = [];
+          this.showResults = false;
+      }
+    });
+  }
+
+  // Nuevo método para cargar el carrito del usuario
+  cargarCarritoUsuario(): void {
+    if (!this.usuarioid || this.usuarioid === 'null' || this.usuarioid === 'undefined') {
+      return;
+    }
+    
+    this.guardarCarritoEnLocalStorage();
+  
+    this.clienteService.obtenerCarritoCliente(this.usuarioid).subscribe({
+        next: (response) => {
+            this.carrito_arr = response;
+            this.calcular_carrito();
+            this.guardarCarritoEnLocalStorage();
+        },
+        error: (error) => {
+            console.error('Error al obtener el carrito:', error);
+        }
+    });
+  
+    // Configura sockets para actualización del carrito
+    this.configurarSocketsCarrito();
+  }
+
+  // Nuevo método para configurar los sockets del carrito
+  configurarSocketsCarrito(): void {
+    if (!this.usuarioid || this.usuarioid === 'null' || this.usuarioid === 'undefined') {
+      return;
+    }
+
+    this.socket.on('new-carrito', (data) => {
+      this.clienteService.obtenerCarritoCliente(this.usuarioid).subscribe({
+        next: (response) => {
+          this.carrito_arr = response;
+          this.calcular_carrito();
+          this.guardarCarritoEnLocalStorage();
+        },
+        error: (error) => {
+          console.error('Error en socket new-carrito:', error);
+        }
+      });
+    });
+  
+    this.socket.on('new-carrito-add', (data) => {
+      this.clienteService.obtenerCarritoCliente(this.usuarioid).subscribe({
+        next: (response) => {
+            this.carrito_arr = response;
+            this.calcular_carrito();
+            this.guardarCarritoEnLocalStorage();
+        },
+        error: (error) => {
+            console.error('Error en socket new-carrito-add:', error);
+        }
+      });
     });
   }
 

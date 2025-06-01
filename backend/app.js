@@ -56,6 +56,8 @@ app.use(require('./routes/nventa'));
 app.use(require('./routes/admin'));
 app.use(require('./routes/respaldos'));
 app.use(require('./routes/2fa'));
+app.use(require('./routes/proveedor'));
+app.use(require('./routes/ordenCompra'));
 
 server.listen(port, () => {
     console.log("Puerto ==> ", port);

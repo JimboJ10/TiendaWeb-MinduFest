@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { RatingModule } from 'ngx-bootstrap/rating';
-import { GoogleMapsModule } from '@angular/google-maps';
+// import { GoogleMapsModule } from '@angular/google-maps';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -69,7 +69,7 @@ import { RestablecerPasswordComponent } from './components/usuario/restablecer-p
     routing,
     FormsModule,
     NgbPaginationModule,
-    GoogleMapsModule,
+    // GoogleMapsModule,
     ModalModule.forRoot(),
     RatingModule.forRoot(),
   ],

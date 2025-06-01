@@ -1,0 +1,98 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Productos del Proveedor</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted">{{ proveedor.nombre }}</p>
+      <p class="font-size-sm font-weight-medium pl-md-4">
+        <a class="text-nowrap" [routerLink]="['/panel/proveedores']">Regresar<i class="cxi-angle-right font-size-base align-middle ml-1"></i></a>
+      </p>
+    </div>
+</div>
+
+<div class="card box-shadow-sm">
+    <div class="card-header">
+        <h5 style="margin-bottom: 0px;">Filtro de productos</h5>
+    </div>
+    <div class="card-header">
+      <div class="row">
+        <div class="col-8">
+          <div class="input-group">
+            <input class="form-control" type="text" placeholder="Buscar productos por título" 
+                   [(ngModel)]="filtro" (keyup)="filtrar()">
+            <div class="input-group-append">
+              <button class="btn btn-primary" type="button" (click)="filtrar()">
+                <i class="cxi-search"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="col-4">
+          <button class="btn btn-success" type="button" (click)="resetear()">
+            <i class="cxi-reload"></i> Resetear
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-body">
+        <div *ngIf="load_data" class="text-center">
+            <div class="spinner-border" role="status">
+              <span class="sr-only">Cargando...</span>
+            </div>
+        </div>
+
+        <div *ngIf="!load_data && productosFiltrados.length === 0" class="text-center text-muted">
+            <p>No se encontraron productos para este proveedor</p>
+        </div>
+
+        <div *ngIf="!load_data && productosFiltrados.length > 0">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">ID Producto</th>
+                <th scope="col">Título</th>
+                <th scope="col">Precio</th>
+                <th scope="col">Stock Producto</th>
+                <th scope="col">Stock Inventario</th>
+                <th scope="col">ID Inventario</th>
+                <th scope="col">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of productosFiltrados | paginate: { itemsPerPage: pageSize, currentPage: page }; let i = index">
+                <th scope="row">{{ (page - 1) * pageSize + i + 1 }}</th>
+                <td>{{ item.productoid }}</td>
+                <td>{{ item.titulo }}</td>
+                <td>${{ item.precio | number:'1.2-2' }}</td>
+                <td>
+                  <span class="badge" [ngClass]="item.stock > 10 ? 'badge-success' : item.stock > 5 ? 'badge-warning' : 'badge-danger'">
+                    {{ item.stock }}
+                  </span>
+                </td>
+                <td>{{ item.cantidad }}</td>
+                <td>{{ item.inventarioid }}</td>
+                <td>
+                  <a [routerLink]="['/panel/productos', item.productoid]" class="btn btn-sm btn-outline-primary mr-1">
+                    Ver Producto
+                  </a>
+                  <a [routerLink]="['/panel/productos/inventario', item.inventarioid]" class="btn btn-sm btn-outline-success">
+                    Editar Inventario
+                  </a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+    </div>
+    
+    <div class="card-footer" *ngIf="!load_data && productosFiltrados.length > 0">
+       <ngb-pagination
+         [(page)]="page"
+         [pageSize]="pageSize"
+         [collectionSize]="productosFiltrados.length">
+       </ngb-pagination>
+    </div>
+</div>
