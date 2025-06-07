@@ -45,6 +45,15 @@ import { RegistrarMovimientoComponent } from './components/finanzas/registrar-mo
 import { BalanceGeneralComponent } from './components/finanzas/balance-general/balance-general.component';
 import { EstadoResultadosComponent } from './components/finanzas/estado-resultados/estado-resultados.component';
 import { EditarCuentaComponent } from './components/finanzas/editar-cuenta/editar-cuenta.component';
+import { IndexReportesComponent } from './components/reportes/index-reportes/index-reportes.component';
+import { ReporteVentasPeriodoComponent } from './components/reportes/reporte-ventas-periodo/reporte-ventas-periodo.component';
+import { ReporteStockActualComponent } from './components/reportes/reporte-stock-actual/reporte-stock-actual.component';
+import { ReporteVentasProductoComponent } from './components/reportes/reporte-ventas-producto/reporte-ventas-producto.component';
+import { ReporteVentasClienteComponent } from './components/reportes/reporte-ventas-cliente/reporte-ventas-cliente.component';
+import { ReporteMovimientosInventarioComponent } from './components/reportes/reporte-movimientos-inventario/reporte-movimientos-inventario.component';
+import { ReporteCuentasCobrarComponent } from './components/reportes/reporte-cuentas-cobrar/reporte-cuentas-cobrar.component';
+import { ReporteCuentasPagarComponent } from './components/reportes/reporte-cuentas-pagar/reporte-cuentas-pagar.component';
+import { ReporteActividadUsuariosComponent } from './components/reportes/reporte-actividad-usuarios/reporte-actividad-usuarios.component';
 
 
 @NgModule({
@@ -84,6 +93,15 @@ import { EditarCuentaComponent } from './components/finanzas/editar-cuenta/edita
     BalanceGeneralComponent,
     EstadoResultadosComponent,
     EditarCuentaComponent,
+    IndexReportesComponent,
+    ReporteVentasPeriodoComponent,
+    ReporteStockActualComponent,
+    ReporteVentasProductoComponent,
+    ReporteVentasClienteComponent,
+    ReporteMovimientosInventarioComponent,
+    ReporteCuentasCobrarComponent,
+    ReporteCuentasPagarComponent,
+    ReporteActividadUsuariosComponent,
     
   ],
   imports: [

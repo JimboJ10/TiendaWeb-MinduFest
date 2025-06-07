@@ -58,22 +58,6 @@ const obtenerPortada = (req, res) => {
     });
 };
 
-const obtenerProducto = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const result = await pool.query('SELECT * FROM obtener_producto($1)', [id]);
-
-        if (result.rows.length === 0) {
-            return res.status(404).json({ message: 'Producto no encontrado' });
-        }
-
-        res.status(200).json(result.rows[0]);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Error en el servidor' });
-    }
-};
-
 
 const actualizarProducto = async (req, res) => {
     try {
@@ -284,7 +268,6 @@ module.exports = {
     registrarProducto,
     listarProductos,
     obtenerPortada,
-    obtenerProducto,
     actualizarProducto,
     eliminarProducto,
     listarInventarioProducto,

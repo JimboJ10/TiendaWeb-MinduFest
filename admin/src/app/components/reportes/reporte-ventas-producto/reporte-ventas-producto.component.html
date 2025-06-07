@@ -1,0 +1,178 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Reporte de Ventas por Producto</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted">Análisis de rendimiento de productos en ventas</p>
+      <p class="font-size-sm font-weight-medium pl-md-4">
+        <a class="text-nowrap" [routerLink]="['/panel/reportes']">Regresar<i class="fa fa-angle-right font-size-base align-middle ml-1"></i></a>
+      </p>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card box-shadow-sm mb-4">
+    <div class="card-header">
+        <h5 style="margin-bottom: 0px;">Filtros del reporte</h5>
+    </div>
+    <div class="card-body">
+        <div class="row align-items-end">
+            <div class="col-lg-3">
+                <label>Fecha inicio</label>
+                <input type="date" class="form-control" [(ngModel)]="filtros.fecha_inicio">
+            </div>
+            <div class="col-lg-3">
+                <label>Fecha fin</label>
+                <input type="date" class="form-control" [(ngModel)]="filtros.fecha_fin">
+            </div>
+            <div class="col-lg-3">
+                <label>Producto específico</label>
+                <select class="form-control" [(ngModel)]="filtros.productoid">
+                    <option value="">Todos los productos</option>
+                    <option *ngFor="let producto of productos" [value]="producto.productoid">
+                        {{ producto.titulo }}
+                    </option>
+                </select>
+            </div>
+            <div class="col-lg-3">
+                <button class="btn btn-primary mr-2" (click)="generar_reporte()">
+                    <i class="fa fa-search"></i> Generar Reporte
+                </button>
+                <br><br>
+                <button class="btn btn-success mr-2" (click)="exportar_excel()" [disabled]="!hayDatos">
+                    <i class="fa fa-file-excel"></i> Excel
+                </button>
+                <button class="btn btn-danger" (click)="generar_pdf()" [disabled]="!hayDatos">
+                    <i class="fa fa-file-pdf"></i> PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="load_data" class="text-center py-5">
+    <div class="spinner-border" role="status">
+        <span class="sr-only">Cargando...</span>
+    </div>
+</div>
+
+<div id="reporte-productos" *ngIf="!load_data && hayDatos">
+    <!-- Resumen -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3>{{ resumenSeguro.total_productos_vendidos }}</h3>
+                    <p class="mb-0">Productos Vendidos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3>{{ resumenSeguro.total_unidades_vendidas }}</h3>
+                    <p class="mb-0">Unidades Vendidas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h3>${{ resumenSeguro.total_ingresos | number:'1.2-2' }}</h3>
+                    <p class="mb-0">Total Ingresos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h6 class="mb-0">{{ resumenSeguro.producto_mas_vendido }}</h6>
+                    <p class="mb-0">Producto Top</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalle de productos -->
+    <div class="card box-shadow-sm">
+        <div class="card-header">
+            <h5 style="margin-bottom: 0px;">Rendimiento de Productos</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th class="text-center">Unidades Vendidas</th>
+                            <th class="text-center">N° Ventas</th>
+                            <th class="text-right">Precio Promedio</th>
+                            <th class="text-right">Total Ingresos</th>
+                            <th class="text-center">Rendimiento</th>
+                            <th class="text-center">Stock Actual</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let producto of productosSeguras | slice: (page-1) * pageSize : page * pageSize">
+                            <td>
+                                <strong>{{ producto.titulo }}</strong><br>
+                                <small class="text-muted">ID: {{ producto.productoid }}</small>
+                            </td>
+                            <td>
+                                <span class="badge badge-secondary">{{ producto.categoria || 'Sin categoría' }}</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge badge-lg badge-primary">{{ producto.unidades_vendidas || 0 }}</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge badge-info">{{ producto.numero_ventas || 0 }}</span>
+                            </td>
+                            <td class="text-right">
+                                ${{ producto.precio_promedio | number:'1.2-2' }}
+                            </td>
+                            <td class="text-right">
+                                <strong>${{ producto.total_ingresos | number:'1.2-2' }}</strong>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge" [ngClass]="get_badge_rendimiento(producto.unidades_vendidas || 0)">
+                                    {{ get_texto_rendimiento(producto.unidades_vendidas || 0) }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge" [ngClass]="get_badge_stock(producto.stock_actual || 0)">
+                                    {{ producto.stock_actual || 0 }}
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            <div class="d-flex justify-content-between align-items-center mt-3" *ngIf="productosSeguras.length > pageSize">
+                <div>
+                    <small class="text-muted">
+                        Mostrando {{ (page-1) * pageSize + 1 }} a {{ page * pageSize > productosSeguras.length ? productosSeguras.length : page * pageSize }} 
+                        de {{ productosSeguras.length }} productos
+                    </small>
+                </div>
+                <ngb-pagination
+                    [(page)]="page"
+                    [pageSize]="pageSize"
+                    [collectionSize]="productosSeguras.length"
+                    [maxSize]="5"
+                    [boundaryLinks]="true">
+                </ngb-pagination>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="!load_data && !hayDatos" class="text-center py-5">
+    <div class="alert alert-info">
+        <i class="fa fa-info-circle"></i>
+        No hay ventas de productos en el período seleccionado
+    </div>
+</div>

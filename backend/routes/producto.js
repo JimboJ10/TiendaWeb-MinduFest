@@ -1,6 +1,6 @@
 const { Router } = require('express');
 const router = Router();
-const { registrarProducto, listarProductos, obtenerPortada, obtenerProducto, actualizarProducto, eliminarProducto, 
+const { registrarProducto, listarProductos, obtenerPortada, actualizarProducto, eliminarProducto, 
     listarInventarioProducto, eliminarInventarioProducto, registrarInventarioProducto, obtenerProductoPorTitulo,
     obtenerReviewProductoPublico, buscarProductos
 } = require('../controllers/productoController');
@@ -18,9 +18,6 @@ router.get('/listar_productos_clientes', listarProductos);
 
 // Ruta endpoint para obtener portada
 router.get('/obtener_portada/:portada', obtenerPortada);
-
-// Ruta para obtener un producto por ID
-router.get('/obtener_producto/:id', obtenerProducto);
 
 // Ruta para actualizar un producto
 router.put('/actuaizar_producto/:id', authMiddleware, path, actualizarProducto);

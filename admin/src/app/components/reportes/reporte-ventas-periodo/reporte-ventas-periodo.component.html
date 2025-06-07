@@ -1,0 +1,164 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Reporte de Ventas por Período</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted">Análisis de ventas en rango de fechas</p>
+      <p class="font-size-sm font-weight-medium pl-md-4">
+        <a class="text-nowrap" [routerLink]="['/panel/reportes']">Regresar<i class="fa fa-angle-right font-size-base align-middle ml-1"></i></a>
+      </p>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card box-shadow-sm mb-4">
+    <div class="card-header">
+        <h5 style="margin-bottom: 0px;">Filtros del reporte</h5>
+    </div>
+    <div class="card-body">
+        <div class="row align-items-end">
+            <div class="col-lg-3">
+                <label>Fecha inicio</label>
+                <input type="date" class="form-control" [(ngModel)]="fecha_inicio">
+            </div>
+            <div class="col-lg-3">
+                <label>Fecha fin</label>
+                <input type="date" class="form-control" [(ngModel)]="fecha_fin">
+            </div>
+            <div class="col-lg-6">
+                <button class="btn btn-primary mr-2" (click)="generar_reporte()">
+                    <i class="fa fa-search"></i> Generar Reporte
+                </button>
+                <button class="btn btn-success mr-2" (click)="exportar_excel()" [disabled]="!hayDatos">
+                    <i class="fa fa-file-excel"></i> Excel
+                </button>
+                <button class="btn btn-danger" (click)="generar_pdf()" [disabled]="!hayDatos">
+                    <i class="fa fa-file-pdf"></i> PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="load_data" class="text-center py-5">
+    <div class="spinner-border" role="status">
+        <span class="sr-only">Cargando...</span>
+    </div>
+</div>
+
+<div id="reporte-ventas" *ngIf="!load_data && hayDatos">
+    <!-- Resumen -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3>{{ resumenSeguro.total_ventas }}</h3>
+                    <p>Total Ventas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3>${{ resumenSeguro.total_facturado | number:'1.2-2' }}</h3>
+                    <p>Total Facturado</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h3>${{ resumenSeguro.promedio_venta | number:'1.2-2' }}</h3>
+                    <p>Promedio por Venta</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h3>{{ resumenSeguro.total_productos_vendidos }}</h3>
+                    <p>Productos Vendidos</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalle de ventas -->
+    <div class="card box-shadow-sm">
+        <div class="card-header">
+            <h5 style="margin-bottom: 0px;">Detalle de Ventas</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>N° Venta</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Estado</th>
+                            <th>Productos</th>
+                            <th>Items</th>
+                            <th class="text-right">Subtotal</th>
+                            <th class="text-right">Envío</th>
+                            <th class="text-right">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let venta of ventasSeguras | slice: (page-1) * pageSize : page * pageSize">
+                            <td>
+                                <strong>{{ venta.nventa }}</strong>
+                            </td>
+                            <td>{{ venta.fecha | date:'dd/MM/yyyy' }}</td>
+                            <td>
+                                <strong>{{ venta.cliente }}</strong><br>
+                                <small class="text-muted">{{ venta.email }}</small>
+                            </td>
+                            <td>
+                                <span class="badge" [ngClass]="get_badge_estado(venta.estado || '')">
+                                    {{ venta.estado || 'Sin estado' }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge badge-info">{{ venta.total_productos || 0 }}</span>
+                            </td>
+                            <td>
+                                <span class="badge badge-secondary">{{ venta.total_items || 0 }}</span>
+                            </td>
+                            <td class="text-right">${{ venta.subtotal | number:'1.2-2' }}</td>
+                            <td class="text-right">${{ venta.envioprecio | number:'1.2-2' }}</td>
+                            <td class="text-right">
+                                <strong>${{ venta.total | number:'1.2-2' }}</strong>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            <div class="d-flex justify-content-between align-items-center mt-3" *ngIf="ventasSeguras.length > pageSize">
+                <div>
+                    <small class="text-muted">
+                        Mostrando {{ (page-1) * pageSize + 1 }} a {{ page * pageSize > ventasSeguras.length ? ventasSeguras.length : page * pageSize }} 
+                        de {{ ventasSeguras.length }} ventas
+                    </small>
+                </div>
+                <ngb-pagination
+                    [(page)]="page"
+                    [pageSize]="pageSize"
+                    [collectionSize]="ventasSeguras.length"
+                    [maxSize]="5"
+                    [boundaryLinks]="true">
+                </ngb-pagination>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="!load_data && !hayDatos" class="text-center py-5">
+    <div class="alert alert-info">
+        <i class="fa fa-info-circle"></i>
+        No hay datos para mostrar en el período seleccionado
+    </div>
+</div>

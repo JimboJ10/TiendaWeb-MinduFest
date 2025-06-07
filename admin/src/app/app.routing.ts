@@ -35,6 +35,15 @@ import { RegistrarMovimientoComponent } from "./components/finanzas/registrar-mo
 import { BalanceGeneralComponent } from "./components/finanzas/balance-general/balance-general.component";
 import { EstadoResultadosComponent } from "./components/finanzas/estado-resultados/estado-resultados.component";
 import { EditarCuentaComponent } from "./components/finanzas/editar-cuenta/editar-cuenta.component";
+import { IndexReportesComponent } from "./components/reportes/index-reportes/index-reportes.component";
+import { ReporteVentasPeriodoComponent } from "./components/reportes/reporte-ventas-periodo/reporte-ventas-periodo.component";
+import { ReporteVentasProductoComponent } from "./components/reportes/reporte-ventas-producto/reporte-ventas-producto.component";
+import { ReporteVentasClienteComponent } from "./components/reportes/reporte-ventas-cliente/reporte-ventas-cliente.component";
+import { ReporteStockActualComponent } from "./components/reportes/reporte-stock-actual/reporte-stock-actual.component";
+import { ReporteMovimientosInventarioComponent } from "./components/reportes/reporte-movimientos-inventario/reporte-movimientos-inventario.component";
+import { ReporteCuentasCobrarComponent } from "./components/reportes/reporte-cuentas-cobrar/reporte-cuentas-cobrar.component";
+import { ReporteCuentasPagarComponent } from "./components/reportes/reporte-cuentas-pagar/reporte-cuentas-pagar.component";
+import { ReporteActividadUsuariosComponent } from "./components/reportes/reporte-actividad-usuarios/reporte-actividad-usuarios.component";
 
 const appRoutes : Routes = [
     {path:'', redirectTo: 'admin', pathMatch:'full'},
@@ -72,6 +81,16 @@ const appRoutes : Routes = [
         { path: 'finanzas/flujo-caja/registrar', component: RegistrarMovimientoComponent, canActivate: [AuthGuard] },
         { path: 'finanzas/balance-general', component: BalanceGeneralComponent, canActivate: [AuthGuard] },
         { path: 'finanzas/estado-resultados', component: EstadoResultadosComponent, canActivate: [AuthGuard] },
+
+        { path: 'reportes', component: IndexReportesComponent, canActivate: [AuthGuard] },
+        { path: 'reportes/ventas-periodo', component: ReporteVentasPeriodoComponent, canActivate: [AuthGuard] },
+        { path: 'reportes/ventas-producto', component: ReporteVentasProductoComponent, canActivate: [AuthGuard] },
+        { path: 'reportes/ventas-cliente', component: ReporteVentasClienteComponent, canActivate: [AuthGuard] },
+        { path: 'reportes/stock-actual', component: ReporteStockActualComponent, canActivate: [AuthGuard] },
+        { path: 'reportes/movimientos-inventario', component: ReporteMovimientosInventarioComponent, canActivate: [AuthGuard] },
+        { path: 'reportes/cuentas-cobrar', component: ReporteCuentasCobrarComponent, canActivate: [AuthGuard] },
+        { path: 'reportes/cuentas-pagar', component: ReporteCuentasPagarComponent, canActivate: [AuthGuard] },
+        { path: 'reportes/actividad-usuarios', component: ReporteActividadUsuariosComponent, canActivate: [AuthGuard] },
 
         {path: 'direcciones', component:DireccionClienteComponent, canActivate:[AuthGuard]},
         {path: 'ventas', component:IndexVentasComponent, canActivate:[AuthGuard]},

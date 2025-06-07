@@ -59,6 +59,7 @@ app.use(require('./routes/2fa'));
 app.use(require('./routes/proveedor'));
 app.use(require('./routes/ordenCompra'));
 app.use(require('./routes/financiero'));
+app.use(require('./routes/reportes'));
 
 server.listen(port, () => {
     console.log("Puerto ==> ", port);

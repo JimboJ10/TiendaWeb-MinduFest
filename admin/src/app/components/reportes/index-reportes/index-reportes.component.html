@@ -1,0 +1,177 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Reportes y Análisis</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted">Centro de reportes y análisis del sistema</p>
+    </div>
+</div>
+
+<!-- Selector de período -->
+<div class="card box-shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-3">
+                <label>Período de análisis:</label>
+                <select class="form-control" [(ngModel)]="periodo_seleccionado" (change)="cambiar_periodo()">
+                    <option value="7">Últimos 7 días</option>
+                    <option value="30">Últimos 30 días</option>
+                    <option value="90">Últimos 90 días</option>
+                    <option value="365">Último año</option>
+                </select>
+            </div>
+            <div class="col-md-9 text-right">
+                <span class="text-muted">Datos de los últimos {{ periodo_seleccionado }} días</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard de métricas -->
+<div class="row mb-4" *ngIf="!load_dashboard && dashboard">
+    <!-- Ventas -->
+    <div class="col-md-3 mb-4">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <i class="fa fa-shopping-cart fa-2x mb-2"></i>
+                <h3>{{ dashboard.ventas?.total_ventas || 0 }}</h3>
+                <p class="mb-1">Total Ventas</p>
+                <small>${{ (dashboard.ventas?.total_facturado || 0) | number:'1.2-2' }}</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Productos -->
+    <div class="col-md-3 mb-4">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <i class="fa fa-cube fa-2x mb-2"></i>
+                <h3>{{ dashboard.productos?.total_productos || 0 }}</h3>
+                <p class="mb-1">Productos</p>
+                <small>{{ dashboard.productos?.productos_stock_bajo || 0 }} con stock bajo</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Clientes -->
+    <div class="col-md-3 mb-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <i class="fa fa-users fa-2x mb-2"></i>
+                <h3>{{ dashboard.clientes?.total_clientes || 0 }}</h3>
+                <p class="mb-1">Clientes</p>
+                <small>{{ dashboard.clientes?.clientes_activos || 0 }} activos</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Órdenes -->
+    <div class="col-md-3 mb-4">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <i class="fa fa-clipboard-list fa-2x mb-2"></i>
+                <h3>{{ dashboard.ordenes?.total_ordenes || 0 }}</h3>
+                <p class="mb-1">Órdenes Compra</p>
+                <small>{{ dashboard.ordenes?.ordenes_pendientes || 0 }} pendientes</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="load_dashboard" class="text-center py-5">
+    <div class="spinner-border" role="status">
+        <span class="sr-only">Cargando...</span>
+    </div>
+</div>
+
+<!-- Módulos de reportes -->
+<div class="row">
+    <!-- Reportes de Ventas -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fa fa-chart-line"></i> Reportes de Ventas
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Análisis detallado de ventas por período, productos y clientes. Métricas de rendimiento comercial.</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-success mb-2" (click)="navegar_a('/panel/reportes/ventas-periodo')">
+                        <i class="fa fa-calendar"></i> Ventas por Período
+                    </button>
+                    <button class="btn btn-outline-success mb-2" (click)="navegar_a('/panel/reportes/ventas-producto')">
+                        <i class="fa fa-cube"></i> Ventas por Producto
+                    </button>
+                    <button class="btn btn-outline-success" (click)="navegar_a('/panel/reportes/ventas-cliente')">
+                        <i class="fa fa-user"></i> Top Clientes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reportes de Inventario -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100 border-info">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fa fa-boxes"></i> Reportes de Inventario
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Control de stock, movimientos de inventario y análisis de productos. Gestión eficiente del almacén.</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-info mb-2" (click)="navegar_a('/panel/reportes/stock-actual')">
+                        <i class="fa fa-warehouse"></i> Stock Actual
+                    </button>
+                    <button class="btn btn-outline-info" (click)="navegar_a('/panel/reportes/movimientos-inventario')">
+                        <i class="fa fa-exchange-alt"></i> Movimientos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reportes Financieros -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100 border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fa fa-dollar-sign"></i> Reportes Financieros
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Análisis financiero, cuentas por cobrar y pagar. Seguimiento de flujo de efectivo y créditos.</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-warning mb-2" (click)="navegar_a('/panel/reportes/cuentas-cobrar')">
+                        <i class="fa fa-money-bill-wave"></i> Cuentas por Cobrar
+                    </button>
+                    <button class="btn btn-outline-warning" (click)="navegar_a('/panel/reportes/cuentas-pagar')">
+                        <i class="fa fa-credit-card"></i> Cuentas por Pagar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reportes Administrativos -->
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fa fa-users-cog"></i> Reportes Administrativos
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Actividad de usuarios, logs del sistema y métricas administrativas. Control y auditoría.</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" (click)="navegar_a('/panel/reportes/actividad-usuarios')">
+                        <i class="fa fa-user-clock"></i> Actividad de Usuarios
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

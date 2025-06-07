@@ -12,7 +12,7 @@ declare var iziToast: any;
 export class RegisterComponent implements OnInit {
   newUser: any = {};
   showPassword = false; 
-  paises: any[] = [];
+  paises: Array<any> = [];
 
   constructor(private clienteService: ClienteService, private router: Router) {}
 
@@ -27,11 +27,11 @@ export class RegisterComponent implements OnInit {
 
   cargarPaises() {
     this.clienteService.obtenerPaises().subscribe(
-      (data: any[]) => {
-        this.paises = data.map(pais => pais.translations.spa.common).sort();
+      response => {
+        this.paises = response;
       },
       error => {
-        console.error('Error al cargar países:', error);
+        console.log('Error al cargar países:', error);
       }
     );
   }

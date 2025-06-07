@@ -38,7 +38,6 @@ export class ReviewsProductoComponent implements OnInit{
     this._route.params.subscribe(
       params => {
         this.productoid = params['id'];
-        this.obtenerProducto(this.productoid);
         this.obtenerResenas(this.productoid);
       }
     );
@@ -56,27 +55,5 @@ export class ReviewsProductoComponent implements OnInit{
     );
   }
 
-  obtenerProducto(id: string): void {
-    this._productoService.obtenerProducto(id).subscribe(
-      response => {
-        if (response) {
-          this.producto = response;
-          console.log(this.producto);
-        } else {
-          this._router.navigate(['/panel/productos']);
-        }
-      },
-      error => {
-        console.error(error);
-        iziToast.show({
-          title: 'ERROR',
-          titleColor: '#FF0000',
-          message: 'Error en el servidor',
-          messageColor: '#FFF',
-          position: 'topRight'
-        });
-      }
-    );
-  }
 
 }
