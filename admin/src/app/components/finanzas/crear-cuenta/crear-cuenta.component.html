@@ -1,0 +1,78 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Nueva Cuenta Contable</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted">Crear nueva cuenta en el plan contable</p>
+      <p class="font-size-sm font-weight-medium pl-md-4">
+        <a class="text-nowrap" [routerLink]="['/panel/finanzas/plan-cuentas']">Regresar<i class="fa fa-angle-right font-size-base align-middle ml-1"></i></a>
+      </p>
+    </div>
+</div>
+
+<form #crearForm="ngForm" (ngSubmit)="crear(crearForm)">
+    <div class="card box-shadow-sm">
+        <div class="card-header">
+            <h5 style="margin-bottom: 0px;">Información de la cuenta</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-lg-4 form-group">
+                    <label for="">Código *</label>
+                    <input type="text" class="form-control" placeholder="Ej: 1101" 
+                           required name="codigo" [(ngModel)]="cuenta.codigo">
+                    <small class="text-muted">Código único identificador de la cuenta</small>
+                </div>
+                <div class="col-lg-8 form-group">
+                    <label for="">Nombre *</label>
+                    <input type="text" class="form-control" placeholder="Ej: Caja General" 
+                           required name="nombre" [(ngModel)]="cuenta.nombre">
+                </div>
+                <div class="col-lg-4 form-group">
+                    <label for="">Tipo de cuenta *</label>
+                    <select class="form-control" required name="tipo" 
+                            [(ngModel)]="cuenta.tipo" (change)="on_tipo_change()">
+                        <option value="">Seleccione tipo</option>
+                        <option *ngFor="let tipo of tipos_cuenta" [value]="tipo">{{ tipo }}</option>
+                    </select>
+                </div>
+                <div class="col-lg-4 form-group">
+                    <label for="">Subtipo</label>
+                    <select class="form-control" name="subtipo" [(ngModel)]="cuenta.subtipo">
+                        <option value="">Seleccione subtipo</option>
+                        <option *ngFor="let subtipo of subtipos_disponibles" [value]="subtipo">{{ subtipo }}</option>
+                    </select>
+                </div>
+                <div class="col-lg-4 form-group">
+                    <label for="">Nivel *</label>
+                    <input type="number" class="form-control" min="1" max="5" 
+                           required name="nivel" [(ngModel)]="cuenta.nivel">
+                    <small class="text-muted">Nivel jerárquico (1-5)</small>
+                </div>
+                <div class="col-lg-6 form-group">
+                    <label for="">Cuenta padre</label>
+                    <select class="form-control" name="cuenta_padre" [(ngModel)]="cuenta.cuenta_padre">
+                        <option value="">Sin cuenta padre</option>
+                        <option *ngFor="let padre of cuentas_padre" [value]="padre.cuentaid">
+                            {{ padre.codigo }} - {{ padre.nombre }}
+                        </option>
+                    </select>
+                    <small class="text-muted">Seleccione si esta cuenta depende de otra</small>
+                </div>
+                <div class="col-lg-12 form-group">
+                    <label for="">Descripción</label>
+                    <textarea class="form-control" rows="3" placeholder="Descripción opcional de la cuenta"
+                              name="descripcion" [(ngModel)]="cuenta.descripcion"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button class="btn btn-primary mr-3" type="submit" [disabled]="load_btn">
+                <span *ngIf="load_btn" class="spinner-border spinner-border-sm mr-2"></span>
+                Crear cuenta
+            </button>
+            <a [routerLink]="['/panel/finanzas/plan-cuentas']" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </div>
+</form>

@@ -6,7 +6,7 @@
     <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
       <p class="text-muted">Información completa del proveedor</p>
       <p class="font-size-sm font-weight-medium pl-md-4">
-        <a class="text-nowrap" [routerLink]="['/panel/proveedores']">Regresar<i class="cxi-angle-right font-size-base align-middle ml-1"></i></a>
+        <a class="text-nowrap" [routerLink]="['/panel/proveedores']">Regresar<i class="fa fa-angle-right font-size-base align-middle ml-1"></i></a>
       </p>
     </div>
 </div>
@@ -24,10 +24,10 @@
             <h5 style="margin-bottom: 0px;">Información del Proveedor</h5>
             <div>
                 <a [routerLink]="['/panel/proveedores/editar', proveedor.proveedorid]" class="btn btn-primary btn-sm mr-2">
-                    <i class="cxi-edit"></i> Editar
+                    <i class="fa fa-edit"></i> Editar
                 </a>
                 <button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal">
-                    <i class="cxi-trash"></i> Eliminar
+                    <i class="fa fa-trash"></i> Eliminar
                 </button>
             </div>
         </div>

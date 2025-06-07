@@ -3,6 +3,7 @@ const ejs = require('ejs');
 const nodemailer = require('nodemailer');
 const smtpTransport = require('nodemailer-smtp-transport');
 const pool = require('../db/pool');
+const { crearAsientoVenta } = require('./financieroController');
 
 const ObtenerVentas = async (req, res) => {
     try {
@@ -46,9 +47,11 @@ const ObtenerVentas = async (req, res) => {
 const registrarVenta = async (req, res) => {
     const { usuarioid, carrito_arr, direccionid, transaccion, cupon, nota, precio_envio, envio_titulo } = req.body;
 
+    const client = await pool.connect();
+
     try {
         // Obtener el estadoid de "Procesando"
-        const estadoResult = await pool.query(
+        const estadoResult = await client.query(
             'SELECT estadoid FROM estado_venta WHERE nombre = $1',
             ['Procesando']
         );
@@ -64,7 +67,7 @@ const registrarVenta = async (req, res) => {
         let total_pagar = subtotal + parseFloat(precio_envio);
 
         // Registrar la venta con el nuevo campo estadoid
-        const ventaResult = await pool.query(
+        const ventaResult = await client.query(
             `INSERT INTO venta (
                 usuarioid, nventa, subtotal, enviotitulo, 
                 envioprecio, estadoid, transaccion, 
@@ -90,13 +93,13 @@ const registrarVenta = async (req, res) => {
 
         // Registrar detalles de venta y actualizar stock
         for (const item of carrito_arr) {
-            await pool.query(
+            await client.query(
                 `INSERT INTO detalleventa (ventaid, usuarioid, productoid, cantidad, subtotal) 
                 VALUES ($1, $2, $3, $4, $5)`,
                 [ventaid, usuarioid, item.productoid, item.cantidad, item.precio * item.cantidad]
             );
 
-            await pool.query(
+            await client.query(
                 `UPDATE producto 
                 SET stock = stock - $1, 
                     nventas = nventas + 1 
@@ -106,10 +109,19 @@ const registrarVenta = async (req, res) => {
         }
 
         // Limpiar carrito
-        await pool.query(
+        await client.query(
             `DELETE FROM carrito WHERE usuarioid = $1`, 
             [usuarioid]
         );
+
+        await client.query('COMMIT');
+
+        try {
+            await crearAsientoVenta(ventaid);
+            console.log(`Asiento contable creado para venta ${ventaid}`);
+        } catch (asientoError) {
+            console.error('Error al crear asiento contable para venta:', asientoError);
+        }
 
         res.status(200).json({ 
             message: 'Venta registrada con éxito', 

@@ -6,7 +6,7 @@
     <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
       <p class="text-muted">{{ proveedor.nombre }}</p>
       <p class="font-size-sm font-weight-medium pl-md-4">
-        <a class="text-nowrap" [routerLink]="['/panel/proveedores']">Regresar<i class="cxi-angle-right font-size-base align-middle ml-1"></i></a>
+        <a class="text-nowrap" [routerLink]="['/panel/proveedores']">Regresar<i class="fa fa-angle-right font-size-base align-middle ml-1"></i></a>
       </p>
     </div>
 </div>
@@ -23,14 +23,14 @@
                    [(ngModel)]="filtro" (keyup)="filtrar()">
             <div class="input-group-append">
               <button class="btn btn-primary" type="button" (click)="filtrar()">
-                <i class="cxi-search"></i>
+                <i class="fa fa-search"></i>
               </button>
             </div>
           </div>
         </div>
         <div class="col-4">
           <button class="btn btn-success" type="button" (click)="resetear()">
-            <i class="cxi-reload"></i> Resetear
+            <i class="fa fa-reload"></i> Resetear
           </button>
         </div>
       </div>

@@ -35,6 +35,16 @@ import { CreateOrdenCompraComponent } from './components/ordenes-compra/create-o
 import { EditOrdenCompraComponent } from './components/ordenes-compra/edit-orden-compra/edit-orden-compra.component';
 import { ShowOrdenCompraComponent } from './components/ordenes-compra/show-orden-compra/show-orden-compra.component';
 import { RecibirProductosComponent } from './components/ordenes-compra/recibir-productos/recibir-productos.component';
+import { IndexFinanzasComponent } from './components/finanzas/index-finanzas/index-finanzas.component';
+import { PlanCuentasComponent } from './components/finanzas/plan-cuentas/plan-cuentas.component';
+import { CrearCuentaComponent } from './components/finanzas/crear-cuenta/crear-cuenta.component';
+import { AsientosContablesComponent } from './components/finanzas/asientos-contables/asientos-contables.component';
+import { CrearAsientoComponent } from './components/finanzas/crear-asiento/crear-asiento.component';
+import { FlujoCajaComponent } from './components/finanzas/flujo-caja/flujo-caja.component';
+import { RegistrarMovimientoComponent } from './components/finanzas/registrar-movimiento/registrar-movimiento.component';
+import { BalanceGeneralComponent } from './components/finanzas/balance-general/balance-general.component';
+import { EstadoResultadosComponent } from './components/finanzas/estado-resultados/estado-resultados.component';
+import { EditarCuentaComponent } from './components/finanzas/editar-cuenta/editar-cuenta.component';
 
 
 @NgModule({
@@ -64,6 +74,16 @@ import { RecibirProductosComponent } from './components/ordenes-compra/recibir-p
     EditOrdenCompraComponent,
     ShowOrdenCompraComponent,
     RecibirProductosComponent,
+    IndexFinanzasComponent,
+    PlanCuentasComponent,
+    CrearCuentaComponent,
+    AsientosContablesComponent,
+    CrearAsientoComponent,
+    FlujoCajaComponent,
+    RegistrarMovimientoComponent,
+    BalanceGeneralComponent,
+    EstadoResultadosComponent,
+    EditarCuentaComponent,
     
   ],
   imports: [

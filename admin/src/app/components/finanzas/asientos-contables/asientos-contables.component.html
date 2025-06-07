@@ -1,0 +1,153 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Asientos Contables</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted">Gestión de registros contables</p>
+      <p class="font-size-sm font-weight-medium pl-md-4">
+        <a class="text-nowrap" [routerLink]="['/panel/finanzas']">Regresar<i class="fa fa-angle-right font-size-base align-middle ml-1"></i></a>
+      </p>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card box-shadow-sm mb-4">
+    <div class="card-header">
+        <h5 style="margin-bottom: 0px;">Filtros de búsqueda</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-lg-2">
+                <label>Desde</label>
+                <input type="date" class="form-control" [(ngModel)]="fecha_desde">
+            </div>
+            <div class="col-lg-2">
+                <label>Hasta</label>
+                <input type="date" class="form-control" [(ngModel)]="fecha_hasta">
+            </div>
+            <div class="col-lg-3">
+                <label>Tipo documento</label>
+                <select class="form-control" [(ngModel)]="tipo_documento">
+                    <option value="">Todos los tipos</option>
+                    <option *ngFor="let tipo of tipos_documento" [value]="tipo">{{ tipo }}</option>
+                </select>
+            </div>
+            <div class="col-lg-2">
+                <label>Estado</label>
+                <select class="form-control" [(ngModel)]="estado_filtro">
+                    <option value="">Todos</option>
+                    <option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
+                </select>
+            </div>
+            <div class="col-lg-3 d-flex align-items-end">
+                <button class="btn btn-primary mr-2" (click)="filtrar()">
+                    <i class="fa fa-search"></i> Filtrar
+                </button>
+                <button class="btn btn-secondary mr-2" (click)="resetear()">
+                    <i class="fa fa-refresh"></i> Limpiar
+                </button>
+                <button class="btn btn-success" (click)="crear_asiento()">
+                    <i class="fa fa-plus"></i> Nuevo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de asientos -->
+<div class="card box-shadow-sm">
+    <div class="card-header">
+        <h5 style="margin-bottom: 0px;">Registros Contables</h5>
+    </div>
+    <div class="card-body">
+        <div *ngIf="load_data" class="text-center py-5">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Cargando...</span>
+            </div>
+        </div>
+
+        <div *ngIf="!load_data">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Número</th>
+                            <th>Fecha</th>
+                            <th>Descripción</th>
+                            <th>Tipo</th>
+                            <th>Documento</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let asiento of asientos | slice: (page-1) * pageSize : page * pageSize">
+                            <td>
+                                <code>{{ asiento.numero_asiento }}</code>
+                            </td>
+                            <td>{{ asiento.fecha_asiento | date:'dd/MM/yyyy' }}</td>
+                            <td>
+                                <strong>{{ asiento.descripcion }}</strong>
+                                <br>
+                                <small class="text-muted" *ngIf="asiento.usuario_nombres">
+                                    Por: {{ asiento.usuario_nombres }} {{ asiento.usuario_apellidos }}
+                                </small>
+                            </td>
+                            <td>
+                                <span class="badge" [ngClass]="getBadgeTipoAsiento(asiento.tipo_asiento)">
+                                    {{ asiento.tipo_asiento }}
+                                </span>
+                            </td>
+                            <td>
+                                <span *ngIf="asiento.tipo_documento">{{ asiento.tipo_documento }}</span>
+                                <br>
+                                <small class="text-muted" *ngIf="asiento.referencia_documento">
+                                    Ref: {{ asiento.referencia_documento }}
+                                </small>
+                            </td>
+                            <td>
+                                <strong>${{ asiento.total_debe | number:'1.2-2' }}</strong>
+                            </td>
+                            <td>
+                                <span class="badge" [ngClass]="getBadgeEstado(asiento.estado)">
+                                    {{ asiento.estado }}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-info btn-sm mr-1" (click)="ver_asiento(asiento.asientoid)"
+                                        title="Ver detalle">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+                                <button *ngIf="asiento.estado === 'Pendiente'" 
+                                        class="btn btn-success btn-sm" 
+                                        (click)="aprobar_asiento(asiento.asientoid)"
+                                        title="Aprobar asiento">
+                                    <i class="fa fa-check"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginación -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div>
+                    <small class="text-muted">
+                        Mostrando {{ (page-1) * pageSize + 1 }} a {{ page * pageSize > asientos.length ? asientos.length : page * pageSize }} 
+                        de {{ asientos.length }} asientos
+                    </small>
+                </div>
+                <ngb-pagination
+                    [(page)]="page"
+                    [pageSize]="pageSize"
+                    [collectionSize]="asientos.length"
+                    [maxSize]="5"
+                    [boundaryLinks]="true">
+                </ngb-pagination>
+            </div>
+        </div>
+    </div>
+</div>

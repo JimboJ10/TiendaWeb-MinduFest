@@ -1,0 +1,223 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Gestión Financiera</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted">Panel de control financiero y contable</p>
+    </div>
+</div>
+
+<!-- Filtros de fecha -->
+<div class="card box-shadow-sm mb-4">
+    <div class="card-header">
+        <h5 style="margin-bottom: 0px;">Período de análisis</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <label>Fecha desde</label>
+                <input type="date" class="form-control" [(ngModel)]="fecha_desde">
+            </div>
+            <div class="col-md-4">
+                <label>Fecha hasta</label>
+                <input type="date" class="form-control" [(ngModel)]="fecha_hasta">
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+                <button class="btn btn-primary" (click)="filtrar_resumen()">
+                    <i class="fa fa-search"></i> Actualizar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resumen financiero -->
+<div class="row mb-4" *ngIf="!load_resumen">
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h3>${{ (resumen_caja.resumen?.total_ingresos || 0) | number:'1.2-2' }}</h3>
+                <p>Total Ingresos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body text-center">
+                <h3>${{ (resumen_caja.resumen?.total_egresos || 0) | number:'1.2-2' }}</h3>
+                <p>Total Egresos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h3>${{ (resumen_caja.resumen?.saldo_neto || 0) | number:'1.2-2' }}</h3>
+                <p>Saldo Neto</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h3>{{ resumen_caja.resumen?.total_movimientos || 0 }}</h3>
+                <p>Movimientos</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Módulos financieros -->
+<div class="row">
+    <!-- Plan de Cuentas -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fa fa-layers"></i> Plan de Cuentas
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Gestión del catálogo de cuentas contables, configuración de cuentas de activos, pasivos, patrimonio, ingresos y gastos.</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" (click)="navegar_a('/panel/finanzas/plan-cuentas')">
+                        <i class="fa fa-eye"></i> Ver Plan de Cuentas
+                    </button>
+                    <button class="btn btn-outline-success" (click)="navegar_a('/panel/finanzas/plan-cuentas/crear')">
+                        <i class="fa fa-plus"></i> Nueva Cuenta
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Asientos Contables -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fa fa-clipboard"></i> Asientos Contables
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Registro y gestión de asientos contables manuales y automáticos. Control de partida doble y balance contable.</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-success" (click)="navegar_a('/panel/finanzas/asientos')">
+                        <i class="fa fa-eye"></i> Ver Asientos
+                    </button>
+                    <button class="btn btn-outline-primary" (click)="navegar_a('/panel/finanzas/asientos/crear')">
+                        <i class="fa fa-plus"></i> Nuevo Asiento
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flujo de Caja -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 border-info">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fa fa-wallet"></i> Flujo de Caja
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Control de ingresos y egresos de efectivo. Registro de movimientos de caja y análisis de liquidez.</p>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-info" (click)="navegar_a('/panel/finanzas/flujo-caja')">
+                        <i class="fa fa-eye"></i> Ver Movimientos
+                    </button>
+                    <button class="btn btn-outline-success" (click)="navegar_a('/panel/finanzas/flujo-caja/registrar')">
+                        <i class="fa fa-plus"></i> Registrar Movimiento
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Balance General -->
+    <div class="col-lg-6 col-md-6 mb-4">
+        <div class="card h-100 border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fa fa-bar-chart"></i> Balance General
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Estado financiero que muestra los activos, pasivos y patrimonio en una fecha específica.</p>
+                <button class="btn btn-outline-warning" (click)="navegar_a('/panel/finanzas/balance-general')">
+                    <i class="fa fa-bar-chart"></i> Ver Balance General
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estado de Resultados -->
+    <div class="col-lg-6 col-md-6 mb-4">
+        <div class="card h-100 border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="fa fa-pie-chart"></i> Estado de Resultados
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Reporte de ingresos y gastos durante un período específico, mostrando la utilidad o pérdida.</p>
+                <button class="btn btn-outline-danger" (click)="navegar_a('/panel/finanzas/estado-resultados')">
+                    <i class="fa fa-pie-chart"></i> Ver Estado de Resultados
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Análisis por categorías -->
+<div class="row" *ngIf="!load_resumen && resumen_caja.ingresos_por_categoria">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Ingresos por Categoría</h5>
+            </div>
+            <div class="card-body">
+                <div *ngFor="let categoria of resumen_caja.ingresos_por_categoria" class="mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>{{ categoria.categoria }}</span>
+                        <strong>${{ categoria.total | number:'1.2-2' }}</strong>
+                    </div>
+                    <div class="progress" style="height: 5px;">
+                        <div class="progress-bar bg-success" 
+                             [style.width.%]="(categoria.total / resumen_caja.resumen?.total_ingresos) * 100">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Egresos por Categoría</h5>
+            </div>
+            <div class="card-body">
+                <div *ngFor="let categoria of resumen_caja.egresos_por_categoria" class="mb-2">
+                    <div class="d-flex justify-content-between">
+                        <span>{{ categoria.categoria }}</span>
+                        <strong>${{ categoria.total | number:'1.2-2' }}</strong>
+                    </div>
+                    <div class="progress" style="height: 5px;">
+                        <div class="progress-bar bg-danger" 
+                             [style.width.%]="(categoria.total / resumen_caja.resumen?.total_egresos) * 100">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="load_resumen" class="text-center py-5">
+    <div class="spinner-border" role="status">
+        <span class="sr-only">Cargando...</span>
+    </div>
+</div>

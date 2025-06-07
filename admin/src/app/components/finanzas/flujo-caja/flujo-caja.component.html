@@ -1,0 +1,183 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Flujo de Caja</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted">Control de ingresos y egresos de efectivo</p>
+      <p class="font-size-sm font-weight-medium pl-md-4">
+        <a class="text-nowrap" [routerLink]="['/panel/finanzas']">Regresar<i class="fa fa-angle-right font-size-base align-middle ml-1"></i></a>
+      </p>
+    </div>
+</div>
+
+<!-- Resumen -->
+<div class="row mb-4" *ngIf="resumen">
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h4>${{ (resumen.total_ingresos || 0) | number:'1.2-2' }}</h4>
+                <p>Total Ingresos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body text-center">
+                <h4>${{ (resumen.total_egresos || 0) | number:'1.2-2' }}</h4>
+                <p>Total Egresos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white" [ngClass]="{
+            'bg-success': resumen.saldo_neto >= 0,
+            'bg-danger': resumen.saldo_neto < 0
+        }">
+            <div class="card-body text-center">
+                <h4>${{ (resumen.saldo_neto || 0) | number:'1.2-2' }}</h4>
+                <p>Saldo Neto</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h4>{{ resumen.total_movimientos || 0 }}</h4>
+                <p>Movimientos</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card box-shadow-sm mb-4">
+    <div class="card-header">
+        <h5 style="margin-bottom: 0px;">Filtros de búsqueda</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-lg-2">
+                <label>Desde</label>
+                <input type="date" class="form-control" [(ngModel)]="fecha_desde">
+            </div>
+            <div class="col-lg-2">
+                <label>Hasta</label>
+                <input type="date" class="form-control" [(ngModel)]="fecha_hasta">
+            </div>
+            <div class="col-lg-2">
+                <label>Tipo</label>
+                <select class="form-control" [(ngModel)]="tipo_filtro">
+                    <option value="">Todos</option>
+                    <option *ngFor="let tipo of tipos" [value]="tipo">{{ tipo }}</option>
+                </select>
+            </div>
+            <div class="col-lg-3">
+                <label>Categoría</label>
+                <select class="form-control" [(ngModel)]="categoria_filtro">
+                    <option value="">Todas</option>
+                    <option *ngFor="let categoria of categorias" [value]="categoria">{{ categoria }}</option>
+                </select>
+            </div>
+            <div class="col-lg-3 d-flex align-items-end">
+                <button class="btn btn-primary mr-2" (click)="filtrar()">
+                    <i class="fa fa-search"></i> Filtrar
+                </button>
+                <button class="btn btn-secondary mr-2" (click)="resetear()">
+                    <i class="fa fa-refresh"></i> Limpiar
+                </button>
+                <button class="btn btn-success" (click)="registrar_movimiento()">
+                    <i class="fa fa-plus"></i> Registrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de movimientos -->
+<div class="card box-shadow-sm">
+    <div class="card-header">
+        <h5 style="margin-bottom: 0px;">Movimientos de Caja</h5>
+    </div>
+    <div class="card-body">
+        <div *ngIf="load_data" class="text-center py-5">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Cargando...</span>
+            </div>
+        </div>
+
+        <div *ngIf="!load_data">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th>Categoría</th>
+                            <th>Concepto</th>
+                            <th>Monto</th>
+                            <th>Método</th>
+                            <th>Usuario</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let movimiento of movimientos | slice: (page-1) * pageSize : page * pageSize">
+                            <td>{{ movimiento.fecha | date:'dd/MM/yyyy' }}</td>
+                            <td>
+                                <span class="badge" [ngClass]="getBadgeTipo(movimiento.tipo)">
+                                    <i [ngClass]="getIconoTipo(movimiento.tipo)"></i>
+                                    {{ movimiento.tipo }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge badge-secondary">{{ movimiento.categoria }}</span>
+                            </td>
+                            <td>
+                                <strong>{{ movimiento.concepto }}</strong>
+                                <br>
+                                <small class="text-muted" *ngIf="movimiento.observaciones">
+                                    {{ movimiento.observaciones }}
+                                </small>
+                                <br>
+                                <small class="text-muted" *ngIf="movimiento.referencia_documento">
+                                    Ref: {{ movimiento.referencia_documento }}
+                                </small>
+                            </td>
+                            <td>
+                                <strong [ngClass]="{
+                                    'text-success': movimiento.tipo === 'Ingreso',
+                                    'text-danger': movimiento.tipo === 'Egreso'
+                                }">
+                                    {{ movimiento.tipo === 'Ingreso' ? '+' : '-' }}${{ movimiento.monto | number:'1.2-2' }}
+                                </strong>
+                            </td>
+                            <td>{{ movimiento.metodo_pago || 'N/A' }}</td>
+                            <td>
+                                <small *ngIf="movimiento.usuario_nombres">
+                                    {{ movimiento.usuario_nombres }} {{ movimiento.usuario_apellidos }}
+                                </small>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginación -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div>
+                    <small class="text-muted">
+                        Mostrando {{ (page-1) * pageSize + 1 }} a {{ page * pageSize > movimientos.length ? movimientos.length : page * pageSize }} 
+                        de {{ movimientos.length }} movimientos
+                    </small>
+                </div>
+                <ngb-pagination
+                    [(page)]="page"
+                    [pageSize]="pageSize"
+                    [collectionSize]="movimientos.length"
+                    [maxSize]="5"
+                    [boundaryLinks]="true">
+                </ngb-pagination>
+            </div>
+        </div>
+    </div>
+</div>

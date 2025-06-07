@@ -25,6 +25,16 @@ import { CreateOrdenCompraComponent } from "./components/ordenes-compra/create-o
 import { EditOrdenCompraComponent } from "./components/ordenes-compra/edit-orden-compra/edit-orden-compra.component";
 import { ShowOrdenCompraComponent } from "./components/ordenes-compra/show-orden-compra/show-orden-compra.component";
 import { RecibirProductosComponent } from "./components/ordenes-compra/recibir-productos/recibir-productos.component";
+import { IndexFinanzasComponent } from "./components/finanzas/index-finanzas/index-finanzas.component";
+import { PlanCuentasComponent } from "./components/finanzas/plan-cuentas/plan-cuentas.component";
+import { CrearCuentaComponent } from "./components/finanzas/crear-cuenta/crear-cuenta.component";
+import { AsientosContablesComponent } from "./components/finanzas/asientos-contables/asientos-contables.component";
+import { CrearAsientoComponent } from "./components/finanzas/crear-asiento/crear-asiento.component";
+import { FlujoCajaComponent } from "./components/finanzas/flujo-caja/flujo-caja.component";
+import { RegistrarMovimientoComponent } from "./components/finanzas/registrar-movimiento/registrar-movimiento.component";
+import { BalanceGeneralComponent } from "./components/finanzas/balance-general/balance-general.component";
+import { EstadoResultadosComponent } from "./components/finanzas/estado-resultados/estado-resultados.component";
+import { EditarCuentaComponent } from "./components/finanzas/editar-cuenta/editar-cuenta.component";
 
 const appRoutes : Routes = [
     {path:'', redirectTo: 'admin', pathMatch:'full'},
@@ -51,6 +61,17 @@ const appRoutes : Routes = [
         { path: 'ordenes-compra/editar/:id', component: EditOrdenCompraComponent, canActivate: [AuthGuard] },
         { path: 'ordenes-compra/:id', component: ShowOrdenCompraComponent, canActivate: [AuthGuard] },
         { path: 'ordenes-compra/recibir/:id', component: RecibirProductosComponent, canActivate: [AuthGuard] },
+
+        { path: 'finanzas', component: IndexFinanzasComponent, canActivate: [AuthGuard] },
+        { path: 'finanzas/plan-cuentas', component: PlanCuentasComponent, canActivate: [AuthGuard] },
+        { path: 'finanzas/plan-cuentas/crear', component: CrearCuentaComponent, canActivate: [AuthGuard] },
+        { path: 'finanzas/plan-cuentas/editar/:id', component: EditarCuentaComponent, canActivate: [AuthGuard] },
+        { path: 'finanzas/asientos', component: AsientosContablesComponent, canActivate: [AuthGuard] },
+        { path: 'finanzas/asientos/crear', component: CrearAsientoComponent, canActivate: [AuthGuard] },
+        { path: 'finanzas/flujo-caja', component: FlujoCajaComponent, canActivate: [AuthGuard] },
+        { path: 'finanzas/flujo-caja/registrar', component: RegistrarMovimientoComponent, canActivate: [AuthGuard] },
+        { path: 'finanzas/balance-general', component: BalanceGeneralComponent, canActivate: [AuthGuard] },
+        { path: 'finanzas/estado-resultados', component: EstadoResultadosComponent, canActivate: [AuthGuard] },
 
         {path: 'direcciones', component:DireccionClienteComponent, canActivate:[AuthGuard]},
         {path: 'ventas', component:IndexVentasComponent, canActivate:[AuthGuard]},

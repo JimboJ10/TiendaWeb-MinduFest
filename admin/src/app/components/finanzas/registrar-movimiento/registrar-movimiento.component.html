@@ -1,0 +1,92 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Registrar Movimiento de Caja</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted">Nuevo ingreso o egreso de efectivo</p>
+      <p class="font-size-sm font-weight-medium pl-md-4">
+        <a class="text-nowrap" [routerLink]="['/panel/finanzas/flujo-caja']">Regresar<i class="fa fa-angle-right font-size-base align-middle ml-1"></i></a>
+      </p>
+    </div>
+</div>
+
+<form #registrarForm="ngForm" (ngSubmit)="registrar(registrarForm)">
+    <div class="card box-shadow-sm">
+        <div class="card-header">
+            <h5 style="margin-bottom: 0px;">Información del movimiento</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-lg-3 form-group">
+                    <label for="">Fecha *</label>
+                    <input type="date" class="form-control" required 
+                           name="fecha" [(ngModel)]="movimiento.fecha">
+                </div>
+                <div class="col-lg-3 form-group">
+                    <label for="">Tipo *</label>
+                    <select class="form-control" required name="tipo" 
+                            [(ngModel)]="movimiento.tipo" (change)="on_tipo_change()">
+                        <option value="">Seleccione tipo</option>
+                        <option *ngFor="let tipo of tipos" [value]="tipo">{{ tipo }}</option>
+                    </select>
+                </div>
+                <div class="col-lg-3 form-group">
+                    <label for="">Categoría *</label>
+                    <select class="form-control" required name="categoria" [(ngModel)]="movimiento.categoria">
+                        <option value="">Seleccione categoría</option>
+                        <option *ngFor="let categoria of categorias_disponibles" [value]="categoria">{{ categoria }}</option>
+                    </select>
+                </div>
+                <div class="col-lg-3 form-group">
+                    <label for="">Monto *</label>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">$</span>
+                        </div>
+                        <input type="number" class="form-control" step="0.01" min="0.01" 
+                               placeholder="0.00" required name="monto" [(ngModel)]="movimiento.monto">
+                    </div>
+                </div>
+                <div class="col-lg-12 form-group">
+                    <label for="">Concepto *</label>
+                    <input type="text" class="form-control" placeholder="Descripción del movimiento"
+                           required name="concepto" [(ngModel)]="movimiento.concepto">
+                </div>
+                <div class="col-lg-4 form-group">
+                    <label for="">Método de pago</label>
+                    <select class="form-control" name="metodo_pago" [(ngModel)]="movimiento.metodo_pago">
+                        <option value="">Seleccione método</option>
+                        <option *ngFor="let metodo of metodos_pago" [value]="metodo">{{ metodo }}</option>
+                    </select>
+                </div>
+                <div class="col-lg-4 form-group">
+                    <label for="">Cuenta contable</label>
+                    <select class="form-control" name="cuentaid" [(ngModel)]="movimiento.cuentaid">
+                        <option value="">Seleccione cuenta</option>
+                        <option *ngFor="let cuenta of cuentas" [value]="cuenta.cuentaid">
+                            {{ cuenta.codigo }} - {{ cuenta.nombre }}
+                        </option>
+                    </select>
+                </div>
+                <div class="col-lg-4 form-group">
+                    <label for="">Referencia documento</label>
+                    <input type="text" class="form-control" placeholder="Número de factura, recibo, etc."
+                           name="referencia_documento" [(ngModel)]="movimiento.referencia_documento">
+                </div>
+                <div class="col-lg-12 form-group">
+                    <label for="">Observaciones</label>
+                    <textarea class="form-control" rows="3" placeholder="Observaciones adicionales (opcional)"
+                              name="observaciones" [(ngModel)]="movimiento.observaciones"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button class="btn btn-primary mr-3" type="submit" [disabled]="load_btn">
+                <span *ngIf="load_btn" class="spinner-border spinner-border-sm mr-2"></span>
+                Registrar movimiento
+            </button>
+            <a [routerLink]="['/panel/finanzas/flujo-caja']" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </div>
+</form>

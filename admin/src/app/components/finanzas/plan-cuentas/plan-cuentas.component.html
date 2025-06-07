@@ -1,0 +1,146 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Plan de Cuentas</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted">Catálogo de cuentas contables</p>
+      <p class="font-size-sm font-weight-medium pl-md-4">
+        <a class="text-nowrap" [routerLink]="['/panel/finanzas']">Regresar<i class="fa fa-angle-right font-size-base align-middle ml-1"></i></a>
+      </p>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card box-shadow-sm mb-4">
+    <div class="card-header">
+        <h5 style="margin-bottom: 0px;">Filtros de búsqueda</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-lg-3">
+                <label>Buscar</label>
+                <input type="text" class="form-control" placeholder="Código o nombre..." 
+                       [(ngModel)]="filtro" (keyup.enter)="filtrar()">
+            </div>
+            <div class="col-lg-3">
+                <label>Tipo de cuenta</label>
+                <select class="form-control" [(ngModel)]="tipo_filtro">
+                    <option value="">Todos los tipos</option>
+                    <option *ngFor="let tipo of tipos_cuenta" [value]="tipo">{{ tipo }}</option>
+                </select>
+            </div>
+            <div class="col-lg-3">
+                <label>Estado</label>
+                <select class="form-control" [(ngModel)]="estado_filtro">
+                    <option value="">Todos</option>
+                    <option value="Activo">Activo</option>
+                    <option value="Inactivo">Inactivo</option>
+                </select>
+            </div>
+            <div class="col-lg-3 d-flex align-items-end">
+                <button class="btn btn-primary mr-2" (click)="filtrar()">
+                    <i class="fa fa-search"></i> Filtrar
+                </button>
+                <button class="btn btn-secondary mr-2" (click)="resetear()">
+                    <i class="fa fa-refresh"></i> Limpiar
+                </button>
+                <button class="btn btn-success" (click)="crear_cuenta()">
+                    <i class="fa fa-plus"></i> Nueva
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de cuentas -->
+<div class="card box-shadow-sm">
+    <div class="card-header">
+        <h5 style="margin-bottom: 0px;">Cuentas Contables</h5>
+    </div>
+    <div class="card-body">
+        <div *ngIf="load_data" class="text-center py-5">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Cargando...</span>
+            </div>
+        </div>
+
+        <div *ngIf="!load_data">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Subtipo</th>
+                            <th>Nivel</th>
+                            <th>Cuenta Padre</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let cuenta of cuentas | slice: (page-1) * pageSize : page * pageSize">
+                            <td>
+                                <code>{{ cuenta.codigo }}</code>
+                            </td>
+                            <td>
+                                <strong>{{ cuenta.nombre }}</strong>
+                                <br>
+                                <small class="text-muted" *ngIf="cuenta.descripcion">
+                                    {{ cuenta.descripcion }}
+                                </small>
+                            </td>
+                            <td>
+                                <span [ngClass]="getColorTipoCuenta(cuenta.tipo)">
+                                    <strong>{{ cuenta.tipo }}</strong>
+                                </span>
+                            </td>
+                            <td>{{ cuenta.subtipo || 'N/A' }}</td>
+                            <td>
+                                <span class="badge badge-info">Nivel {{ cuenta.nivel }}</span>
+                            </td>
+                            <td>
+                                <span *ngIf="cuenta.cuenta_padre_nombre; else sinPadre">
+                                    {{ cuenta.cuenta_padre_nombre }}
+                                </span>
+                                <ng-template #sinPadre>
+                                    <span class="text-muted">Cuenta principal</span>
+                                </ng-template>
+                            </td>
+                            <td>
+                                <span class="badge" [ngClass]="getBadgeEstado(cuenta.estado)">
+                                    {{ cuenta.estado }}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-warning btn-sm mr-1" (click)="editar_cuenta(cuenta.cuentaid)"
+                                        title="Editar cuenta">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginación -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div>
+                    <small class="text-muted">
+                        Mostrando {{ (page-1) * pageSize + 1 }} a {{ page * pageSize > cuentas.length ? cuentas.length : page * pageSize }} 
+                        de {{ cuentas.length }} cuentas
+                    </small>
+                </div>
+                <ngb-pagination
+                    [(page)]="page"
+                    [pageSize]="pageSize"
+                    [collectionSize]="cuentas.length"
+                    [maxSize]="5"
+                    [boundaryLinks]="true">
+                </ngb-pagination>
+            </div>
+        </div>
+    </div>
+</div>
