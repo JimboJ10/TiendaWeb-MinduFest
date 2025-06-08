@@ -34,6 +34,7 @@ export interface ProductoStock {
   estado_stock: string;
   nventas: number;
   total_proveedores: number;
+  cantidad_inventario: number;
 }
 
 export interface ResumenStock {

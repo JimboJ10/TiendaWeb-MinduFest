@@ -1,1 +1,254 @@
-<p>reporte-stock-actual works!</p>
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Reporte de Stock Actual</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted">Control y análisis del inventario actual</p>
+      <p class="font-size-sm font-weight-medium pl-md-4">
+        <a class="text-nowrap" [routerLink]="['/panel/reportes']">Regresar<i class="fa fa-angle-right font-size-base align-middle ml-1"></i></a>
+      </p>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card box-shadow-sm mb-4">
+    <div class="card-header">
+        <h5 style="margin-bottom: 0px;">Filtros del reporte</h5>
+    </div>
+    <div class="card-body">
+        <div class="row align-items-end">
+            <div class="col-lg-3">
+                <label>Categoría</label>
+                <select class="form-control" [(ngModel)]="filtros.categoria">
+                    <option value="">Todas las categorías</option>
+                    <option *ngFor="let categoria of categorias" [value]="categoria.categoriaid">
+                        {{categoria.nombrecategoria}} ({{categoria.total_productos}})
+                    </option>
+                </select>
+            </div>
+            <div class="col-lg-3">
+                <label>Estado del stock</label>
+                <select class="form-control" [(ngModel)]="filtros.estado_stock">
+                    <option value="todos">Todos los estados</option>
+                    <option value="sin_stock">Sin Stock</option>
+                    <option value="stock_bajo">Stock Bajo (1-5)</option>
+                    <option value="stock_medio">Stock Medio (6-20)</option>
+                    <option value="stock_alto">Stock Alto (21+)</option>
+                </select>
+            </div>
+            <div class="col-lg-3">
+                <label>Límite de resultados</label>
+                <select class="form-control" [(ngModel)]="filtros.limite">
+                    <option value="50">50 productos</option>
+                    <option value="100">100 productos</option>
+                    <option value="200">200 productos</option>
+                    <option value="500">500 productos</option>
+                </select>
+            </div>
+            <div class="col-lg-3">
+                <button class="btn btn-primary btn-block" (click)="generar_reporte()" [disabled]="load_data">
+                    <i class="fa fa-search mr-2"></i>Generar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="load_data" class="text-center py-5">
+    <div class="spinner-border" role="status">
+        <span class="sr-only">Cargando...</span>
+    </div>
+</div>
+
+<div id="reporte-stock" *ngIf="!load_data && hayDatos">
+    <!-- Resumen -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{formatear_numero(resumenSeguro.total_productos)}}</h4>
+                    <small>Total Productos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{formatear_numero(resumenSeguro.total_unidades)}}</h4>
+                    <small>Total Unidades</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{formatear_moneda(resumenSeguro.valor_total_inventario)}}</h4>
+                    <small>Valor Inventario</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{productos_criticos_total}}</h4>
+                    <small>Productos Críticos</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico de estado de stock -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Distribución por Estado de Stock</h6>
+                </div>
+                <div class="card-body">
+                    <div *ngFor="let item of productos_por_estado" class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small">{{item.estado}}</span>
+                            <span class="small font-weight-bold">{{item.cantidad}}</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar" 
+                                 [ngClass]="'bg-' + get_color_progreso_stock(item.cantidad)"
+                                 [style.width.%]="item.porcentaje">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Productos Críticos</h6>
+                </div>
+                <div class="card-body">
+                    <div *ngIf="productos_criticos.length === 0" class="text-center text-muted py-3">
+                        <i class="fa fa-check-circle fa-2x"></i>
+                        <p class="mt-2 mb-0">No hay productos críticos</p>
+                    </div>
+                    <div *ngFor="let producto of productos_criticos | slice:0:5" class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <div class="font-weight-medium">{{producto.titulo}}</div>
+                            <small class="text-muted">{{producto.categoria}}</small>
+                        </div>
+                        <span [class]="'badge ' + get_badge_stock(producto.estado_stock)">
+                            {{producto.stock}} unidades
+                        </span>
+                    </div>
+                    <div *ngIf="productos_criticos.length > 5" class="text-center mt-2">
+                        <small class="text-muted">+ {{productos_criticos.length - 5}} productos más</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5>Productos ({{productosSeguras.length}})</h5>
+        <div>
+            <button class="btn btn-success btn-sm mr-2" (click)="exportar_excel()">
+                <i class="fa fa-file-excel mr-1"></i>Excel
+            </button>
+            <button class="btn btn-danger btn-sm" (click)="generar_pdf()">
+                <i class="fa fa-file-pdf mr-1"></i>PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabla de productos -->
+    <div class="card box-shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th>Stock</th>
+                            <th>Precio</th>
+                            <th>Valor Inventario</th>
+                            <th>Ventas</th>
+                            <th>Proveedores</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let producto of productosSeguras | slice: (page-1) * pageSize : page * pageSize">
+                            <td>
+                                <div>
+                                    <strong>{{producto.titulo}}</strong>
+                                    <br>
+                                    <small class="text-muted">ID: {{producto.productoid}}</small>
+                                </div>
+                            </td>
+                            <td>{{producto.categoria}}</td>
+                            <td>
+                                <span class="font-weight-bold" 
+                                    [class]="'text-' + get_color_progreso_stock(producto.stock)">
+                                    {{formatear_numero(producto.stock)}}
+                                </span>
+                                <div class="progress mt-1" style="height: 3px;">
+                                    <div class="progress-bar" 
+                                        [ngClass]="'bg-' + get_color_progreso_stock(producto.stock)"
+                                        [style.width.%]="Math.min((producto.stock / 50) * 100, 100)">
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{formatear_moneda(producto.precio)}}</td>
+                            <td>
+                                <strong>{{formatear_moneda(producto.valor_inventario)}}</strong>
+                            </td>
+                            <td>
+                                <span class="badge badge-info">
+                                    {{formatear_numero(producto.nventas)}}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge badge-secondary">
+                                    {{obtener_total_proveedores(producto)}}
+                                </span>
+                                <br>
+                                <small class="text-muted">{{formatear_numero(obtener_cantidad_inventario(producto))}} inv.</small>
+                            </td>
+                            <td>
+                                <span [class]="'badge ' + get_badge_stock(producto.estado_stock)">
+                                    <i [class]="'fa ' + get_icono_stock(producto.estado_stock) + ' mr-1'"></i>
+                                    {{producto.estado_stock}}
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            <div class="d-flex justify-content-between align-items-center mt-3" *ngIf="productosSeguras.length > pageSize">
+                <div>
+                    Mostrando {{(page-1) * pageSize + 1}} a {{Math.min(page * pageSize, productosSeguras.length)}} de {{productosSeguras.length}} productos
+                </div>
+                <nav>
+                    <ngb-pagination 
+                        [(page)]="page" 
+                        [pageSize]="pageSize" 
+                        [collectionSize]="productosSeguras.length"
+                        [maxSize]="5"
+                        [rotate]="true">
+                    </ngb-pagination>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="!load_data && !hayDatos" class="text-center py-5">
+    <div class="alert alert-info">
+        <i class="fa fa-info-circle"></i>
+        No hay productos que coincidan con los filtros seleccionados
+    </div>
+</div>

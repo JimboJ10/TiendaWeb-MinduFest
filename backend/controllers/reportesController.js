@@ -249,14 +249,14 @@ const reporteStockActual = async (req, res) => {
             SELECT 
                 p.productoid,
                 p.titulo,
-                c.nombrecategoria as categoria,
-                p.stock,
-                p.precio,
-                (p.stock * COALESCE(p.precio, 0)) as valor_inventario,
+                COALESCE(c.nombrecategoria, 'Sin categoría') as categoria,
+                COALESCE(p.stock, 0) as stock,
+                COALESCE(p.precio, 0) as precio,
+                (COALESCE(p.stock, 0) * COALESCE(p.precio, 0)) as valor_inventario,
                 CASE 
-                    WHEN p.stock = 0 THEN 'Sin Stock'
-                    WHEN p.stock <= 5 THEN 'Stock Bajo'
-                    WHEN p.stock <= 20 THEN 'Stock Medio'
+                    WHEN COALESCE(p.stock, 0) = 0 THEN 'Sin Stock'
+                    WHEN COALESCE(p.stock, 0) <= 5 THEN 'Stock Bajo'
+                    WHEN COALESCE(p.stock, 0) <= 20 THEN 'Stock Medio'
                     ELSE 'Stock Alto'
                 END as estado_stock,
                 COALESCE(p.nventas, 0) as nventas,
@@ -268,7 +268,7 @@ const reporteStockActual = async (req, res) => {
                 SELECT 
                     productoid, 
                     COUNT(DISTINCT proveedorid) as total_proveedores,
-                    SUM(cantidad) as cantidad_inventario
+                    SUM(COALESCE(cantidad, 0)) as cantidad_inventario
                 FROM inventario 
                 WHERE proveedorid IS NOT NULL
                 GROUP BY productoid
@@ -309,11 +309,11 @@ const reporteStockActual = async (req, res) => {
         // Resumen del inventario
         const resumenQuery = `
             SELECT 
-                COUNT(*) as total_productos,
-                SUM(COALESCE(p.stock, 0)) as total_unidades,
-                SUM(COALESCE(p.stock, 0) * COALESCE(p.precio, 0)) as valor_total_inventario,
-                SUM(CASE WHEN COALESCE(p.stock, 0) = 0 THEN 1 ELSE 0 END) as productos_sin_stock,
-                SUM(CASE WHEN COALESCE(p.stock, 0) <= 5 AND COALESCE(p.stock, 0) > 0 THEN 1 ELSE 0 END) as productos_stock_bajo
+                COUNT(*)::integer as total_productos,
+                SUM(COALESCE(p.stock, 0))::integer as total_unidades,
+                SUM(COALESCE(p.stock, 0) * COALESCE(p.precio, 0))::numeric as valor_total_inventario,
+                SUM(CASE WHEN COALESCE(p.stock, 0) = 0 THEN 1 ELSE 0 END)::integer as productos_sin_stock,
+                SUM(CASE WHEN COALESCE(p.stock, 0) <= 5 AND COALESCE(p.stock, 0) > 0 THEN 1 ELSE 0 END)::integer as productos_stock_bajo
             FROM producto p
             LEFT JOIN categoria c ON p.categoriaid = c.categoriaid
             ${categoria ? 'WHERE c.categoriaid = $1' : ''}
@@ -674,8 +674,8 @@ const obtenerCategorias = async (req, res) => {
     try {
         const query = `
             SELECT 
-                categoriaid,
-                nombrecategoria,
+                c.categoriaid,
+                c.nombrecategoria,
                 COUNT(p.productoid) as total_productos
             FROM categoria c
             LEFT JOIN producto p ON c.categoriaid = p.categoriaid
@@ -683,12 +683,17 @@ const obtenerCategorias = async (req, res) => {
             ORDER BY c.nombrecategoria
         `;
         
+        console.log('Query obtener categorías:', query);
+        
         const result = await pool.query(query);
+        
+        console.log('Categorías encontradas:', result.rows);
+        
         res.status(200).json(result.rows);
         
     } catch (err) {
         console.error('Error al obtener categorías:', err);
-        res.status(500).json({ error: 'Error en el servidor' });
+        res.status(500).json({ error: 'Error en el servidor', details: err.message });
     }
 };
 

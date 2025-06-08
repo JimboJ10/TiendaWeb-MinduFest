@@ -1,0 +1,28 @@
+.progress {
+  background-color: #e9ecef;
+}
+
+.card {
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.table th {
+  border-top: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #495057;
+}
+
+.badge {
+  font-size: 0.75rem;
+}
+
+.btn-sm {
+  font-size: 0.875rem;
+}
+
+.text-success { color: #28a745 !important; }
+.text-info { color: #17a2b8 !important; }
+.text-warning { color: #ffc107 !important; }
+.text-danger { color: #dc3545 !important; }
