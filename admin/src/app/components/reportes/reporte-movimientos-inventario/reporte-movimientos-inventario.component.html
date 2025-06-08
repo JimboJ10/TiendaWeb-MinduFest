@@ -1,1 +1,262 @@
-<p>reporte-movimientos-inventario works!</p>
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Reporte de Movimientos de Inventario</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted">Seguimiento detallado de entradas y salidas de inventario</p>
+      <p class="font-size-sm font-weight-medium pl-md-4">
+        <a class="text-nowrap" [routerLink]="['/panel/reportes']">Regresar<i class="fa fa-angle-right font-size-base align-middle ml-1"></i></a>
+      </p>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card box-shadow-sm mb-4">
+    <div class="card-header">
+        <h5 style="margin-bottom: 0px;">Filtros del reporte</h5>
+    </div>
+    <div class="card-body">
+        <div class="row align-items-end">
+            <div class="col-lg-2">
+                <label>Fecha inicio</label>
+                <input type="date" class="form-control" [(ngModel)]="filtros.fecha_inicio">
+            </div>
+            <div class="col-lg-2">
+                <label>Fecha fin</label>
+                <input type="date" class="form-control" [(ngModel)]="filtros.fecha_fin">
+            </div>
+            <div class="col-lg-2">
+                <label>Tipo de movimiento</label>
+                <select class="form-control" [(ngModel)]="filtros.tipo_movimiento">
+                    <option value="todos">Todos los tipos</option>
+                    <option value="venta">Solo Ventas</option>
+                    <option value="compra">Solo Compras</option>
+                    <option value="ajuste">Solo Ajustes</option>
+                    <option value="devolucion">Solo Devoluciones</option>
+                </select>
+            </div>
+            <div class="col-lg-2">
+                <label>Producto específico</label>
+                <select class="form-control" [(ngModel)]="filtros.productoid">
+                    <option value="">Todos los productos</option>
+                    <option *ngFor="let producto of productos" [value]="producto.productoid">
+                        {{producto.titulo}}
+                    </option>
+                </select>
+            </div>
+            <div class="col-lg-2">
+                <label>Límite</label>
+                <select class="form-control" [(ngModel)]="filtros.limite">
+                    <option value="50">50 movimientos</option>
+                    <option value="100">100 movimientos</option>
+                    <option value="200">200 movimientos</option>
+                    <option value="500">500 movimientos</option>
+                </select>
+            </div>
+            <div class="col-lg-2">
+                <button class="btn btn-primary btn-block" (click)="generar_reporte()" [disabled]="load_data">
+                    <i class="fa fa-search mr-2"></i>Generar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="load_data" class="text-center py-5">
+    <div class="spinner-border" role="status">
+        <span class="sr-only">Cargando...</span>
+    </div>
+</div>
+
+<div id="reporte-movimientos" *ngIf="!load_data && hayDatos">
+    <!-- Resumen -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{formatear_numero(resumenSeguro.total_movimientos)}}</h4>
+                    <small>Total Movimientos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{formatear_numero(resumenSeguro.total_entradas)}}</h4>
+                    <small>Entradas</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{formatear_numero(resumenSeguro.total_salidas)}}</h4>
+                    <small>Salidas</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{formatear_numero(resumenSeguro.productos_afectados)}}</h4>
+                    <small>Productos Afectados</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Análisis de movimientos -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Distribución por Tipo de Movimiento</h6>
+                </div>
+                <div class="card-body">
+                    <div *ngFor="let item of movimientos_por_tipo" class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small">{{item.tipo}}</span>
+                            <span class="small font-weight-bold">{{item.cantidad}}</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar" 
+                                 [ngClass]="'bg-' + (item.tipo === 'Venta' ? 'danger' : item.tipo === 'Compra' ? 'success' : 'warning')"
+                                 [style.width.%]="item.porcentaje">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Movimientos Recientes</h6>
+                </div>
+                <div class="card-body">
+                    <div *ngIf="movimientos_recientes.length === 0" class="text-center text-muted py-3">
+                        <i class="fa fa-inbox fa-2x"></i>
+                        <p class="mt-2 mb-0">No hay movimientos recientes</p>
+                    </div>
+                    <div *ngFor="let movimiento of movimientos_recientes" class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <div class="font-weight-medium">{{movimiento.producto}}</div>
+                            <small class="text-muted">{{formatear_fecha(movimiento.fecha)}}</small>
+                        </div>
+                        <div class="text-right">
+                            <span [class]="'badge ' + get_badge_movimiento(movimiento.tipo_movimiento)">
+                                <i [class]="'fa ' + get_icono_movimiento(movimiento.tipo_movimiento) + ' mr-1'"></i>
+                                {{movimiento.cantidad}}
+                            </span>
+                            <br>
+                            <small [class]="get_color_direccion(movimiento.direccion)">{{movimiento.direccion}}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5>Movimientos ({{movimientosSeguras.length}})</h5>
+        <div>
+            <button class="btn btn-success btn-sm mr-2" (click)="exportar_excel()">
+                <i class="fa fa-file-excel mr-1"></i>Excel
+            </button>
+            <button class="btn btn-danger btn-sm" (click)="generar_pdf()">
+                <i class="fa fa-file-pdf mr-1"></i>PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabla de movimientos -->
+    <div class="card box-shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Tipo de Movimiento</th>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Operación</th>
+                            <th>Contacto</th>
+                            <th>Referencia</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let movimiento of movimientosSeguras | slice: (page-1) * pageSize : page * pageSize">
+                            <td>
+                                <small>{{formatear_fecha(movimiento.fecha)}}</small>
+                            </td>
+                            <td>
+                                <span [class]="'badge ' + get_badge_movimiento(movimiento.tipo_movimiento)">
+                                    <i [class]="'fa ' + get_icono_movimiento(movimiento.tipo_movimiento) + ' mr-1'"></i>
+                                    {{movimiento.tipo_movimiento}}
+                                </span>
+                            </td>
+                            <td>
+                                <div>
+                                    <strong>{{movimiento.producto}}</strong>
+                                    <br>
+                                    <small class="text-muted" *ngIf="movimiento.precio_unitario">
+                                        {{formatear_moneda(movimiento.precio_unitario)}} c/u
+                                    </small>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="font-weight-bold" 
+                                    [class]="get_color_direccion(movimiento.direccion)">
+                                    {{movimiento.direccion === 'Entrada' ? '+' : '-'}}{{formatear_numero(movimiento.cantidad)}}
+                                </span>
+                                <div *ngIf="movimiento.valor_total" class="small text-muted">
+                                    {{formatear_moneda(movimiento.valor_total)}}
+                                </div>
+                            </td>
+                            <td>
+                                <span [class]="'badge ' + (movimiento.direccion === 'Entrada' ? 'badge-success' : 'badge-danger')">
+                                    <i [class]="'fa ' + (movimiento.direccion === 'Entrada' ? 'fa-arrow-up' : 'fa-arrow-down') + ' mr-1'"></i>
+                                    {{movimiento.direccion}}
+                                </span>
+                            </td>
+                            <td>
+                                <div>
+                                    {{obtener_contacto_seguro(movimiento)}}
+                                </div>
+                            </td>
+                            <td>
+                                <small class="text-muted">{{movimiento.referencia}}</small>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            <div class="d-flex justify-content-between align-items-center mt-3" *ngIf="movimientosSeguras.length > pageSize">
+                <div>
+                    Mostrando {{(page-1) * pageSize + 1}} a {{Math.min(page * pageSize, movimientosSeguras.length)}} de {{movimientosSeguras.length}} movimientos
+                </div>
+                <nav>
+                    <ngb-pagination 
+                        [(page)]="page" 
+                        [pageSize]="pageSize" 
+                        [collectionSize]="movimientosSeguras.length"
+                        [maxSize]="5"
+                        [rotate]="true">
+                    </ngb-pagination>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="!load_data && !hayDatos" class="text-center py-5">
+    <div class="alert alert-info">
+        <i class="fa fa-info-circle"></i>
+        No hay movimientos de inventario en el período seleccionado
+    </div>
+</div>

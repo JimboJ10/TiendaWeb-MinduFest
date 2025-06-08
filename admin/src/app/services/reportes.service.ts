@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { GLOBAL } from './GLOBAL';
-import { ReporteVentasPeriodo, ReporteStock, DashboardMetricas, ReporteVentasCliente } from '../models/reportes.model';
+import { ReporteVentasPeriodo, ReporteStock, DashboardMetricas, ReporteVentasCliente, ReporteMovimientos } from '../models/reportes.model';
 
 @Injectable({
   providedIn: 'root'
@@ -62,12 +62,12 @@ export class ReportesService {
     return this._http.get<ReporteStock>(this.url + 'reporte_stock_actual?' + params, { headers: headers });
   }
 
-  reporte_movimientos_inventario(fecha_inicio: string, fecha_fin: string, tipo_movimiento: string, productoid: string, token: string): Observable<any> {
+  reporte_movimientos_inventario(fecha_inicio: string, fecha_fin: string, tipo_movimiento: string, productoid: string, token: string): Observable<ReporteMovimientos> {
     let headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': token });
     let params = 'fecha_inicio=' + fecha_inicio + '&fecha_fin=' + fecha_fin;
-    if (tipo_movimiento) params += '&tipo_movimiento=' + tipo_movimiento;
+    if (tipo_movimiento && tipo_movimiento !== 'todos') params += '&tipo_movimiento=' + tipo_movimiento;
     if (productoid) params += '&productoid=' + productoid;
-    return this._http.get(this.url + 'reporte_movimientos_inventario?' + params, { headers: headers });
+    return this._http.get<ReporteMovimientos>(this.url + 'reporte_movimientos_inventario?' + params, { headers: headers });
   }
 
   // ======================== REPORTES FINANCIEROS ========================
@@ -101,5 +101,10 @@ export class ReportesService {
   obtener_categorias(token: string): Observable<any> {
     let headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': token });
     return this._http.get(this.url + 'obtener_categorias', { headers: headers });
+  }
+
+  obtener_productos(token: string): Observable<any> {
+    let headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': token });
+    return this._http.get(this.url + 'obtener_productos', { headers: headers });
   }
 }

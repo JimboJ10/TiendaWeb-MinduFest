@@ -21,7 +21,8 @@ const {
     // Dashboard
     dashboardReportes,
 
-    obtenerCategorias
+    obtenerCategorias,
+    obtenerProductos
 } = require('../controllers/reportesController');
 
 const { authMiddleware } = require('../middlewares/authMiddleware');
@@ -47,5 +48,6 @@ router.get('/dashboard_reportes', authMiddleware, dashboardReportes);
 
 // ======================== UTILITARIOS ========================
 router.get('/obtener_categorias', authMiddleware, obtenerCategorias);
+router.get('/obtener_productos', authMiddleware, obtenerProductos);
 
 module.exports = router;

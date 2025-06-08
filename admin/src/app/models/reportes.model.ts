@@ -126,3 +126,31 @@ export interface ReporteVentasCliente {
   clientes: ClienteVenta[];
   resumen: ResumenVentasCliente;
 }
+
+export interface MovimientoInventario {
+  fecha: string;
+  tipo_movimiento: string;
+  producto: string;
+  cantidad: number;
+  direccion: string;
+  referencia: string;
+  cliente?: string;
+  proveedor?: string;
+  productoid?: number;
+  precio_unitario?: number;
+  valor_total?: number;
+}
+
+export interface ResumenMovimientos {
+  total_movimientos: number;
+  total_entradas: number;
+  total_salidas: number;
+  productos_afectados: number;
+  valor_total_movimientos: number;
+}
+
+export interface ReporteMovimientos {
+  movimientos: MovimientoInventario[];
+  resumen: ResumenMovimientos;
+  mensaje?: string;
+}

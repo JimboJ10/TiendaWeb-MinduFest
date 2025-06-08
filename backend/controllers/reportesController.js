@@ -336,18 +336,22 @@ const reporteStockActual = async (req, res) => {
 // Reporte de movimientos de inventario
 const reporteMovimientosInventario = async (req, res) => {
     try {
-        const { fecha_inicio, fecha_fin, tipo_movimiento, productoid } = req.query;
+        const { fecha_inicio, fecha_fin, tipo_movimiento, productoid, limite = 100 } = req.query;
         
-        // Movimientos por ventas
+        // Movimientos por ventas (salidas)
         let ventasQuery = `
             SELECT 
                 v.fecha,
                 'Venta' as tipo_movimiento,
                 p.titulo as producto,
-                dv.cantidad as cantidad,
+                dv.cantidad,
                 'Salida' as direccion,
                 u.nombres || ' ' || u.apellidos as cliente,
-                v.nventa as referencia
+                NULL as proveedor,
+                v.nventa as referencia,
+                p.productoid,
+                (dv.subtotal / dv.cantidad) as precio_unitario,
+                dv.subtotal as valor_total
             FROM venta v
             JOIN detalleventa dv ON v.ventaid = dv.ventaid
             JOIN producto p ON dv.productoid = p.productoid
@@ -355,63 +359,107 @@ const reporteMovimientosInventario = async (req, res) => {
             WHERE 1=1
         `;
         
-        // Movimientos por órdenes de compra
+        // Movimientos por órdenes de compra (entradas)
         let comprasQuery = `
             SELECT 
-                oc.fecha_entrega_real as fecha,
+                COALESCE(doc.fecha_recepcion, oc.fecha_entrega_real, oc.fecha_orden) as fecha,
                 'Compra' as tipo_movimiento,
                 p.titulo as producto,
                 doc.recibido as cantidad,
                 'Entrada' as direccion,
+                NULL as cliente,
                 pr.nombre as proveedor,
-                oc.numero_orden as referencia
+                oc.numero_orden as referencia,
+                p.productoid,
+                doc.precio_unitario,
+                (doc.recibido * doc.precio_unitario) as valor_total
             FROM orden_compra oc
             JOIN detalle_orden_compra doc ON oc.ordencompraid = doc.ordencompraid
             JOIN producto p ON doc.productoid = p.productoid
             JOIN proveedor pr ON oc.proveedorid = pr.proveedorid
-            WHERE doc.recibido > 0 AND oc.fecha_entrega_real IS NOT NULL
+            WHERE doc.recibido > 0
         `;
         
         const params = [];
-        let whereClause = '';
+        let whereClauseVentas = '';
+        let whereClauseCompras = '';
         
         if (fecha_inicio) {
-            whereClause += ` AND fecha >= $${params.length + 1}`;
-            params.push(fecha_inicio);
+            whereClauseVentas += ` AND v.fecha >= $${params.length + 1}`;
+            whereClauseCompras += ` AND COALESCE(doc.fecha_recepcion, oc.fecha_entrega_real, oc.fecha_orden) >= $${params.length + 1}`;
+            params.push(fecha_inicio + ' 00:00:00');
         }
         
         if (fecha_fin) {
-            whereClause += ` AND fecha <= $${params.length + 1}`;
-            params.push(fecha_fin);
+            whereClauseVentas += ` AND v.fecha <= $${params.length + 1}`;
+            whereClauseCompras += ` AND COALESCE(doc.fecha_recepcion, oc.fecha_entrega_real, oc.fecha_orden) <= $${params.length + 1}`;
+            params.push(fecha_fin + ' 23:59:59');
         }
         
         if (productoid) {
-            whereClause += ` AND p.productoid = $${params.length + 1}`;
+            whereClauseVentas += ` AND p.productoid = $${params.length + 1}`;
+            whereClauseCompras += ` AND p.productoid = $${params.length + 1}`;
             params.push(productoid);
         }
         
-        ventasQuery += whereClause.replace('fecha', 'v.fecha');
-        comprasQuery += whereClause.replace('fecha', 'oc.fecha_entrega_real');
+        ventasQuery += whereClauseVentas;
+        comprasQuery += whereClauseCompras;
         
-        let unionQuery = `(${ventasQuery}) UNION ALL (${comprasQuery})`;
+        let unionQuery = '';
+        let hayMovimientos = true;
         
-        if (tipo_movimiento) {
-            if (tipo_movimiento === 'venta') {
-                unionQuery = `(${ventasQuery})`;
-            } else if (tipo_movimiento === 'compra') {
-                unionQuery = `(${comprasQuery})`;
-            }
+        if (!tipo_movimiento || tipo_movimiento === 'todos') {
+            unionQuery = `(${ventasQuery}) UNION ALL (${comprasQuery})`;
+        } else if (tipo_movimiento === 'venta') {
+            unionQuery = `(${ventasQuery})`;
+        } else if (tipo_movimiento === 'compra') {
+            unionQuery = `(${comprasQuery})`;
+        } else if (tipo_movimiento === 'ajuste' || tipo_movimiento === 'devolucion') {
+            // No hay datos para ajustes y devoluciones aún
+            hayMovimientos = false;
         }
         
-        unionQuery += ` ORDER BY fecha DESC`;
+        if (!hayMovimientos) {
+            // Retornar respuesta vacía para ajustes y devoluciones
+            return res.status(200).json({
+                movimientos: [],
+                resumen: {
+                    total_movimientos: 0,
+                    total_entradas: 0,
+                    total_salidas: 0,
+                    productos_afectados: 0,
+                    valor_total_movimientos: 0
+                },
+                mensaje: `No hay movimientos de tipo "${tipo_movimiento}" registrados en el sistema.`
+            });
+        }
+        
+        unionQuery += ` ORDER BY fecha DESC LIMIT $${params.length + 1}`;
+        params.push(limite);
+        
+        console.log('Query movimientos:', unionQuery);
+        console.log('Params:', params);
         
         const result = await pool.query(unionQuery, params);
         
-        res.status(200).json(result.rows);
+        // Calcular resumen
+        const movimientos = result.rows;
+        const resumen = {
+            total_movimientos: movimientos.length,
+            total_entradas: movimientos.filter(m => m.direccion === 'Entrada').length,
+            total_salidas: movimientos.filter(m => m.direccion === 'Salida').length,
+            productos_afectados: [...new Set(movimientos.map(m => m.productoid))].length,
+            valor_total_movimientos: movimientos.reduce((sum, m) => sum + parseFloat(m.valor_total || 0), 0)
+        };
+        
+        res.status(200).json({
+            movimientos: movimientos,
+            resumen: resumen
+        });
         
     } catch (err) {
         console.error('Error en reporte de movimientos de inventario:', err);
-        res.status(500).json({ error: 'Error en el servidor' });
+        res.status(500).json({ error: 'Error en el servidor', details: err.message });
     }
 };
 
@@ -697,6 +745,33 @@ const obtenerCategorias = async (req, res) => {
     }
 };
 
+const obtenerProductos = async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                p.productoid,
+                p.titulo,
+                COALESCE(c.nombrecategoria, 'Sin categoría') as categoria,
+                p.stock
+            FROM producto p
+            LEFT JOIN categoria c ON p.categoriaid = c.categoriaid
+            ORDER BY p.titulo
+        `;
+        
+        console.log('Query obtener productos:', query);
+        
+        const result = await pool.query(query);
+        
+        console.log('Productos encontrados:', result.rows);
+        
+        res.status(200).json(result.rows);
+        
+    } catch (err) {
+        console.error('Error al obtener productos:', err);
+        res.status(500).json({ error: 'Error en el servidor', details: err.message });
+    }
+};
+
 
 
 module.exports = {
@@ -720,5 +795,6 @@ module.exports = {
     dashboardReportes,
 
     // Utilitarios
-    obtenerCategorias
+    obtenerCategorias,
+    obtenerProductos
 };
