@@ -1,1 +1,205 @@
-<p>reporte-ventas-cliente works!</p>
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Reporte de Ventas por Cliente</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted">Análisis del comportamiento de compra de los clientes</p>
+      <p class="font-size-sm font-weight-medium pl-md-4">
+        <a class="text-nowrap" [routerLink]="['/panel/reportes']">Regresar<i class="fa fa-angle-right font-size-base align-middle ml-1"></i></a>
+      </p>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card box-shadow-sm mb-4">
+    <div class="card-header">
+        <h5 style="margin-bottom: 0px;">Filtros del reporte</h5>
+    </div>
+    <div class="card-body">
+        <div class="row align-items-end">
+            <div class="col-lg-2">
+                <label>Fecha inicio</label>
+                <input type="date" class="form-control" [(ngModel)]="filtros.fecha_inicio">
+            </div>
+            <div class="col-lg-2">
+                <label>Fecha fin</label>
+                <input type="date" class="form-control" [(ngModel)]="filtros.fecha_fin">
+            </div>
+            <div class="col-lg-2">
+                <label>País</label>
+                <select class="form-control" [(ngModel)]="filtros.pais">
+                    <option value="">Todos los países</option>
+                    <option *ngFor="let pais of paises" [value]="pais">{{pais}}</option>
+                </select>
+            </div>
+            <div class="col-lg-2">
+                <label>Mín. compras</label>
+                <input type="number" class="form-control" [(ngModel)]="filtros.min_compras" placeholder="Ej: 2">
+            </div>
+            <div class="col-lg-2">
+                <label>Límite</label>
+                <select class="form-control" [(ngModel)]="filtros.limite">
+                    <option value="25">25 clientes</option>
+                    <option value="50">50 clientes</option>
+                    <option value="100">100 clientes</option>
+                    <option value="200">200 clientes</option>
+                </select>
+            </div>
+            <div class="col-lg-2">
+                <button class="btn btn-primary btn-block" (click)="generar_reporte()" [disabled]="load_data">
+                    <i class="fa fa-search mr-2"></i>Generar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="load_data" class="text-center py-5">
+    <div class="spinner-border" role="status">
+        <span class="sr-only">Cargando...</span>
+    </div>
+</div>
+
+<div id="reporte-clientes" *ngIf="!load_data && hayDatos">
+    <!-- Resumen -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{resumenSeguro.total_clientes_activos}}</h4>
+                    <small>Clientes Activos</small>
+                    <div class="mt-2">
+                        <small>de {{resumenSeguro.total_clientes}} registrados</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{formatear_moneda(resumenSeguro.total_facturado)}}</h4>
+                    <small>Total Facturado</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{formatear_moneda(resumenSeguro.promedio_facturado_por_cliente)}}</h4>
+                    <small>Promedio por Cliente</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body text-center">
+                    <h4 class="mb-1">{{resumenSeguro.cliente_top}}</h4>
+                    <small>Cliente Top</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5>Clientes ({{clientesSeguras.length}})</h5>
+        <div>
+            <button class="btn btn-success btn-sm mr-2" (click)="exportar_excel()">
+                <i class="fa fa-file-excel mr-1"></i>Excel
+            </button>
+            <button class="btn btn-danger btn-sm" (click)="generar_pdf()">
+                <i class="fa fa-file-pdf mr-1"></i>PDF
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabla de clientes -->
+    <div class="card box-shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Email</th>
+                            <th>País</th>
+                            <th>Compras</th>
+                            <th>Total Gastado</th>
+                            <th>Promedio</th>
+                            <th>Última Compra</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let cliente of clientesSeguras | slice: (page-1) * pageSize : page * pageSize">
+                            <td>
+                                <div>
+                                    <strong>{{cliente.cliente}}</strong>
+                                    <br>
+                                    <small class="text-muted">{{obtener_dni_seguro(cliente)}}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <small>{{cliente.email}}</small>
+                                <br>
+                                <small class="text-muted">{{obtener_telefono_seguro(cliente)}}</small>
+                            </td>
+                            <td>{{cliente.pais}}</td>
+                            <td>
+                                <span class="badge badge-primary">
+                                    {{cliente.total_compras}} compras
+                                </span>
+                                <br>
+                                <small class="text-muted">{{cliente.total_productos_comprados}} productos</small>
+                            </td>
+                            <td>
+                                <strong [class]="'text-' + (cliente.total_gastado >= 500 ? 'success' : 'secondary')">
+                                    {{formatear_moneda(cliente.total_gastado)}}
+                                </strong>
+                            </td>
+                            <td>{{formatear_moneda(cliente.promedio_compra)}}</td>
+                            <td>
+                                <div>
+                                    {{formatear_fecha(cliente.ultima_compra)}}
+                                    <br>
+                                    <small class="text-muted">
+                                        {{formatear_tiempo_desde_compra(cliente)}}
+                                    </small>
+                                </div>
+                            </td>
+                            <td>
+                                <span [class]="'badge ' + get_badge_actividad_tiempo(cliente)">
+                                    {{get_texto_actividad_tiempo(cliente)}}
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            <div class="d-flex justify-content-between align-items-center mt-3" *ngIf="clientesSeguras.length > pageSize">
+                <div>
+                    Mostrando {{(page-1) * pageSize + 1}} a {{Math.min(page * pageSize, clientesSeguras.length)}} de {{clientesSeguras.length}} clientes
+                </div>
+                <nav>
+                    <ngb-pagination 
+                        [(page)]="page" 
+                        [pageSize]="pageSize" 
+                        [collectionSize]="clientesSeguras.length"
+                        [maxSize]="5"
+                        [rotate]="true">
+                    </ngb-pagination>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="!load_data && !hayDatos" class="text-center py-5">
+    <div class="alert alert-info">
+        <i class="fa fa-info-circle"></i>
+        No hay clientes con ventas en el período seleccionado
+    </div>
+</div>

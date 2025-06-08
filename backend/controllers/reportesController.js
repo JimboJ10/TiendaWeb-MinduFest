@@ -148,52 +148,93 @@ const reporteVentasProductoSimple = async (req, res) => {
 // Reporte de ventas por cliente
 const reporteVentasCliente = async (req, res) => {
     try {
-        const { fecha_inicio, fecha_fin, limite = 50 } = req.query;
+        const { fecha_inicio, fecha_fin, limite = 50, pais, min_compras } = req.query;
         
         let query = `
             SELECT 
                 u.usuarioid,
                 u.nombres || ' ' || u.apellidos as cliente,
                 u.email,
-                u.pais,
+                COALESCE(u.pais, 'No especificado') as pais,
+                COALESCE(u.telefono, '') as telefono,
+                COALESCE(u.dni, '') as dni,
                 COUNT(v.ventaid) as total_compras,
-                SUM(v.subtotal + COALESCE(v.envioprecio, 0)) as total_gastado,
-                AVG(v.subtotal + COALESCE(v.envioprecio, 0)) as promedio_compra,
+                COALESCE(SUM(v.subtotal + COALESCE(v.envioprecio, 0)), 0) as total_gastado,
+                COALESCE(AVG(v.subtotal + COALESCE(v.envioprecio, 0)), 0) as promedio_compra,
                 MAX(v.fecha) as ultima_compra,
-                SUM(dv.cantidad) as total_productos_comprados
+                MIN(v.fecha) as primera_compra,
+                COALESCE(SUM(dv.cantidad), 0) as total_productos_comprados,
+                COALESCE(EXTRACT(EPOCH FROM (CURRENT_TIMESTAMP - MAX(v.fecha))) / 3600, 0) as horas_sin_comprar
             FROM usuario u
-            LEFT JOIN rol_usuario ru ON u.usuarioid = ru.usuarioid
-            LEFT JOIN rol r ON ru.rolid = r.rolid
-            LEFT JOIN venta v ON u.usuarioid = v.usuarioid
+            INNER JOIN venta v ON u.usuarioid = v.usuarioid
             LEFT JOIN detalleventa dv ON v.ventaid = dv.ventaid
-            WHERE (r.nombre = 'Cliente' OR r.nombre IS NULL)
         `;
         
         const params = [];
+        let conditions = [];
         
         if (fecha_inicio) {
-            query += ` AND (v.fecha >= $${params.length + 1} OR v.fecha IS NULL)`;
+            conditions.push(`v.fecha >= $${params.length + 1}`);
             params.push(fecha_inicio + ' 00:00:00');
         }
         
         if (fecha_fin) {
-            query += ` AND (v.fecha <= $${params.length + 1} OR v.fecha IS NULL)`;
+            conditions.push(`v.fecha <= $${params.length + 1}`);
             params.push(fecha_fin + ' 23:59:59');
         }
         
-        query += ` GROUP BY u.usuarioid, u.nombres, u.apellidos, u.email, u.pais`;
-        query += ` HAVING COUNT(v.ventaid) > 0`;
-        query += ` ORDER BY total_gastado DESC NULLS LAST`;
-        query += ` LIMIT $${params.length + 1}`;
+        if (pais) {
+            conditions.push(`u.pais = $${params.length + 1}`);
+            params.push(pais);
+        }
+        
+        if (conditions.length > 0) {
+            query += ' WHERE ' + conditions.join(' AND ');
+        }
+        
+        query += ` GROUP BY u.usuarioid, u.nombres, u.apellidos, u.email, u.pais, u.telefono, u.dni`;
+        
+        if (min_compras) {
+            query += ` HAVING COUNT(v.ventaid) >= $${params.length + 1}`;
+            params.push(min_compras);
+        }
+        
+        query += ` ORDER BY total_gastado DESC LIMIT $${params.length + 1}`;
         params.push(limite);
+        
+        console.log('Query clientes completa:', query);
+        console.log('Params:', params);
         
         const result = await pool.query(query, params);
         
-        res.status(200).json(result.rows);
+        // Procesar los resultados para convertir horas a días cuando sea necesario
+        const clientesProcesados = result.rows.map(cliente => {
+            const horasSinComprar = parseFloat(cliente.horas_sin_comprar || 0);
+            return {
+                ...cliente,
+                horas_sin_comprar: horasSinComprar,
+                dias_sin_comprar: Math.floor(horasSinComprar / 24)
+            };
+        });
+        
+        // Resumen calculado desde los resultados
+        const resumen = {
+            total_clientes: clientesProcesados.length,
+            total_clientes_activos: clientesProcesados.length,
+            total_facturado: clientesProcesados.reduce((sum, c) => sum + parseFloat(c.total_gastado || 0), 0),
+            promedio_facturado_por_cliente: clientesProcesados.length > 0 ? 
+                clientesProcesados.reduce((sum, c) => sum + parseFloat(c.total_gastado || 0), 0) / clientesProcesados.length : 0,
+            cliente_top: clientesProcesados.length > 0 ? clientesProcesados[0].cliente : 'N/A'
+        };
+        
+        res.status(200).json({
+            clientes: clientesProcesados,
+            resumen: resumen
+        });
         
     } catch (err) {
-        console.error('Error en reporte de ventas por cliente:', err);
-        res.status(500).json({ error: 'Error en el servidor' });
+        console.error('Error en reporte de clientes:', err);
+        res.status(500).json({ error: 'Error en el servidor', details: err.message });
     }
 };
 

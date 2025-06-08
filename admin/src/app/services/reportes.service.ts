@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { GLOBAL } from './GLOBAL';
-import { ReporteVentasPeriodo, ReporteStock, DashboardMetricas, ReporteVentasProducto } from '../models/reportes.model';
+import { ReporteVentasPeriodo, ReporteStock, DashboardMetricas, ReporteVentasCliente } from '../models/reportes.model';
 
 @Injectable({
   providedIn: 'root'
@@ -37,9 +37,19 @@ export class ReportesService {
     return this._http.get(url, { headers: headers });
   }
 
-  reporte_ventas_cliente(fecha_inicio: string, fecha_fin: string, limite: string, token: string): Observable<any> {
+  reporte_ventas_cliente(fecha_inicio: string, fecha_fin: string, limite: string, pais: string, min_compras: string, token: string): Observable<ReporteVentasCliente> {
     let headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': token });
-    return this._http.get(this.url + 'reporte_ventas_cliente?fecha_inicio=' + fecha_inicio + '&fecha_fin=' + fecha_fin + '&limite=' + limite, { headers: headers });
+    
+    let params = '';
+    if (fecha_inicio) params += 'fecha_inicio=' + fecha_inicio;
+    if (fecha_fin) params += (params ? '&' : '') + 'fecha_fin=' + fecha_fin;
+    if (limite) params += (params ? '&' : '') + 'limite=' + limite;
+    if (pais) params += (params ? '&' : '') + 'pais=' + pais;
+    if (min_compras) params += (params ? '&' : '') + 'min_compras=' + min_compras;
+    
+    const url = this.url + 'reporte_ventas_cliente' + (params ? '?' + params : '');
+    
+    return this._http.get<ReporteVentasCliente>(url, { headers: headers });
   }
 
   // ======================== REPORTES DE INVENTARIO ========================

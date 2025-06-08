@@ -95,3 +95,33 @@ export interface ReporteVentasProducto {
   productos: ProductoVenta[];
   resumen: ResumenVentasProducto;
 }
+
+export interface ClienteVenta {
+  usuarioid: number;
+  cliente: string;
+  email: string;
+  pais: string;
+  telefono?: string;
+  dni?: string;
+  total_compras: number;
+  total_gastado: number;
+  promedio_compra: number;
+  ultima_compra: string;
+  total_productos_comprados: number;
+  primera_compra?: string;
+  dias_sin_comprar?: number;
+  horas_sin_comprar?: number;
+}
+
+export interface ResumenVentasCliente {
+  total_clientes: number;
+  total_clientes_activos: number;
+  total_facturado: number;
+  promedio_facturado_por_cliente: number;
+  cliente_top: string;
+}
+
+export interface ReporteVentasCliente {
+  clientes: ClienteVenta[];
+  resumen: ResumenVentasCliente;
+}
