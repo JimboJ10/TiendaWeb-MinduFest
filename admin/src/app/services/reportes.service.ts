@@ -23,11 +23,18 @@ export class ReportesService {
     return this._http.get<ReporteVentasPeriodo>(this.url + 'reporte_ventas_periodo?fecha_inicio=' + fecha_inicio + '&fecha_fin=' + fecha_fin + '&tipo_reporte=' + tipo_reporte, { headers: headers });
   }
 
-  reporte_ventas_producto(fecha_inicio: string, fecha_fin: string, productoid: string, token: string): Observable<ReporteVentasProducto> {
+  reporte_ventas_producto(fecha_inicio: string, fecha_fin: string, productoid: string, token: string): Observable<any> {
     let headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': token });
-    let params = 'fecha_inicio=' + fecha_inicio + '&fecha_fin=' + fecha_fin;
-    if (productoid) params += '&productoid=' + productoid;
-    return this._http.get<ReporteVentasProducto>(this.url + 'reporte_ventas_producto?' + params, { headers: headers });
+    let params = '';
+    
+    if (fecha_inicio) params += 'fecha_inicio=' + fecha_inicio;
+    if (fecha_fin) params += (params ? '&' : '') + 'fecha_fin=' + fecha_fin;
+    if (productoid) params += (params ? '&' : '') + 'productoid=' + productoid;
+    
+    const url = this.url + 'reporte_ventas_producto' + (params ? '?' + params : '');
+    console.log('URL del reporte:', url);
+    
+    return this._http.get(url, { headers: headers });
   }
 
   reporte_ventas_cliente(fecha_inicio: string, fecha_fin: string, limite: string, token: string): Observable<any> {

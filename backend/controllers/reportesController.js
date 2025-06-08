@@ -72,55 +72,76 @@ const reporteVentasPeriodo = async (req, res) => {
 };
 
 // Reporte de ventas por producto
-const reporteVentasProducto = async (req, res) => {
+const reporteVentasProductoSimple = async (req, res) => {
     try {
         const { fecha_inicio, fecha_fin, productoid } = req.query;
         
+        // Consulta más directa sin subconsultas complejas
         let query = `
             SELECT 
                 p.productoid,
                 p.titulo,
-                c.nombrecategoria as categoria,
-                SUM(dv.cantidad) as cantidad_vendida,
-                SUM(dv.cantidad * p.precio) as ingresos_totales,
-                COUNT(DISTINCT v.ventaid) as numero_ventas,
-                AVG(dv.cantidad) as promedio_cantidad_por_venta,
-                p.stock as stock_actual
+                COALESCE(c.nombrecategoria, 'Sin categoría') as categoria,
+                COALESCE(SUM(dv.cantidad), 0) as unidades_vendidas,
+                COALESCE(COUNT(DISTINCT v.ventaid), 0) as numero_ventas,
+                COALESCE(p.precio, 0) as precio_promedio,
+                COALESCE(SUM(dv.subtotal), 0) as total_ingresos,
+                COALESCE(p.stock, 0) as stock_actual
             FROM producto p
-            JOIN categoria c ON p.categoriaid = c.categoriaid
+            LEFT JOIN categoria c ON p.categoriaid = c.categoriaid
             LEFT JOIN detalleventa dv ON p.productoid = dv.productoid
             LEFT JOIN venta v ON dv.ventaid = v.ventaid
         `;
         
         const params = [];
-        let whereClause = ' WHERE 1=1';
+        let conditions = [];
         
         if (fecha_inicio) {
-            whereClause += ` AND v.fecha >= $${params.length + 1}`;
-            params.push(fecha_inicio);
+            conditions.push(`v.fecha >= $${params.length + 1}`);
+            params.push(fecha_inicio + ' 00:00:00');
         }
         
         if (fecha_fin) {
-            whereClause += ` AND v.fecha <= $${params.length + 1}`;
-            params.push(fecha_fin);
+            conditions.push(`v.fecha <= $${params.length + 1}`);
+            params.push(fecha_fin + ' 23:59:59');
         }
         
         if (productoid) {
-            whereClause += ` AND p.productoid = $${params.length + 1}`;
+            conditions.push(`p.productoid = $${params.length + 1}`);
             params.push(productoid);
         }
         
-        query += whereClause;
-        query += ` GROUP BY p.productoid, p.titulo, c.nombrecategoria, p.stock`;
-        query += ` ORDER BY cantidad_vendida DESC NULLS LAST`;
+        // Solo agregar WHERE si hay condiciones
+        if (conditions.length > 0) {
+            query += ' WHERE ' + conditions.join(' AND ');
+        }
+        
+        query += ` GROUP BY p.productoid, p.titulo, c.nombrecategoria, p.precio, p.stock`;
+        query += ` HAVING COALESCE(SUM(dv.cantidad), 0) > 0`;
+        query += ` ORDER BY unidades_vendidas DESC, total_ingresos DESC`;
+        
+        console.log('Query simplificada:', query);
+        console.log('Params:', params);
         
         const result = await pool.query(query, params);
         
-        res.status(200).json(result.rows);
+        // Calcular resumen desde los resultados obtenidos
+        const productos = result.rows;
+        const resumen = {
+            total_productos_vendidos: productos.length,
+            total_unidades_vendidas: productos.reduce((sum, p) => sum + parseInt(p.unidades_vendidas || 0), 0),
+            total_ingresos: productos.reduce((sum, p) => sum + parseFloat(p.total_ingresos || 0), 0),
+            producto_mas_vendido: productos.length > 0 ? productos[0].titulo : 'N/A'
+        };
+        
+        res.status(200).json({
+            productos: productos,
+            resumen: resumen
+        });
         
     } catch (err) {
-        console.error('Error en reporte de ventas por producto:', err);
-        res.status(500).json({ error: 'Error en el servidor' });
+        console.error('Error en reporte simplificado:', err);
+        res.status(500).json({ error: 'Error en el servidor', details: err.message });
     }
 };
 
@@ -635,7 +656,7 @@ const obtenerCategorias = async (req, res) => {
 module.exports = {
     // Reportes de ventas
     reporteVentasPeriodo,
-    reporteVentasProducto,
+    reporteVentasProductoSimple,
     reporteVentasCliente,
     
     // Reportes de inventario

@@ -4,7 +4,7 @@ const router = Router();
 const {
     // Reportes de ventas
     reporteVentasPeriodo,
-    reporteVentasProducto,
+    reporteVentasProductoSimple,
     reporteVentasCliente,
     
     // Reportes de inventario
@@ -28,7 +28,7 @@ const { authMiddleware } = require('../middlewares/authMiddleware');
 
 // ======================== REPORTES DE VENTAS ========================
 router.get('/reporte_ventas_periodo', authMiddleware, reporteVentasPeriodo);
-router.get('/reporte_ventas_producto', authMiddleware, reporteVentasProducto);
+router.get('/reporte_ventas_producto', authMiddleware, reporteVentasProductoSimple);
 router.get('/reporte_ventas_cliente', authMiddleware, reporteVentasCliente);
 
 // ======================== REPORTES DE INVENTARIO ========================

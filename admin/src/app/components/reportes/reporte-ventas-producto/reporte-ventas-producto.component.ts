@@ -51,6 +51,8 @@ export class ReporteVentasProductoComponent implements OnInit {
 
   generar_reporte() {
     this.load_data = true;
+    console.log('Generando reporte con filtros:', this.filtros);
+    
     this._reportesService.reporte_ventas_producto(
       this.filtros.fecha_inicio,
       this.filtros.fecha_fin,
@@ -58,16 +60,17 @@ export class ReporteVentasProductoComponent implements OnInit {
       this.token
     ).subscribe(
       response => {
+        console.log('Respuesta del reporte:', response);
         this.reporte = response;
         this.load_data = false;
       },
       error => {
-        console.log(error);
+        console.error('Error completo:', error);
         this.load_data = false;
         this.reporte = null;
         iziToast.error({
           title: 'Error',
-          message: 'Error al generar el reporte',
+          message: 'Error al generar el reporte: ' + (error.error?.message || error.message),
           position: 'topRight'
         });
       }
