@@ -3,11 +3,11 @@
 <!-- Page title -->
 <div class="border-bottom pt-5 mt-2 mb-5">
     <h1 class="mt-2 mt-md-4 mb-3 pt-5">
-        <i class="fa fa-file-invoice text-warning"></i> 
-        Reporte de Cuentas por Pagar
+        <i class="fa fa-credit-card text-warning"></i> 
+        Reporte de Estado de Pagos PayPal
     </h1>
     <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
-        <p class="text-muted">Control de órdenes de compra pendientes de pago a proveedores</p>
+        <p class="text-muted">Control y seguimiento de todas las transacciones de pago</p>
         <button class="btn btn-secondary btn-sm" (click)="regresar()">
             <i class="fa fa-arrow-left"></i> Regresar
         </button>
@@ -33,28 +33,28 @@
                            name="fecha_corte">
                 </div>
                 <div class="col-md-2">
-                    <label for="filtro_estado">Estado:</label>
+                    <label for="filtro_estado_pago">Estado Pago:</label>
                     <select class="form-control" 
-                            id="filtro_estado"
-                            [(ngModel)]="filtro_estado" 
-                            name="filtro_estado"
+                            id="filtro_estado_pago"
+                            [(ngModel)]="filtro_estado_pago" 
+                            name="filtro_estado_pago"
                             (change)="aplicar_filtros()">
                         <option value="todos">Todos</option>
-                        <option *ngFor="let estado of estados" [value]="estado">
+                        <option *ngFor="let estado of estados_pago" [value]="estado">
                             {{estado}}
                         </option>
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <label for="filtro_proveedor">Proveedor:</label>
+                    <label for="filtro_estado_venta">Estado Venta:</label>
                     <select class="form-control" 
-                            id="filtro_proveedor"
-                            [(ngModel)]="filtro_proveedor" 
-                            name="filtro_proveedor"
+                            id="filtro_estado_venta"
+                            [(ngModel)]="filtro_estado_venta" 
+                            name="filtro_estado_venta"
                             (change)="aplicar_filtros()">
                         <option value="todos">Todos</option>
-                        <option *ngFor="let proveedor of proveedores" [value]="proveedor">
-                            {{proveedor}}
+                        <option *ngFor="let estado of estados_venta" [value]="estado">
+                            {{estado}}
                         </option>
                     </select>
                 </div>
@@ -65,7 +65,7 @@
                            id="filtro_busqueda"
                            [(ngModel)]="filtro_busqueda" 
                            name="filtro_busqueda"
-                           placeholder="Orden, proveedor, email..."
+                           placeholder="Cliente, email, venta..."
                            (input)="aplicar_filtros()">
                 </div>
                 <div class="col-md-2">
@@ -89,7 +89,7 @@
                     <button type="button" 
                             class="btn btn-success btn-sm" 
                             (click)="exportar_csv()"
-                            [disabled]="ordenes_filtradas.length === 0">
+                            [disabled]="transacciones_filtradas.length === 0">
                         <i class="fa fa-download"></i> Exportar CSV
                     </button>
                 </div>
@@ -100,57 +100,75 @@
 
 <!-- Resumen de métricas -->
 <div class="row mb-4" *ngIf="!load_data">
-    <div class="col-md-2 mb-3">
+    <div class="col-md-3 mb-3">
         <div class="card bg-primary text-white">
             <div class="card-body text-center">
                 <i class="fa fa-list fa-2x mb-2"></i>
-                <h4>{{resumen.total_ordenes}}</h4>
-                <p class="mb-0">Total Órdenes</p>
+                <h4>{{resumen.total_transacciones}}</h4>
+                <p class="mb-0">Total Transacciones</p>
             </div>
         </div>
     </div>
-    <div class="col-md-2 mb-3">
-        <div class="card bg-danger text-white">
-            <div class="card-body text-center">
-                <i class="fa fa-dollar-sign fa-2x mb-2"></i>
-                <h4>{{formatear_moneda(resumen.total_por_pagar)}}</h4>
-                <p class="mb-0">Total por Pagar</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-2 mb-3">
+    <div class="col-md-3 mb-3">
         <div class="card bg-success text-white">
             <div class="card-body text-center">
-                <h5>{{formatear_moneda(resumen.antiguedad_0_30)}}</h5>
-                <p class="mb-0">0-30 días</p>
-                <small>{{calcular_porcentaje_antiguedad(resumen.antiguedad_0_30) | number:'1.1-1'}}%</small>
+                <i class="fa fa-check-circle fa-2x mb-2"></i>
+                <h4>{{resumen.pagos_exitosos}}</h4>
+                <p class="mb-0">Pagos Exitosos</p>
+                <small>{{calcular_porcentaje_exitoso() | number:'1.1-1'}}%</small>
             </div>
         </div>
     </div>
-    <div class="col-md-2 mb-3">
-        <div class="card bg-warning text-white">
-            <div class="card-body text-center">
-                <h5>{{formatear_moneda(resumen.antiguedad_31_60)}}</h5>
-                <p class="mb-0">31-60 días</p>
-                <small>{{calcular_porcentaje_antiguedad(resumen.antiguedad_31_60) | number:'1.1-1'}}%</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-2 mb-3">
+    <div class="col-md-3 mb-3">
         <div class="card bg-danger text-white">
             <div class="card-body text-center">
-                <h5>{{formatear_moneda(resumen.antiguedad_61_90)}}</h5>
-                <p class="mb-0">61-90 días</p>
-                <small>{{calcular_porcentaje_antiguedad(resumen.antiguedad_61_90) | number:'1.1-1'}}%</small>
+                <i class="fa fa-times-circle fa-2x mb-2"></i>
+                <h4>{{resumen.pagos_fallidos}}</h4>
+                <p class="mb-0">Pagos Fallidos</p>
+                <small>{{calcular_porcentaje_fallido() | number:'1.1-1'}}%</small>
             </div>
         </div>
     </div>
-    <div class="col-md-2 mb-3">
-        <div class="card bg-dark text-white">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-info text-white">
             <div class="card-body text-center">
-                <h5>{{formatear_moneda(resumen.antiguedad_mas_90)}}</h5>
-                <p class="mb-0">+90 días</p>
-                <small>{{calcular_porcentaje_antiguedad(resumen.antiguedad_mas_90) | number:'1.1-1'}}%</small>
+                <i class="fa fa-dollar-sign fa-2x mb-2"></i>
+                <h4>{{formatear_moneda(resumen.total_cobrado)}}</h4>
+                <p class="mb-0">Total Cobrado</p>
+                <small *ngIf="resumen.total_perdido > 0">
+                    Perdido: {{formatear_moneda(resumen.total_perdido)}}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estados de proceso -->
+<div class="row mb-4" *ngIf="!load_data">
+    <div class="col-md-4 mb-3">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <i class="fa fa-truck text-success fa-2x mb-2"></i>
+                <h5>{{resumen.entregas_completadas}}</h5>
+                <p class="text-success mb-0">Entregas Completadas</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card border-warning">
+            <div class="card-body text-center">
+                <i class="fa fa-clock text-warning fa-2x mb-2"></i>
+                <h5>{{resumen.en_proceso}}</h5>
+                <p class="text-warning mb-0">En Proceso</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card border-danger">
+            <div class="card-body text-center">
+                <i class="fa fa-ban text-danger fa-2x mb-2"></i>
+                <h5>{{resumen.ventas_canceladas}}</h5>
+                <p class="text-danger mb-0">Ventas Canceladas</p>
             </div>
         </div>
     </div>
@@ -161,7 +179,7 @@
     <div class="spinner-border text-primary" role="status">
         <span class="sr-only">Cargando...</span>
     </div>
-    <p class="mt-3 text-muted">Generando reporte de cuentas por pagar...</p>
+    <p class="mt-3 text-muted">Generando reporte de estado de pagos...</p>
 </div>
 
 <!-- Tabla de resultados -->
@@ -169,15 +187,15 @@
     <div class="card-header d-flex justify-content-between align-items-center">
         <h6 class="mb-0">
             <i class="fa fa-table"></i> 
-            Órdenes por Pagar ({{ordenes_filtradas.length}})
+            Transacciones Encontradas ({{transacciones_filtradas.length}})
         </h6>
         
         <!-- Paginación info -->
         <div class="d-flex align-items-center">
             <span class="text-muted mr-3">
                 Mostrando {{(page-1) * pageSize + 1}} - 
-                {{Math.min(page * pageSize, ordenes_filtradas.length)}} 
-                de {{ordenes_filtradas.length}}
+                {{Math.min(page * pageSize, transacciones_filtradas.length)}} 
+                de {{transacciones_filtradas.length}}
             </span>
             <select class="form-control form-control-sm" 
                     style="width: auto;" 
@@ -190,79 +208,68 @@
         </div>
     </div>
 
-    <div class="table-responsive" *ngIf="ordenes_filtradas.length > 0">
+    <div class="table-responsive" *ngIf="transacciones_filtradas.length > 0">
         <table class="table table-hover">
             <thead class="thead-light">
                 <tr>
-                    <th>Orden</th>
-                    <th>Proveedor</th>
-                    <th>Fecha Orden</th>
+                    <th>Venta</th>
+                    <th>Cliente</th>
+                    <th>Fecha</th>
                     <th>Total</th>
-                    <th>Saldo Pendiente</th>
-                    <th>Estado</th>
-                    <th>Antigüedad</th>
+                    <th>Estado Pago</th>
+                    <th>Estado Venta</th>
+                    <th>Método</th>
+                    <th>Días</th>
                     <th>Contacto</th>
-                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let orden of ordenes_filtradas | slice: (page-1) * pageSize : page * pageSize">
+                <tr *ngFor="let transaccion of transacciones_filtradas | slice: (page-1) * pageSize : page * pageSize">
                     <td>
                         <div>
-                            <strong>{{orden.numero_orden}}</strong>
+                            <strong>{{transaccion.nventa}}</strong>
                             <br>
-                            <small class="text-muted">ID: {{orden.ordencompraid}}</small>
+                            <small class="text-muted">ID: {{transaccion.ventaid}}</small>
                         </div>
                     </td>
                     <td>
                         <div>
-                            <strong>{{orden.proveedor}}</strong>
+                            <strong>{{transaccion.cliente}}</strong>
                             <br>
-                            <small class="text-muted">{{orden.email}}</small>
+                            <small class="text-muted">{{transaccion.email}}</small>
+                            <br>
+                            <small class="text-muted" *ngIf="transaccion.pais">
+                                <i class="fa fa-globe"></i> {{transaccion.pais}}
+                            </small>
                         </div>
                     </td>
                     <td>
-                        <small>{{formatear_fecha(orden.fecha_orden)}}</small>
-                        <div *ngIf="orden.fecha_entrega_esperada" class="small text-muted">
-                            Esperada: {{formatear_fecha(orden.fecha_entrega_esperada)}}
-                        </div>
+                        <small>{{formatear_fecha(transaccion.fecha)}}</small>
                     </td>
                     <td>
-                        <span class="font-weight-bold">{{formatear_moneda(orden.total_orden)}}</span>
+                        <span class="font-weight-bold">{{formatear_moneda(transaccion.total_venta)}}</span>
                     </td>
                     <td>
-                        <span class="font-weight-bold text-danger">
-                            {{formatear_moneda(orden.saldo_pendiente)}}
-                        </span>
-                        <div class="progress mt-1" style="height: 3px;">
-                            <div class="progress-bar bg-danger" 
-                                 [style.width.%]="(orden.saldo_pendiente / orden.total_orden) * 100">
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <span class="badge" [class]="'badge ' + get_badge_estado(orden.estado)">
-                            {{orden.estado}}
+                        <span class="badge" [class]="'badge ' + get_badge_estado_pago(transaccion.estado_pago)">
+                            {{transaccion.estado_pago}}
                         </span>
                     </td>
                     <td>
-                        <span [class]="get_color_urgencia(orden.dias_desde_orden)">
-                            {{orden.dias_desde_orden}} días
-                        </span>
-                        <br>
-                        <span class="badge" [class]="'badge ' + get_badge_antiguedad(orden.rango_antiguedad)">
-                            {{orden.rango_antiguedad}}
+                        <span class="badge" [class]="'badge ' + get_badge_estado_venta(transaccion.estado_venta)">
+                            {{transaccion.estado_venta}}
                         </span>
                     </td>
                     <td>
-                        <small class="text-muted">{{obtener_telefono_seguro(orden)}}</small>
+                        <small>{{transaccion.metodo_pago}}</small>
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-outline-primary" 
-                                (click)="ver_orden(orden.ordencompraid)"
-                                title="Ver orden">
-                            <i class="fa fa-eye"></i>
-                        </button>
+                        <span [class]="get_color_riesgo(transaccion.dias_transcurridos)">
+                            {{transaccion.dias_transcurridos}}
+                        </span>
+                        <small class="text-muted d-block">días</small>
+                    </td>
+                    <td>
+                        <small class="text-muted">{{obtener_telefono_seguro(transaccion)}}</small>
                     </td>
                 </tr>
             </tbody>
@@ -270,19 +277,19 @@
     </div>
 
     <!-- Mensaje si no hay datos -->
-    <div class="card-body text-center" *ngIf="ordenes_filtradas.length === 0">
+    <div class="card-body text-center" *ngIf="transacciones_filtradas.length === 0">
         <i class="fa fa-inbox fa-3x text-muted mb-3"></i>
-        <h5 class="text-muted">No se encontraron órdenes por pagar</h5>
+        <h5 class="text-muted">No se encontraron transacciones</h5>
         <p class="text-muted">Intente ajustar los filtros o cambiar la fecha de corte</p>
     </div>
 </div>
 
 <!-- Paginación -->
-<nav *ngIf="!load_data && ordenes_filtradas.length > pageSize" class="mt-4">
+<nav *ngIf="!load_data && transacciones_filtradas.length > pageSize" class="mt-4">
     <ngb-pagination 
         [(page)]="page" 
         [pageSize]="pageSize" 
-        [collectionSize]="ordenes_filtradas.length"
+        [collectionSize]="transacciones_filtradas.length"
         [maxSize]="5"
         [rotate]="true"
         [boundaryLinks]="true">

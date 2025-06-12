@@ -116,11 +116,13 @@ const registrarVenta = async (req, res) => {
 
         await client.query('COMMIT');
 
+        // Crear asiento contable (movimiento de caja) DESPUÉS del commit
         try {
             await crearAsientoVenta(ventaid);
-            console.log(`Asiento contable creado para venta ${ventaid}`);
+            console.log(`Movimiento de caja creado para venta ${ventaid}`);
         } catch (asientoError) {
-            console.error('Error al crear asiento contable para venta:', asientoError);
+            console.error('Error al crear movimiento de caja para venta:', asientoError);
+            // No fallar la venta por error en contabilidad
         }
 
         res.status(200).json({ 
@@ -130,8 +132,11 @@ const registrarVenta = async (req, res) => {
         });
 
     } catch (err) {
+        await client.query('ROLLBACK');
         console.error('Error al registrar venta:', err);
         res.status(500).json({ error: 'Error en el servidor' });
+    } finally {
+        client.release();
     }
 };
 

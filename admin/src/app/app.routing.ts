@@ -41,9 +41,9 @@ import { ReporteVentasProductoComponent } from "./components/reportes/reporte-ve
 import { ReporteVentasClienteComponent } from "./components/reportes/reporte-ventas-cliente/reporte-ventas-cliente.component";
 import { ReporteStockActualComponent } from "./components/reportes/reporte-stock-actual/reporte-stock-actual.component";
 import { ReporteMovimientosInventarioComponent } from "./components/reportes/reporte-movimientos-inventario/reporte-movimientos-inventario.component";
-import { ReporteCuentasCobrarComponent } from "./components/reportes/reporte-cuentas-cobrar/reporte-cuentas-cobrar.component";
 import { ReporteCuentasPagarComponent } from "./components/reportes/reporte-cuentas-pagar/reporte-cuentas-pagar.component";
 import { ReporteActividadUsuariosComponent } from "./components/reportes/reporte-actividad-usuarios/reporte-actividad-usuarios.component";
+import { ReporteEstadoPagosComponent } from "./components/reportes/reporte-estado-pagos/reporte-estado-pagos.component";
 
 const appRoutes : Routes = [
     {path:'', redirectTo: 'admin', pathMatch:'full'},
@@ -88,7 +88,7 @@ const appRoutes : Routes = [
         { path: 'reportes/ventas-cliente', component: ReporteVentasClienteComponent, canActivate: [AuthGuard] },
         { path: 'reportes/stock-actual', component: ReporteStockActualComponent, canActivate: [AuthGuard] },
         { path: 'reportes/movimientos-inventario', component: ReporteMovimientosInventarioComponent, canActivate: [AuthGuard] },
-        { path: 'reportes/cuentas-cobrar', component: ReporteCuentasCobrarComponent, canActivate: [AuthGuard] },
+        { path: 'reportes/estado-pagos', component: ReporteEstadoPagosComponent, canActivate: [AuthGuard] },
         { path: 'reportes/cuentas-pagar', component: ReporteCuentasPagarComponent, canActivate: [AuthGuard] },
         { path: 'reportes/actividad-usuarios', component: ReporteActividadUsuariosComponent, canActivate: [AuthGuard] },
 

@@ -13,7 +13,7 @@ const listarPlanCuentas = async (req, res) => {
                 padre.nombre as cuenta_padre_nombre
             FROM plan_cuentas pc
             LEFT JOIN plan_cuentas padre ON pc.cuenta_padre = padre.cuentaid
-            WHERE 1=1
+            WHERE pc.estado = 'Activo'
         `;
         
         const params = [];
@@ -27,12 +27,7 @@ const listarPlanCuentas = async (req, res) => {
             query += ` AND pc.tipo = $${params.length + 1}`;
             params.push(tipo);
         }
-        
-        if (estado) {
-            query += ` AND pc.estado = $${params.length + 1}`;
-            params.push(estado);
-        }
-        
+                       
         query += ` ORDER BY pc.codigo`;
         
         const result = await pool.query(query, params);
@@ -591,9 +586,18 @@ const crearAsientoVenta = async (ventaid) => {
     try {
         await client.query('BEGIN');
         
-        // Obtener información de la venta
+        // Obtener información completa de la venta con transaccion
         const ventaResult = await client.query(`
-            SELECT v.*, u.nombres, u.apellidos
+            SELECT 
+                v.ventaid, 
+                v.nventa, 
+                v.subtotal, 
+                v.envioprecio,
+                v.fecha,
+                v.transaccion,  -- ID de PayPal
+                v.usuarioid,    -- AGREGAR USUARIOID DE LA VENTA
+                u.nombres, 
+                u.apellidos
             FROM venta v
             JOIN usuario u ON v.usuarioid = u.usuarioid
             WHERE v.ventaid = $1
@@ -604,63 +608,36 @@ const crearAsientoVenta = async (ventaid) => {
         }
         
         const venta = ventaResult.rows[0];
-        const numero_asiento = `AS-VTA-${ventaid}`;
+        const total_venta = parseFloat(venta.subtotal) + parseFloat(venta.envioprecio || 0);
         
-        // Crear el asiento
-        const asientoResult = await client.query(`
-            INSERT INTO asiento_contable (
-                numero_asiento, fecha_asiento, descripcion, 
-                tipo_asiento, referencia_documento, tipo_documento,
-                total_debe, total_haber, estado
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
-            RETURNING asientoid
-        `, [
-            numero_asiento, 
-            venta.fecha.toISOString().split('T')[0],
-            `Venta ${venta.nventa} - Cliente: ${venta.nombres} ${venta.apellidos}`,
-            'Automatico', 
-            ventaid, 
-            'Venta',
-            venta.subtotal, 
-            venta.subtotal,
-            'Aprobado'
-        ]);
+        // OBTENER EL ID DEL USUARIO CLIENTE
+        const usuarioid_cliente = venta.usuarioid;
         
-        const asientoid = asientoResult.rows[0].asientoid;
-        
-        // Debitar Caja (o Cuentas por Cobrar)
-        await client.query(`
-            INSERT INTO detalle_asiento (
-                asientoid, cuentaid, debe, haber, descripcion
-            ) VALUES ($1, (SELECT cuentaid FROM plan_cuentas WHERE codigo = '1101'), $2, 0, $3)
-        `, [asientoid, venta.subtotal, 'Ingreso por venta']);
-        
-        // Acreditar Ventas
-        await client.query(`
-            INSERT INTO detalle_asiento (
-                asientoid, cuentaid, debe, haber, descripcion
-            ) VALUES ($1, (SELECT cuentaid FROM plan_cuentas WHERE codigo = '4101'), 0, $2, $3)
-        `, [asientoid, venta.subtotal, 'Venta de productos']);
-        
-        // Registrar en flujo de caja
+        // Crear movimiento de flujo de caja para INGRESO de venta AUTOMÁTICAMENTE
         await client.query(`
             INSERT INTO flujo_caja (
                 fecha, tipo, categoria, concepto, monto,
-                referencia_documento, cuentaid
-            ) VALUES ($1, 'Ingreso', 'Ventas', $2, $3, $4, 
-                (SELECT cuentaid FROM plan_cuentas WHERE codigo = '1101'))
+                metodo_pago, referencia_documento, usuarioid, estado
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         `, [
             venta.fecha.toISOString().split('T')[0],
-            `Venta ${venta.nventa}`,
-            venta.subtotal,
-            ventaid
+            'Ingreso',
+            'Ventas', 
+            `Venta ${venta.nventa} - ${venta.nombres} ${venta.apellidos}`,
+            total_venta,
+            'PayPal',                 // Método de pago CORRECTO
+            venta.transaccion,        // Referencia de PayPal CORRECTA  
+            usuarioid_cliente,        // USAR EL ID DEL CLIENTE QUE COMPRÓ
+            'Confirmado'              // Estado confirmado automáticamente
         ]);
         
+        console.log(`✅ Movimiento de caja creado automáticamente para venta ${ventaid}: $${total_venta} - PayPal: ${venta.transaccion}`);
+        
         await client.query('COMMIT');
-        return asientoid;
         
     } catch (err) {
         await client.query('ROLLBACK');
+        console.error('❌ Error al crear asiento de venta:', err);
         throw err;
     } finally {
         client.release();
@@ -669,84 +646,72 @@ const crearAsientoVenta = async (ventaid) => {
 
 // Crear asiento automático para compra
 const crearAsientoCompra = async (ordencompraid) => {
-    const client = await pool.connect();
-    
+    // COMENTAR TODO EL CONTENIDO - Las órdenes no deben crear movimientos automáticamente
+    // Solo se debe crear movimiento cuando se PAGUE la orden manualmente
+    console.log('Creación automática de asiento de compra deshabilitada - usar flujo de caja manual');
+    return;
+};
+
+const listarOrdenesPendientesPago = async (req, res) => {
     try {
-        await client.query('BEGIN');
+        const { proveedorid } = req.query;
         
-        // Obtener información de la orden de compra
-        const ordenResult = await client.query(`
-            SELECT oc.*, p.nombre as proveedor_nombre
+        let query = `
+            SELECT 
+                oc.ordencompraid,
+                oc.numero_orden,
+                oc.fecha_orden,
+                pr.nombre as proveedor,
+                pr.email,
+                oc.total as total_orden,
+                COALESCE(
+                    (SELECT SUM(fc.monto) 
+                     FROM flujo_caja fc 
+                     WHERE fc.referencia_documento = oc.numero_orden 
+                     AND fc.tipo = 'Egreso' 
+                     AND fc.categoria = 'Compras'
+                     AND fc.estado = 'Confirmado'), 
+                    0
+                ) as pagado,
+                oc.total - COALESCE(
+                    (SELECT SUM(fc.monto) 
+                     FROM flujo_caja fc 
+                     WHERE fc.referencia_documento = oc.numero_orden 
+                     AND fc.tipo = 'Egreso' 
+                     AND fc.categoria = 'Compras'
+                     AND fc.estado = 'Confirmado'), 
+                    0
+                ) as saldo_pendiente
             FROM orden_compra oc
-            JOIN proveedor p ON oc.proveedorid = p.proveedorid
-            WHERE oc.ordencompraid = $1
-        `, [ordencompraid]);
+            JOIN proveedor pr ON oc.proveedorid = pr.proveedorid
+            WHERE oc.estado NOT IN ('Cancelada', 'Devuelta')
+            AND oc.total > COALESCE(
+                (SELECT SUM(fc.monto) 
+                 FROM flujo_caja fc 
+                 WHERE fc.referencia_documento = oc.numero_orden 
+                 AND fc.tipo = 'Egreso' 
+                 AND fc.categoria = 'Compras'
+                 AND fc.estado = 'Confirmado'), 
+                0
+            )
+        `;
         
-        if (ordenResult.rows.length === 0) {
-            throw new Error('Orden de compra no encontrada');
+        const params = [];
+        
+        if (proveedorid) {
+            query += ` AND oc.proveedorid = $${params.length + 1}`;
+            params.push(proveedorid);
         }
         
-        const orden = ordenResult.rows[0];
-        const numero_asiento = `AS-CMP-${ordencompraid}`;
+        query += ` ORDER BY oc.fecha_orden DESC`;
         
-        // Crear el asiento
-        const asientoResult = await client.query(`
-            INSERT INTO asiento_contable (
-                numero_asiento, fecha_asiento, descripcion, 
-                tipo_asiento, referencia_documento, tipo_documento,
-                total_debe, total_haber, estado
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
-            RETURNING asientoid
-        `, [
-            numero_asiento, 
-            orden.fecha_orden.toISOString().split('T')[0],
-            `Compra ${orden.numero_orden} - Proveedor: ${orden.proveedor_nombre}`,
-            'Automatico', 
-            ordencompraid, 
-            'Compra',
-            orden.total, 
-            orden.total,
-            'Aprobado'
-        ]);
+        const result = await pool.query(query, params);
         
-        const asientoid = asientoResult.rows[0].asientoid;
-        
-        // Debitar Inventarios
-        await client.query(`
-            INSERT INTO detalle_asiento (
-                asientoid, cuentaid, debe, haber, descripcion
-            ) VALUES ($1, (SELECT cuentaid FROM plan_cuentas WHERE codigo = '1104'), $2, 0, $3)
-        `, [asientoid, orden.total, 'Compra de inventario']);
-        
-        // Acreditar Cuentas por Pagar (o Caja si es pago inmediato)
-        await client.query(`
-            INSERT INTO detalle_asiento (
-                asientoid, cuentaid, debe, haber, descripcion
-            ) VALUES ($1, (SELECT cuentaid FROM plan_cuentas WHERE codigo = '2101'), 0, $2, $3)
-        `, [asientoid, orden.total, `Deuda con proveedor ${orden.proveedor_nombre}`]);
-        
-        // Registrar en flujo de caja como egreso
-        await client.query(`
-            INSERT INTO flujo_caja (
-                fecha, tipo, categoria, concepto, monto,
-                referencia_documento, cuentaid
-            ) VALUES ($1, 'Egreso', 'Compras', $2, $3, $4, 
-                (SELECT cuentaid FROM plan_cuentas WHERE codigo = '2101'))
-        `, [
-            orden.fecha_orden.toISOString().split('T')[0],
-            `Compra ${orden.numero_orden}`,
-            orden.total,
-            ordencompraid
-        ]);
-        
-        await client.query('COMMIT');
-        return asientoid;
+        res.status(200).json(result.rows);
         
     } catch (err) {
-        await client.query('ROLLBACK');
-        throw err;
-    } finally {
-        client.release();
+        console.error('Error al listar órdenes pendientes:', err);
+        res.status(500).json({ error: 'Error en el servidor' });
     }
 };
 
@@ -774,5 +739,7 @@ module.exports = {
     
     // Asientos automáticos
     crearAsientoVenta,
-    crearAsientoCompra
+    crearAsientoCompra,
+
+    listarOrdenesPendientesPago
 };

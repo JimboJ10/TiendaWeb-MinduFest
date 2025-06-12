@@ -51,9 +51,9 @@ import { ReporteStockActualComponent } from './components/reportes/reporte-stock
 import { ReporteVentasProductoComponent } from './components/reportes/reporte-ventas-producto/reporte-ventas-producto.component';
 import { ReporteVentasClienteComponent } from './components/reportes/reporte-ventas-cliente/reporte-ventas-cliente.component';
 import { ReporteMovimientosInventarioComponent } from './components/reportes/reporte-movimientos-inventario/reporte-movimientos-inventario.component';
-import { ReporteCuentasCobrarComponent } from './components/reportes/reporte-cuentas-cobrar/reporte-cuentas-cobrar.component';
 import { ReporteCuentasPagarComponent } from './components/reportes/reporte-cuentas-pagar/reporte-cuentas-pagar.component';
 import { ReporteActividadUsuariosComponent } from './components/reportes/reporte-actividad-usuarios/reporte-actividad-usuarios.component';
+import { ReporteEstadoPagosComponent } from './components/reportes/reporte-estado-pagos/reporte-estado-pagos.component';
 
 
 @NgModule({
@@ -99,9 +99,9 @@ import { ReporteActividadUsuariosComponent } from './components/reportes/reporte
     ReporteVentasProductoComponent,
     ReporteVentasClienteComponent,
     ReporteMovimientosInventarioComponent,
-    ReporteCuentasCobrarComponent,
     ReporteCuentasPagarComponent,
     ReporteActividadUsuariosComponent,
+    ReporteEstadoPagosComponent,
     
   ],
   imports: [

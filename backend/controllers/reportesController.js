@@ -466,13 +466,11 @@ const reporteMovimientosInventario = async (req, res) => {
 // ======================== REPORTES FINANCIEROS ========================
 
 // Reporte de cuentas por cobrar
-const reporteCuentasPorCobrar = async (req, res) => {
+const reporteEstadoPagos = async (req, res) => {
     try {
         const { fecha_corte } = req.query;
         const fechaCorte = fecha_corte || new Date().toISOString().split('T')[0];
         
-        // Por ahora simulamos con ventas que podrían tener saldo pendiente
-        // En un sistema más complejo, tendrías una tabla de cuentas por cobrar
         const query = `
             SELECT 
                 v.ventaid,
@@ -481,51 +479,79 @@ const reporteCuentasPorCobrar = async (req, res) => {
                 u.nombres || ' ' || u.apellidos as cliente,
                 u.email,
                 u.telefono,
-                (v.subtotal + v.envioprecio) as total_venta,
-                0 as pagado, -- Simular pagos
-                (v.subtotal + v.envioprecio) as saldo_pendiente,
-                EXTRACT(DAYS FROM CURRENT_DATE - v.fecha) as dias_vencido,
+                u.pais,
+                (v.subtotal + COALESCE(v.envioprecio, 0)) as total_venta,
                 CASE 
-                    WHEN EXTRACT(DAYS FROM CURRENT_DATE - v.fecha) <= 30 THEN '0-30 días'
-                    WHEN EXTRACT(DAYS FROM CURRENT_DATE - v.fecha) <= 60 THEN '31-60 días'
-                    WHEN EXTRACT(DAYS FROM CURRENT_DATE - v.fecha) <= 90 THEN '61-90 días'
-                    ELSE 'Más de 90 días'
-                END as rango_vencimiento
+                    WHEN v.transaccion IS NOT NULL AND v.transaccion != '' 
+                    THEN (v.subtotal + COALESCE(v.envioprecio, 0))
+                    ELSE 0
+                END as pagado,
+                CASE 
+                    WHEN v.transaccion IS NULL OR v.transaccion = '' 
+                    THEN (v.subtotal + COALESCE(v.envioprecio, 0))
+                    ELSE 0
+                END as saldo_pendiente,
+                EXTRACT(DAYS FROM CURRENT_DATE - v.fecha) as dias_transcurridos,
+                CASE 
+                    WHEN v.estadoid = 4 THEN 'Completado'
+                    WHEN v.estadoid = 5 THEN 'Cancelado'
+                    WHEN v.estadoid = 3 THEN 'En Envío'
+                    WHEN v.estadoid = 2 THEN 'En Preparación'
+                    ELSE 'Procesando'
+                END as rango_estado,
+                ev.nombre as estado_venta,
+                CASE 
+                    WHEN v.transaccion IS NOT NULL AND v.transaccion != '' 
+                    THEN 'PayPal (' || v.transaccion || ')'
+                    ELSE 'Pago Fallido'
+                END as metodo_pago,
+                CASE 
+                    WHEN v.transaccion IS NOT NULL AND v.transaccion != '' 
+                    THEN 'Pagado'
+                    ELSE 'Error de Pago'
+                END as estado_pago
             FROM venta v
             JOIN usuario u ON v.usuarioid = u.usuarioid
+            JOIN estado_venta ev ON v.estadoid = ev.estadoid
             WHERE v.fecha <= $1
-            AND (v.subtotal + v.envioprecio) > 0
+            AND (v.subtotal + COALESCE(v.envioprecio, 0)) > 0
             ORDER BY v.fecha DESC
         `;
         
         const result = await pool.query(query, [fechaCorte]);
         
-        // Resumen por rangos de vencimiento
+        // Resumen actualizado para estado de pagos
         const resumenQuery = `
             SELECT 
-                COUNT(*) as total_cuentas,
-                SUM(v.subtotal + v.envioprecio) as total_por_cobrar,
-                SUM(CASE WHEN EXTRACT(DAYS FROM CURRENT_DATE - v.fecha) <= 30 
-                    THEN (v.subtotal + v.envioprecio) ELSE 0 END) as vencido_0_30,
-                SUM(CASE WHEN EXTRACT(DAYS FROM CURRENT_DATE - v.fecha) BETWEEN 31 AND 60 
-                    THEN (v.subtotal + v.envioprecio) ELSE 0 END) as vencido_31_60,
-                SUM(CASE WHEN EXTRACT(DAYS FROM CURRENT_DATE - v.fecha) BETWEEN 61 AND 90 
-                    THEN (v.subtotal + v.envioprecio) ELSE 0 END) as vencido_61_90,
-                SUM(CASE WHEN EXTRACT(DAYS FROM CURRENT_DATE - v.fecha) > 90 
-                    THEN (v.subtotal + v.envioprecio) ELSE 0 END) as vencido_mas_90
+                COUNT(*) as total_transacciones,
+                COUNT(CASE WHEN v.transaccion IS NOT NULL AND v.transaccion != '' THEN 1 END) as pagos_exitosos,
+                COUNT(CASE WHEN v.transaccion IS NULL OR v.transaccion = '' THEN 1 END) as pagos_fallidos,
+                COUNT(CASE WHEN v.estadoid = 4 THEN 1 END) as entregas_completadas,
+                COUNT(CASE WHEN v.estadoid = 5 THEN 1 END) as ventas_canceladas,
+                COUNT(CASE WHEN v.estadoid IN (1,2,3) THEN 1 END) as en_proceso,
+                SUM(CASE WHEN v.transaccion IS NOT NULL AND v.transaccion != '' 
+                    THEN (v.subtotal + COALESCE(v.envioprecio, 0)) ELSE 0 END) as total_cobrado,
+                SUM(CASE WHEN v.transaccion IS NULL OR v.transaccion = '' 
+                    THEN (v.subtotal + COALESCE(v.envioprecio, 0)) ELSE 0 END) as total_perdido,
+                COUNT(DISTINCT v.usuarioid) as clientes_afectados
             FROM venta v
+            JOIN estado_venta ev ON v.estadoid = ev.estadoid
             WHERE v.fecha <= $1
         `;
         
         const resumen = await pool.query(resumenQuery, [fechaCorte]);
         
         res.status(200).json({
-            cuentas: result.rows,
-            resumen: resumen.rows[0]
+            transacciones: result.rows,
+            resumen: resumen.rows[0],
+            tipo_reporte: 'estado_pagos',
+            mensaje: result.rows.length === 0 ? 
+                'No hay transacciones en el período seleccionado.' : 
+                `Se encontraron ${result.rows.length} transacciones.`
         });
         
     } catch (err) {
-        console.error('Error en reporte de cuentas por cobrar:', err);
+        console.error('Error en reporte de estado de pagos:', err);
         res.status(500).json({ error: 'Error en el servidor' });
     }
 };
@@ -545,8 +571,29 @@ const reporteCuentasPorPagar = async (req, res) => {
                 pr.email,
                 pr.telefono,
                 oc.total as total_orden,
-                0 as pagado, -- Simular pagos
-                oc.total as saldo_pendiente,
+                
+                -- Calcular pagado desde flujo_caja
+                COALESCE(
+                    (SELECT SUM(fc.monto) 
+                     FROM flujo_caja fc 
+                     WHERE fc.referencia_documento = oc.numero_orden 
+                     AND fc.tipo = 'Egreso' 
+                     AND fc.categoria = 'Compras'
+                     AND fc.estado = 'Confirmado'), 
+                    0
+                ) as pagado,
+                
+                -- Saldo pendiente = total - pagado
+                oc.total - COALESCE(
+                    (SELECT SUM(fc.monto) 
+                     FROM flujo_caja fc 
+                     WHERE fc.referencia_documento = oc.numero_orden 
+                     AND fc.tipo = 'Egreso' 
+                     AND fc.categoria = 'Compras'
+                     AND fc.estado = 'Confirmado'), 
+                    0
+                ) as saldo_pendiente,
+                
                 oc.fecha_entrega_esperada,
                 EXTRACT(DAYS FROM CURRENT_DATE - oc.fecha_orden) as dias_desde_orden,
                 CASE 
@@ -559,35 +606,65 @@ const reporteCuentasPorPagar = async (req, res) => {
             FROM orden_compra oc
             JOIN proveedor pr ON oc.proveedorid = pr.proveedorid
             WHERE oc.fecha_orden <= $1
-            AND oc.estado IN ('Pendiente', 'Confirmada', 'Parcialmente Recibida', 'Recibida Completa')
+            AND oc.estado NOT IN ('Cancelada', 'Devuelta')
+            -- Solo mostrar órdenes con saldo pendiente
+            AND oc.total > COALESCE(
+                (SELECT SUM(fc.monto) 
+                 FROM flujo_caja fc 
+                 WHERE fc.referencia_documento = oc.numero_orden 
+                 AND fc.tipo = 'Egreso' 
+                 AND fc.categoria = 'Compras'
+                 AND fc.estado = 'Confirmado'), 
+                0
+            )
             ORDER BY oc.fecha_orden DESC
         `;
         
         const result = await pool.query(query, [fechaCorte]);
         
-        // Resumen
+        // Resumen actualizado
         const resumenQuery = `
+            WITH pagos_por_orden AS (
+                SELECT 
+                    oc.ordencompraid,
+                    oc.total,
+                    oc.fecha_orden,
+                    COALESCE(
+                        (SELECT SUM(fc.monto) 
+                         FROM flujo_caja fc 
+                         WHERE fc.referencia_documento = oc.numero_orden 
+                         AND fc.tipo = 'Egreso' 
+                         AND fc.categoria = 'Compras'
+                         AND fc.estado = 'Confirmado'), 
+                        0
+                    ) as pagado
+                FROM orden_compra oc
+                WHERE oc.fecha_orden <= $1
+                AND oc.estado NOT IN ('Cancelada', 'Devuelta')
+            )
             SELECT 
-                COUNT(*) as total_ordenes,
-                SUM(oc.total) as total_por_pagar,
-                SUM(CASE WHEN EXTRACT(DAYS FROM CURRENT_DATE - oc.fecha_orden) <= 30 
-                    THEN oc.total ELSE 0 END) as antiguedad_0_30,
-                SUM(CASE WHEN EXTRACT(DAYS FROM CURRENT_DATE - oc.fecha_orden) BETWEEN 31 AND 60 
-                    THEN oc.total ELSE 0 END) as antiguedad_31_60,
-                SUM(CASE WHEN EXTRACT(DAYS FROM CURRENT_DATE - oc.fecha_orden) BETWEEN 61 AND 90 
-                    THEN oc.total ELSE 0 END) as antiguedad_61_90,
-                SUM(CASE WHEN EXTRACT(DAYS FROM CURRENT_DATE - oc.fecha_orden) > 90 
-                    THEN oc.total ELSE 0 END) as antiguedad_mas_90
-            FROM orden_compra oc
-            WHERE oc.fecha_orden <= $1
-            AND oc.estado IN ('Pendiente', 'Confirmada', 'Parcialmente Recibida', 'Recibida Completa')
+                COUNT(*)::integer as total_ordenes,
+                COALESCE(SUM(total - pagado), 0)::numeric as total_por_pagar,
+                COALESCE(SUM(CASE WHEN EXTRACT(DAYS FROM CURRENT_DATE - fecha_orden) <= 30 
+                    AND total > pagado THEN total - pagado ELSE 0 END), 0)::numeric as antiguedad_0_30,
+                COALESCE(SUM(CASE WHEN EXTRACT(DAYS FROM CURRENT_DATE - fecha_orden) BETWEEN 31 AND 60 
+                    AND total > pagado THEN total - pagado ELSE 0 END), 0)::numeric as antiguedad_31_60,
+                COALESCE(SUM(CASE WHEN EXTRACT(DAYS FROM CURRENT_DATE - fecha_orden) BETWEEN 61 AND 90 
+                    AND total > pagado THEN total - pagado ELSE 0 END), 0)::numeric as antiguedad_61_90,
+                COALESCE(SUM(CASE WHEN EXTRACT(DAYS FROM CURRENT_DATE - fecha_orden) > 90 
+                    AND total > pagado THEN total - pagado ELSE 0 END), 0)::numeric as antiguedad_mas_90
+            FROM pagos_por_orden
+            WHERE total > pagado
         `;
         
         const resumen = await pool.query(resumenQuery, [fechaCorte]);
         
         res.status(200).json({
             ordenes: result.rows,
-            resumen: resumen.rows[0]
+            resumen: resumen.rows[0],
+            mensaje: result.rows.length === 0 ? 
+                'No hay órdenes pendientes de pago en el período seleccionado.' : 
+                `Se encontraron ${result.rows.length} órdenes pendientes de pago.`
         });
         
     } catch (err) {
@@ -785,7 +862,7 @@ module.exports = {
     reporteMovimientosInventario,
     
     // Reportes financieros
-    reporteCuentasPorCobrar,
+    reporteEstadoPagos,
     reporteCuentasPorPagar,
     
     // Reportes administrativos

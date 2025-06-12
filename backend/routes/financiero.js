@@ -21,7 +21,9 @@ const {
     
     // Reportes
     obtenerBalanceGeneral,
-    obtenerEstadoResultados
+    obtenerEstadoResultados,
+
+    listarOrdenesPendientesPago
 } = require('../controllers/financieroController');
 
 const { authMiddleware } = require('../middlewares/authMiddleware');
@@ -42,6 +44,9 @@ router.put('/aprobar_asiento_contable/:id', authMiddleware, aprobarAsientoContab
 router.get('/listar_flujo_caja', authMiddleware, listarFlujoCaja);
 router.post('/registrar_movimiento_caja', authMiddleware, registrarMovimientoCaja);
 router.get('/obtener_resumen_flujo_caja', authMiddleware, obtenerResumenFlujoCaja);
+
+// ======================== ÓRDENES DE COMPRA ========================
+router.get('/listar_ordenes_pendientes_pago', authMiddleware, listarOrdenesPendientesPago);
 
 // ======================== REPORTES FINANCIEROS ========================
 router.get('/obtener_balance_general', authMiddleware, obtenerBalanceGeneral);

@@ -1,3 +1,4 @@
+//////////////////////// Ventas ////////////////////////
 export interface ResumenVentas {
   total_ventas: number;
   total_facturado: number;
@@ -152,5 +153,73 @@ export interface ResumenMovimientos {
 export interface ReporteMovimientos {
   movimientos: MovimientoInventario[];
   resumen: ResumenMovimientos;
+  mensaje?: string;
+}
+
+export interface TransaccionPago {
+  ventaid: number;
+  nventa: string;
+  fecha: string;
+  cliente: string;
+  email: string;
+  telefono?: string;
+  pais?: string;
+  total_venta: number;
+  pagado: number;
+  saldo_pendiente: number;
+  dias_transcurridos: number;
+  rango_estado: string;
+  estado_venta: string;
+  metodo_pago: string;
+  estado_pago: string;
+}
+
+export interface ResumenEstadoPagos {
+  total_transacciones: number;
+  pagos_exitosos: number;
+  pagos_fallidos: number;
+  entregas_completadas: number;
+  ventas_canceladas: number;
+  en_proceso: number;
+  total_cobrado: number;
+  total_perdido: number;
+  clientes_afectados: number;
+}
+
+export interface ReporteEstadoPagos {
+  transacciones: TransaccionPago[];
+  resumen: ResumenEstadoPagos;
+  tipo_reporte: string;
+  mensaje?: string;
+}
+
+export interface CuentaPorPagar {
+  ordencompraid: number;
+  numero_orden: string;
+  fecha_orden: string;
+  proveedor: string;
+  email: string;
+  telefono?: string;
+  total_orden: number;
+  pagado: number;
+  saldo_pendiente: number;
+  fecha_entrega_esperada?: string;
+  dias_desde_orden: number;
+  rango_antiguedad: string;
+  estado: string;
+}
+
+export interface ResumenCuentasPagar {
+  total_ordenes: number;
+  total_por_pagar: number;
+  antiguedad_0_30: number;
+  antiguedad_31_60: number;
+  antiguedad_61_90: number;
+  antiguedad_mas_90: number;
+}
+
+export interface ReporteCuentasPagar {
+  ordenes: CuentaPorPagar[];
+  resumen: ResumenCuentasPagar;
   mensaje?: string;
 }

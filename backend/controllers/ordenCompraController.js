@@ -505,16 +505,16 @@ const recibirProductos = async (req, res) => {
         await client.query('COMMIT');
 
         // CREAR ASIENTO CONTABLE AUTOMÁTICO SOLO CUANDO ESTÉ COMPLETAMENTE RECIBIDA
-        if (nuevoEstado === 'Recibida Completa') {
-            try {
-                await crearAsientoCompra(parseInt(id));
-                console.log(`Asiento contable creado para orden de compra ${id}`);
-            } catch (asientoError) {
-                console.error('Error al crear asiento contable para compra:', asientoError);
-                // No fallar la recepción por error en contabilidad
-                // Podrías enviar una notificación al administrador aquí
-            }
-        }
+        // if (nuevoEstado === 'Recibida Completa') {
+        //     try {
+        //         await crearAsientoCompra(parseInt(id));
+        //         console.log(`Asiento contable creado para orden de compra ${id}`);
+        //     } catch (asientoError) {
+        //         console.error('Error al crear asiento contable para compra:', asientoError);
+        //         // No fallar la recepción por error en contabilidad
+        //         // Podrías enviar una notificación al administrador aquí
+        //     }
+        // }
         
         res.status(200).json({
             message: 'Productos recibidos con éxito',

@@ -40,7 +40,13 @@ export class CrearAsientoComponent implements OnInit {
   cargar_cuentas() {
     this._financieroService.listar_plan_cuentas('', '', 'Activo', this.token).subscribe(
       response => {
-        this.cuentas = response;
+        // Filtrar solo cuentas de movimiento (nivel 3 en adelante) y activas
+        this.cuentas = response.filter((cuenta: any) => 
+          cuenta.nivel >= 3 && cuenta.estado === 'Activo'
+        );
+        
+        // Ordenar por código
+        this.cuentas.sort((a, b) => a.codigo.localeCompare(b.codigo));
       },
       error => {
         console.log(error);

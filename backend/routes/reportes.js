@@ -12,7 +12,7 @@ const {
     reporteMovimientosInventario,
     
     // Reportes financieros
-    reporteCuentasPorCobrar,
+    reporteEstadoPagos,
     reporteCuentasPorPagar,
     
     // Reportes administrativos
@@ -37,7 +37,7 @@ router.get('/reporte_stock_actual', authMiddleware, reporteStockActual);
 router.get('/reporte_movimientos_inventario', authMiddleware, reporteMovimientosInventario);
 
 // ======================== REPORTES FINANCIEROS ========================
-router.get('/reporte_cuentas_por_cobrar', authMiddleware, reporteCuentasPorCobrar);
+router.get('/reporte_estado_pagos', authMiddleware, reporteEstadoPagos);
 router.get('/reporte_cuentas_por_pagar', authMiddleware, reporteCuentasPorPagar);
 
 // ======================== REPORTES ADMINISTRATIVOS ========================

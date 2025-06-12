@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { GLOBAL } from './GLOBAL';
-import { ReporteVentasPeriodo, ReporteStock, DashboardMetricas, ReporteVentasCliente, ReporteMovimientos } from '../models/reportes.model';
+import { ReporteVentasPeriodo, ReporteStock, DashboardMetricas, ReporteVentasCliente, ReporteMovimientos, ReporteEstadoPagos, ReporteCuentasPagar } from '../models/reportes.model';
 
 @Injectable({
   providedIn: 'root'
@@ -72,14 +72,14 @@ export class ReportesService {
 
   // ======================== REPORTES FINANCIEROS ========================
 
-  reporte_cuentas_por_cobrar(fecha_corte: string, token: string): Observable<any> {
+  reporte_estado_pagos(fecha_corte: string, token: string): Observable<ReporteEstadoPagos> {
     let headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': token });
-    return this._http.get(this.url + 'reporte_cuentas_por_cobrar?fecha_corte=' + fecha_corte, { headers: headers });
+    return this._http.get<ReporteEstadoPagos>(this.url + 'reporte_estado_pagos?fecha_corte=' + fecha_corte, { headers: headers });
   }
 
-  reporte_cuentas_por_pagar(fecha_corte: string, token: string): Observable<any> {
+  reporte_cuentas_por_pagar(fecha_corte: string, token: string): Observable<ReporteCuentasPagar> {
     let headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': token });
-    return this._http.get(this.url + 'reporte_cuentas_por_pagar?fecha_corte=' + fecha_corte, { headers: headers });
+    return this._http.get<ReporteCuentasPagar>(this.url + 'reporte_cuentas_por_pagar?fecha_corte=' + fecha_corte, { headers: headers });
   }
 
   // ======================== REPORTES ADMINISTRATIVOS ========================

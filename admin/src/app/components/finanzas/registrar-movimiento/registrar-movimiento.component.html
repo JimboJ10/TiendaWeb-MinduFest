@@ -33,7 +33,8 @@
                 </div>
                 <div class="col-lg-3 form-group">
                     <label for="">Categoría *</label>
-                    <select class="form-control" required name="categoria" [(ngModel)]="movimiento.categoria">
+                    <select class="form-control" required name="categoria" 
+                            [(ngModel)]="movimiento.categoria" (change)="on_categoria_change()">
                         <option value="">Seleccione categoría</option>
                         <option *ngFor="let categoria of categorias_disponibles" [value]="categoria">{{ categoria }}</option>
                     </select>
@@ -48,6 +49,29 @@
                                placeholder="0.00" required name="monto" [(ngModel)]="movimiento.monto">
                     </div>
                 </div>
+
+                <!-- Selector de orden de compra para pagos a proveedores -->
+                <div class="col-lg-12 form-group" *ngIf="es_pago_proveedor">
+                    <div class="alert alert-info">
+                        <i class="fa fa-info-circle"></i>
+                        <strong>Pago a Proveedor:</strong> Seleccione la orden de compra que está pagando
+                    </div>
+                    <label for="">Orden de Compra</label>
+                    <select class="form-control" name="orden_compra_id" 
+                            [(ngModel)]="movimiento.orden_compra_id" (change)="on_orden_change()">
+                        <option value="">Seleccione orden de compra</option>
+                        <option *ngFor="let orden of ordenes_pendientes" [value]="orden.ordencompraid">
+                            {{orden.numero_orden}} - {{orden.proveedor}} 
+                            (Pendiente: ${{orden.saldo_pendiente | number:'1.2-2'}})
+                        </option>
+                    </select>
+                    <div *ngIf="load_ordenes" class="text-center mt-2">
+                        <small class="text-muted">
+                            <i class="fa fa-spinner fa-spin"></i> Cargando órdenes pendientes...
+                        </small>
+                    </div>
+                </div>
+
                 <div class="col-lg-12 form-group">
                     <label for="">Concepto *</label>
                     <input type="text" class="form-control" placeholder="Descripción del movimiento"
@@ -64,15 +88,53 @@
                     <label for="">Cuenta contable</label>
                     <select class="form-control" name="cuentaid" [(ngModel)]="movimiento.cuentaid">
                         <option value="">Seleccione cuenta</option>
-                        <option *ngFor="let cuenta of cuentas" [value]="cuenta.cuentaid">
-                            {{ cuenta.codigo }} - {{ cuenta.nombre }}
-                        </option>
+                        
+                        <!-- Cuentas de Activo -->
+                        <optgroup label="📈 ACTIVOS" *ngIf="cuentas_activo.length > 0">
+                            <option *ngFor="let cuenta of cuentas_activo" [value]="cuenta.cuentaid">
+                                {{ cuenta.codigo }} - {{ cuenta.nombre }}
+                            </option>
+                        </optgroup>
+                        
+                        <!-- Cuentas de Pasivo -->
+                        <optgroup label="📉 PASIVOS" *ngIf="cuentas_pasivo.length > 0">
+                            <option *ngFor="let cuenta of cuentas_pasivo" [value]="cuenta.cuentaid">
+                                {{ cuenta.codigo }} - {{ cuenta.nombre }}
+                            </option>
+                        </optgroup>
+                        
+                        <!-- Cuentas de Patrimonio -->
+                        <optgroup label="🏛️ PATRIMONIO" *ngIf="cuentas_patrimonio.length > 0">
+                            <option *ngFor="let cuenta of cuentas_patrimonio" [value]="cuenta.cuentaid">
+                                {{ cuenta.codigo }} - {{ cuenta.nombre }}
+                            </option>
+                        </optgroup>
+                        
+                        <!-- Cuentas de Ingreso -->
+                        <optgroup label="💰 INGRESOS" *ngIf="cuentas_ingreso.length > 0">
+                            <option *ngFor="let cuenta of cuentas_ingreso" [value]="cuenta.cuentaid">
+                                {{ cuenta.codigo }} - {{ cuenta.nombre }}
+                            </option>
+                        </optgroup>
+                        
+                        <!-- Cuentas de Gasto -->
+                        <optgroup label="💸 GASTOS" *ngIf="cuentas_gasto.length > 0">
+                            <option *ngFor="let cuenta of cuentas_gasto" [value]="cuenta.cuentaid">
+                                {{ cuenta.codigo }} - {{ cuenta.nombre }}
+                            </option>
+                        </optgroup>
                     </select>
+                    <small class="text-muted">Cuenta que se afecta con este movimiento</small>
                 </div>
                 <div class="col-lg-4 form-group">
                     <label for="">Referencia documento</label>
-                    <input type="text" class="form-control" placeholder="Número de factura, recibo, etc."
-                           name="referencia_documento" [(ngModel)]="movimiento.referencia_documento">
+                    <input type="text" class="form-control" 
+                           placeholder="Número de factura, orden, recibo, etc."
+                           name="referencia_documento" [(ngModel)]="movimiento.referencia_documento"
+                           [readonly]="es_pago_proveedor && movimiento.orden_compra_id">
+                    <small class="text-muted" *ngIf="es_pago_proveedor">
+                        Se completará automáticamente al seleccionar la orden
+                    </small>
                 </div>
                 <div class="col-lg-12 form-group">
                     <label for="">Observaciones</label>

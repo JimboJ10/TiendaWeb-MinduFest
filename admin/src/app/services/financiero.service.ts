@@ -76,6 +76,14 @@ export class FinancieroService {
     return this._http.get(this.url + 'obtener_resumen_flujo_caja?desde=' + desde + '&hasta=' + hasta, { headers: headers });
   }
 
+  // ==================== ÓRDENES DE COMPRA ====================
+
+  listar_ordenes_pendientes_pago(proveedorid: string, token: string): Observable<any> {
+    let headers = new HttpHeaders({ 'Content-Type': 'application/json', 'Authorization': token });
+    let params = proveedorid ? `proveedorid=${proveedorid}` : '';
+    return this._http.get(this.url + 'listar_ordenes_pendientes_pago?' + params, { headers: headers });
+  }
+
   // ==================== REPORTES FINANCIEROS ====================
 
   obtener_balance_general(fecha_corte: string, token: string): Observable<any> {

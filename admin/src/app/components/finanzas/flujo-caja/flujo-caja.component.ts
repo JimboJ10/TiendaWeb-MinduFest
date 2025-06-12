@@ -20,9 +20,11 @@ export class FlujoCajaComponent implements OnInit {
   public categoria_filtro = '';
   public tipos = ['Ingreso', 'Egreso'];
   public categorias = ['Ventas', 'Compras', 'Gastos Administrativos', 'Gastos de Ventas', 'Otros Ingresos', 'Otros Gastos'];
-  public page = 1;
-  public pageSize = 15;
-  public resumen: any = {};
+  public resumen: any = null;
+
+  // Paginación
+  public page: number = 1;
+  public pageSize: number = 20;
 
   constructor(
     private _financieroService: FinancieroService,
@@ -32,12 +34,13 @@ export class FlujoCajaComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.cargar_movimientos();
-    this.cargar_resumen();
+    this.listar_movimientos();
+    this.obtener_resumen();
   }
 
-  cargar_movimientos() {
+  listar_movimientos() {
     this.load_data = true;
+    
     this._financieroService.listar_flujo_caja(
       this.fecha_desde, 
       this.fecha_hasta, 
@@ -52,14 +55,23 @@ export class FlujoCajaComponent implements OnInit {
       error => {
         console.log(error);
         this.load_data = false;
+        iziToast.error({
+          title: 'Error',
+          message: 'Error al cargar movimientos',
+          position: 'topRight'
+        });
       }
     );
   }
 
-  cargar_resumen() {
-    this._financieroService.obtener_resumen_flujo_caja(this.fecha_desde, this.fecha_hasta, this.token).subscribe(
+  obtener_resumen() {
+    this._financieroService.obtener_resumen_flujo_caja(
+      this.fecha_desde, 
+      this.fecha_hasta, 
+      this.token
+    ).subscribe(
       response => {
-        this.resumen = response.resumen;
+        this.resumen = response;
       },
       error => {
         console.log(error);
@@ -67,31 +79,54 @@ export class FlujoCajaComponent implements OnInit {
     );
   }
 
-  filtrar() {
+  aplicar_filtros() {
     this.page = 1;
-    this.cargar_movimientos();
-    this.cargar_resumen();
+    this.listar_movimientos();
+    this.obtener_resumen();
   }
 
-  resetear() {
-    this.fecha_desde = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
-    this.fecha_hasta = new Date().toISOString().split('T')[0];
+  limpiar_filtros() {
     this.tipo_filtro = '';
     this.categoria_filtro = '';
-    this.page = 1;
-    this.cargar_movimientos();
-    this.cargar_resumen();
+    this.fecha_desde = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+    this.fecha_hasta = new Date().toISOString().split('T')[0];
+    this.aplicar_filtros();
   }
 
-  getBadgeTipo(tipo: string): string {
+  formatear_moneda(valor: number): string {
+    return new Intl.NumberFormat('es-ES', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(valor || 0);
+  }
+
+  formatear_fecha(fecha: string): string {
+    return new Date(fecha).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  }
+
+  get_badge_tipo(tipo: string): string {
     return tipo === 'Ingreso' ? 'badge-success' : 'badge-danger';
   }
 
-  getIconoTipo(tipo: string): string {
-    return tipo === 'Ingreso' ? 'cxi-arrow-up' : 'cxi-arrow-down';
+  get_badge_categoria(categoria: string): string {
+    switch (categoria) {
+      case 'Ventas': return 'badge-success';
+      case 'Compras': return 'badge-warning';
+      case 'Gastos Administrativos': return 'badge-info';
+      case 'Gastos de Ventas': return 'badge-primary';
+      default: return 'badge-secondary';
+    }
   }
 
-  registrar_movimiento() {
+  nuevo_movimiento() {
     this._router.navigate(['/panel/finanzas/flujo-caja/registrar']);
+  }
+
+  regresar() {
+    this._router.navigate(['/panel/finanzas']);
   }
 }
