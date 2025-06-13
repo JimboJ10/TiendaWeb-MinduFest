@@ -2,278 +2,314 @@
 
 <!-- Page title-->
 <div class="border-bottom pt-5 mt-2 mb-5">
-    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Estado de Resultados</h1>
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">
+        <i class="fa fa-chart-line text-success"></i> Estado de Resultados
+    </h1>
     <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
-      <p class="text-muted">Estado de pérdidas y ganancias</p>
+      <p class="text-muted">Análisis de ingresos y gastos de tu ecommerce</p>
       <p class="font-size-sm font-weight-medium pl-md-4">
-        <a class="text-nowrap" [routerLink]="['/panel/finanzas']">Regresar<i class="fa fa-angle-right font-size-base align-middle ml-1"></i></a>
+        <a class="text-nowrap" [routerLink]="['/panel/finanzas']">
+            <i class="fa fa-arrow-left"></i> Regresar
+        </a>
       </p>
     </div>
 </div>
 
-<!-- Controles -->
-<div class="card box-shadow-sm mb-4">
-    <div class="card-body">
-        <div class="row align-items-end">
-            <div class="col-lg-3">
-                <label>Fecha inicio</label>
-                <input type="date" class="form-control" [(ngModel)]="fecha_inicio">
+<!-- Controles simplificados -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card bg-light">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <label class="form-label text-primary">
+                            <i class="fa fa-calendar"></i> Fecha inicio
+                        </label>
+                        <input type="date" class="form-control" [(ngModel)]="fecha_inicio">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label text-primary">
+                            <i class="fa fa-calendar"></i> Fecha fin
+                        </label>
+                        <input type="date" class="form-control" [(ngModel)]="fecha_fin">
+                    </div>
+                </div>
+                <button class="btn btn-primary mt-3 w-100" (click)="actualizar_estado()">
+                    <i class="fa fa-refresh"></i> Actualizar Reporte
+                </button>
             </div>
-            <div class="col-lg-3">
-                <label>Fecha fin</label>
-                <input type="date" class="form-control" [(ngModel)]="fecha_fin">
+        </div>
+    </div>
+    <div class="col-md-6">
+        <!-- Ratios financieros -->
+        <div class="row" *ngIf="!load_data && estado_resultados.ratios">
+            <div class="col-4">
+                <div class="card bg-success text-white text-center">
+                    <div class="card-body p-2">
+                        <small><i class="fa fa-chart-line"></i> Margen Bruto</small>
+                        <h5 class="mb-0">{{ estado_resultados.ratios.margen_bruto | number:'1.1-1' }}%</h5>
+                    </div>
+                </div>
             </div>
-            <div class="col-lg-6">
-                <button class="btn btn-primary mr-2" (click)="actualizar_estado()">
-                    <i class="fa fa-refresh"></i> Actualizar
-                </button>
-                <button class="btn btn-secondary mr-2" (click)="toggle_detalle()">
-                    <i class="fa fa-list"></i> {{ mostrar_detalle ? 'Vista Resumida' : 'Vista Detallada' }}
-                </button>
-                <button class="btn btn-info mr-2" (click)="imprimir_estado()">
-                    <i class="fa fa-print"></i> Imprimir
-                </button>
-                <button class="btn btn-success" (click)="exportar_excel()">
-                    <i class="fa fa-download"></i> Excel
-                </button>
+            <div class="col-4">
+                <div class="card bg-primary text-white text-center">
+                    <div class="card-body p-2">
+                        <small><i class="fa fa-chart-bar"></i> Margen Op.</small>
+                        <h5 class="mb-0">{{ estado_resultados.ratios.margen_operacional | number:'1.1-1' }}%</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card text-white text-center" [ngClass]="{
+                    'bg-success': estado_resultados.ratios.margen_neto >= 0,
+                    'bg-danger': estado_resultados.ratios.margen_neto < 0
+                }">
+                    <div class="card-body p-2">
+                        <small><i class="fa fa-chart-pie"></i> Margen Neto</small>
+                        <h5 class="mb-0">{{ estado_resultados.ratios.margen_neto | number:'1.1-1' }}%</h5>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <div *ngIf="load_data" class="text-center py-5">
-    <div class="spinner-border" role="status">
+    <div class="spinner-border text-primary" role="status">
         <span class="sr-only">Cargando...</span>
     </div>
+    <p class="mt-3 text-muted">Analizando resultados...</p>
 </div>
 
 <!-- Estado de Resultados -->
-<div *ngIf="!load_data && estado_resultados" class="card box-shadow-sm">
-    <div class="card-header text-center">
-        <h4 class="mb-0">ESTADO DE RESULTADOS</h4>
-        <p class="text-muted mb-0">Del {{ fecha_inicio | date:'dd/MM/yyyy' }} al {{ fecha_fin | date:'dd/MM/yyyy' }}</p>
+<div *ngIf="!load_data && estado_resultados" class="card shadow-sm">
+    <div class="card-header bg-primary text-white text-center">
+        <h4 class="mb-0"><i class="fa fa-chart-line"></i> ESTADO DE RESULTADOS</h4>
+        <p class="mb-0">Del {{ fecha_inicio | date:'dd/MM/yyyy' }} al {{ fecha_fin | date:'dd/MM/yyyy' }}</p>
     </div>
     <div class="card-body">
-        <!-- INGRESOS -->
-        <div class="mb-4">
-            <h5 class="text-success border-bottom pb-2">
-                <i class="fa fa-arrow-up"></i> INGRESOS
-            </h5>
-            
-            <!-- Ingresos Operacionales -->
-            <div *ngIf="estado_resultados.ingresos_operacionales" class="ml-3">
-                <h6 class="text-primary">
-                    <i class="fa fa-shopping-cart"></i> Ingresos Operacionales
-                </h6>
-                <div class="ml-3">
-                    <!-- Vista detallada -->
-                    <div *ngIf="mostrar_detalle">
-                        <div *ngFor="let cuenta of estado_resultados.ingresos_operacionales" 
-                             class="d-flex justify-content-between py-1">
-                            <span>
-                                <code class="text-muted">{{ cuenta.codigo }}</code> {{ cuenta.nombre }}
-                            </span>
-                            <span class="font-weight-bold">${{ cuenta.total | number:'1.2-2' }}</span>
-                        </div>
-                    </div>
-                    <!-- Línea de total -->
-                    <div class="d-flex justify-content-between font-weight-bold border-top pt-2 mt-2">
-                        <span>Total Ingresos Operacionales</span>
-                        <span class="text-success">${{ estado_resultados.totales?.total_ingresos_operacionales | number:'1.2-2' }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Ingresos No Operacionales -->
-            <div *ngIf="estado_resultados.ingresos_no_operacionales" class="ml-3 mt-3">
-                <h6 class="text-info">
-                    <i class="fa fa-plus-circle"></i> Ingresos No Operacionales
-                </h6>
-                <div class="ml-3">
-                    <!-- Vista detallada -->
-                    <div *ngIf="mostrar_detalle">
-                        <div *ngFor="let cuenta of estado_resultados.ingresos_no_operacionales" 
-                             class="d-flex justify-content-between py-1">
-                            <span>
-                                <code class="text-muted">{{ cuenta.codigo }}</code> {{ cuenta.nombre }}
-                            </span>
-                            <span class="font-weight-bold">${{ cuenta.total | number:'1.2-2' }}</span>
-                        </div>
-                    </div>
-                    <!-- Línea de total -->
-                    <div class="d-flex justify-content-between font-weight-bold border-top pt-2 mt-2">
-                        <span>Total Ingresos No Operacionales</span>
-                        <span class="text-info">${{ estado_resultados.totales?.total_ingresos_no_operacionales | number:'1.2-2' }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Total Ingresos -->
-            <div class="bg-success text-white p-3 rounded mt-3">
-                <div class="d-flex justify-content-between">
-                    <h6 class="mb-0"><i class="fa fa-plus"></i> TOTAL INGRESOS</h6>
-                    <h6 class="mb-0">${{ estado_resultados.totales?.total_ingresos | number:'1.2-2' }}</h6>
-                </div>
-            </div>
-        </div>
-
-        <!-- GASTOS -->
-        <div class="mb-4">
-            <h5 class="text-danger border-bottom pb-2">
-                <i class="fa fa-arrow-down"></i> GASTOS
-            </h5>
-            
-            <!-- Costo de Ventas -->
-            <div *ngIf="estado_resultados.costo_ventas" class="ml-3">
-                <h6 class="text-warning">
-                    <i class="fa fa-cube"></i> Costo de Ventas
-                </h6>
-                <div class="ml-3">
-                    <!-- Vista detallada -->
-                    <div *ngIf="mostrar_detalle">
-                        <div *ngFor="let cuenta of estado_resultados.costo_ventas" 
-                             class="d-flex justify-content-between py-1">
-                            <span>
-                                <code class="text-muted">{{ cuenta.codigo }}</code> {{ cuenta.nombre }}
-                            </span>
-                            <span class="font-weight-bold">${{ cuenta.total | number:'1.2-2' }}</span>
-                        </div>
-                    </div>
-                    <!-- Línea de total -->
-                    <div class="d-flex justify-content-between font-weight-bold border-top pt-2 mt-2">
-                        <span>Total Costo de Ventas</span>
-                        <span class="text-warning">${{ estado_resultados.totales?.total_costo_ventas | number:'1.2-2' }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Utilidad Bruta -->
-            <div class="bg-light p-2 rounded my-3">
-                <div class="d-flex justify-content-between">
-                    <strong><i class="fa fa-calculator"></i> UTILIDAD BRUTA</strong>
-                    <strong [ngClass]="get_clase_utilidad(estado_resultados.totales?.utilidad_bruta)">
-                        ${{ estado_resultados.totales?.utilidad_bruta | number:'1.2-2' }}
-                    </strong>
-                </div>
-            </div>
-
-            <!-- Gastos Operacionales -->
-            <div *ngIf="estado_resultados.gastos_operacionales" class="ml-3">
-                <h6 class="text-primary">
-                    <i class="fa fa-cogs"></i> Gastos Operacionales
-                </h6>
-                <div class="ml-3">
-                    <!-- Vista detallada -->
-                    <div *ngIf="mostrar_detalle">
-                        <div *ngFor="let cuenta of estado_resultados.gastos_operacionales" 
-                             class="d-flex justify-content-between py-1">
-                            <span>
-                                <code class="text-muted">{{ cuenta.codigo }}</code> {{ cuenta.nombre }}
-                            </span>
-                            <span class="font-weight-bold">${{ cuenta.total | number:'1.2-2' }}</span>
-                        </div>
-                    </div>
-                    <!-- Línea de total -->
-                    <div class="d-flex justify-content-between font-weight-bold border-top pt-2 mt-2">
-                        <span>Total Gastos Operacionales</span>
-                        <span class="text-primary">${{ estado_resultados.totales?.total_gastos_operacionales | number:'1.2-2' }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Utilidad Operacional -->
-            <div class="bg-light p-2 rounded my-3">
-                <div class="d-flex justify-content-between">
-                    <strong><i class="fa fa-calculator"></i> UTILIDAD OPERACIONAL</strong>
-                    <strong [ngClass]="get_clase_utilidad(estado_resultados.totales?.utilidad_operacional)">
-                        ${{ estado_resultados.totales?.utilidad_operacional | number:'1.2-2' }}
-                    </strong>
-                </div>
-            </div>
-
-            <!-- Gastos No Operacionales -->
-            <div *ngIf="estado_resultados.gastos_no_operacionales" class="ml-3">
-                <h6 class="text-info">
-                    <i class="fa fa-minus-circle"></i> Gastos No Operacionales
-                </h6>
-                <div class="ml-3">
-                    <!-- Vista detallada -->
-                    <div *ngIf="mostrar_detalle">
-                        <div *ngFor="let cuenta of estado_resultados.gastos_no_operacionales" 
-                             class="d-flex justify-content-between py-1">
-                            <span>
-                                <code class="text-muted">{{ cuenta.codigo }}</code> {{ cuenta.nombre }}
-                            </span>
-                            <span class="font-weight-bold">${{ cuenta.total | number:'1.2-2' }}</span>
-                        </div>
-                    </div>
-                    <!-- Línea de total -->
-                    <div class="d-flex justify-content-between font-weight-bold border-top pt-2 mt-2">
-                        <span>Total Gastos No Operacionales</span>
-                        <span class="text-info">${{ estado_resultados.totales?.total_gastos_no_operacionales | number:'1.2-2' }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Total Gastos -->
-            <div class="bg-danger text-white p-3 rounded mt-3">
-                <div class="d-flex justify-content-between">
-                    <h6 class="mb-0"><i class="fa fa-minus"></i> TOTAL GASTOS</h6>
-                    <h6 class="mb-0">${{ estado_resultados.totales?.total_gastos | number:'1.2-2' }}</h6>
-                </div>
-            </div>
-        </div>
-
-        <!-- UTILIDAD NETA -->
-        <div class="border-top pt-4">
-            <div [ngClass]="{
-                'bg-success': estado_resultados.totales?.utilidad_neta > 0,
-                'bg-danger': estado_resultados.totales?.utilidad_neta < 0,
-                'bg-secondary': estado_resultados.totales?.utilidad_neta === 0
-            }" class="text-white p-4 rounded">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">
-                        <i class="fa fa-trophy"></i>
-                        {{ estado_resultados.totales?.utilidad_neta >= 0 ? 'UTILIDAD NETA' : 'PÉRDIDA NETA' }}
-                    </h4>
-                    <h4 class="mb-0">${{ estado_resultados.totales?.utilidad_neta | number:'1.2-2' }}</h4>
-                </div>
-            </div>
-        </div>
-
-        <!-- Ratios financieros -->
-        <div class="row mt-4" *ngIf="estado_resultados.ratios">
-            <div class="col-md-4">
-                <div class="card bg-light">
+        
+        <!-- RESUMEN EJECUTIVO -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-gradient-success text-white">
                     <div class="card-body text-center">
-                        <h6><i class="fa fa-chart-line text-success"></i> Margen Bruto</h6>
-                        <h4 class="text-success">{{ estado_resultados.ratios.margen_bruto | number:'1.2-2' }}%</h4>
+                        <i class="fa fa-arrow-up fa-2x mb-2"></i>
+                        <h6>Total Ingresos</h6>
+                        <h4>${{ estado_resultados.totales?.total_ingresos | number:'1.2-2' }}</h4>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card bg-light">
+            <div class="col-md-3">
+                <div class="card bg-gradient-danger text-white">
                     <div class="card-body text-center">
-                        <h6><i class="fa fa-chart-bar text-primary"></i> Margen Operacional</h6>
-                        <h4 class="text-primary">{{ estado_resultados.ratios.margen_operacional | number:'1.2-2' }}%</h4>
+                        <i class="fa fa-arrow-down fa-2x mb-2"></i>
+                        <h6>Total Gastos</h6>
+                        <h4>${{ estado_resultados.totales?.total_gastos | number:'1.2-2' }}</h4>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card bg-light">
+            <div class="col-md-3">
+                <div class="card text-white" [ngClass]="{
+                    'bg-gradient-success': estado_resultados.totales?.utilidad_neta > 0,
+                    'bg-gradient-danger': estado_resultados.totales?.utilidad_neta < 0,
+                    'bg-gradient-secondary': estado_resultados.totales?.utilidad_neta === 0
+                }">
                     <div class="card-body text-center">
-                        <h6><i class="fa fa-chart-pie text-info"></i> Margen Neto</h6>
-                        <h4 class="text-info">{{ estado_resultados.ratios.margen_neto | number:'1.2-2' }}%</h4>
+                        <!-- ✅ Iconos corregidos con condiciones más simples -->
+                        <i *ngIf="estado_resultados.totales?.utilidad_neta > 0" class="fa fa-trophy fa-2x mb-2"></i>
+                        <i *ngIf="estado_resultados.totales?.utilidad_neta < 0" class="fa fa-exclamation-triangle fa-2x mb-2"></i>
+                        <i *ngIf="estado_resultados.totales?.utilidad_neta === 0" class="fa fa-minus fa-2x mb-2"></i>
+                        
+                        <h6>{{ estado_resultados.totales?.utilidad_neta >= 0 ? 'Utilidad' : 'Pérdida' }}</h6>
+                        <h4>${{ estado_resultados.totales?.utilidad_neta | number:'1.2-2' }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white" [ngClass]="{
+                    'bg-gradient-success': estado_resultados.ratios?.margen_neto >= 0,
+                    'bg-gradient-danger': estado_resultados.ratios?.margen_neto < 0,
+                    'bg-gradient-secondary': estado_resultados.ratios?.margen_neto === 0
+                }">
+                    <div class="card-body text-center">
+                        <!-- ✅ Iconos corregidos con condiciones más simples -->
+                        <i *ngIf="estado_resultados.ratios?.margen_neto > 0" class="fa fa-trophy fa-2x mb-2"></i>
+                        <i *ngIf="estado_resultados.ratios?.margen_neto < 0" class="fa fa-exclamation-triangle fa-2x mb-2"></i>
+                        <i *ngIf="estado_resultados.ratios?.margen_neto === 0" class="fa fa-minus fa-2x mb-2"></i>
+                        
+                        <h6>Margen Neto</h6>
+                        <h4>{{ formatear_margen(estado_resultados.ratios?.margen_neto || 0) }}</h4>
+                        <small *ngIf="estado_resultados.ratios?.margen_neto < 0">
+                            ⚠️ Gastos > Ingresos
+                        </small>
+                        <small *ngIf="estado_resultados.ratios?.margen_neto >= 0">
+                            ✅ Rentable
+                        </small>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Mensaje cuando no hay detalle disponible -->
-        <div *ngIf="mostrar_detalle && (!estado_resultados.ingresos_operacionales || estado_resultados.ingresos_operacionales.length === 0)" 
-             class="alert alert-info mt-3">
-            <i class="fa fa-info-circle"></i> 
-            No hay detalles de cuentas disponibles. Los totales se muestran en base a los movimientos registrados.
+        <!-- DETALLE FINANCIERO -->
+        <div class="row">
+            <div class="col-md-6">
+                <!-- INGRESOS -->
+                <div class="card border-success mb-3">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="fa fa-plus-circle"></i> INGRESOS</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Ingresos Operacionales -->
+                        <div *ngIf="estado_resultados.ingresos_operacionales?.length > 0">
+                            <h6 class="text-success mb-3">
+                                <i class="fa fa-shopping-cart"></i> Operacionales
+                            </h6>
+                            <div class="ml-3 mb-3">
+                                <div *ngFor="let ingreso of estado_resultados.ingresos_operacionales" 
+                                     class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                    <span class="d-flex align-items-center">
+                                        <i class="fa fa-dot-circle text-success mr-2"></i>
+                                        {{ ingreso.nombre }}
+                                    </span>
+                                    <span class="font-weight-bold text-success">${{ ingreso.total | number:'1.2-2' }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between font-weight-bold pt-2 text-success">
+                                    <span>Subtotal Operacionales</span>
+                                    <span>${{ estado_resultados.totales?.total_ingresos_operacionales | number:'1.2-2' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Ingresos -->
+                        <div class="bg-success text-white p-3 rounded">
+                            <div class="d-flex justify-content-between">
+                                <strong><i class="fa fa-plus"></i> TOTAL INGRESOS</strong>
+                                <strong>${{ estado_resultados.totales?.total_ingresos | number:'1.2-2' }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <!-- GASTOS -->
+                <div class="card border-danger mb-3">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0"><i class="fa fa-minus-circle"></i> GASTOS</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Gastos Operacionales -->
+                        <div *ngIf="estado_resultados.gastos_operacionales?.length > 0">
+                            <h6 class="text-danger mb-3">
+                                <i class="fa fa-cogs"></i> Operacionales
+                            </h6>
+                            <div class="ml-3 mb-3">
+                                <div *ngFor="let gasto of estado_resultados.gastos_operacionales" 
+                                     class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                    <span class="d-flex align-items-center">
+                                        <i class="fa fa-dot-circle text-danger mr-2"></i>
+                                        {{ gasto.nombre }}
+                                    </span>
+                                    <span class="font-weight-bold text-danger">${{ gasto.total | number:'1.2-2' }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between font-weight-bold pt-2 text-danger">
+                                    <span>Subtotal Operacionales</span>
+                                    <span>${{ estado_resultados.totales?.total_gastos_operacionales | number:'1.2-2' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Gastos -->
+                        <div class="bg-danger text-white p-3 rounded">
+                            <div class="d-flex justify-content-between">
+                                <strong><i class="fa fa-minus"></i> TOTAL GASTOS</strong>
+                                <strong>${{ estado_resultados.totales?.total_gastos | number:'1.2-2' }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensaje cuando no hay datos -->
+        <div *ngIf="!estado_resultados.ingresos_operacionales?.length && !estado_resultados.gastos_operacionales?.length" 
+             class="alert alert-info text-center py-4">
+            <i class="fa fa-info-circle fa-2x mb-3"></i>
+            <h5>No hay movimientos en el período seleccionado</h5>
+            <p class="mb-0">Selecciona un rango de fechas diferente o registra algunos movimientos de caja.</p>
+        </div>
+
+        <!-- Interpretación mejorada para ecommerce -->
+        <div class="row mt-4" *ngIf="estado_resultados.totales?.total_ingresos > 0">
+            <div class="col-12">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6 class="text-primary mb-3">
+                            <i class="fa fa-lightbulb"></i> Análisis de tu Ecommerce
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center mb-2">
+                                    <!-- ✅ Iconos de análisis también corregidos -->
+                                    <i *ngIf="estado_resultados.ratios?.margen_neto >= 0" class="fa fa-circle text-success mr-2"></i>
+                                    <i *ngIf="estado_resultados.ratios?.margen_neto < 0" class="fa fa-exclamation-triangle text-danger mr-2"></i>
+                                    
+                                    <strong>Rentabilidad:</strong>
+                                    <span class="ml-2" [ngClass]="get_clase_utilidad(estado_resultados.totales?.utilidad_neta)">
+                                        {{ estado_resultados.ratios?.margen_neto | number:'1.1-1' }}%
+                                    </span>
+                                </div>
+                                <small class="text-muted">
+                                    <span *ngIf="estado_resultados.ratios?.margen_neto >= 0">
+                                        ✅ Por cada $100 en ventas, ganas ${{ estado_resultados.ratios?.margen_neto | number:'1.0-0' }}
+                                    </span>
+                                    <span *ngIf="estado_resultados.ratios?.margen_neto < 0" class="text-danger">
+                                        ⚠️ Por cada $100 en ventas, pierdes ${{ Math.abs(estado_resultados.ratios?.margen_neto || 0) | number:'1.0-0' }}
+                                    </span>
+                                </small>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fa fa-circle text-warning mr-2"></i>
+                                    <strong>Recomendación:</strong>
+                                </div>
+                                <small class="text-muted">
+                                    <span *ngIf="estado_resultados.ratios?.margen_neto < 0" class="text-warning">
+                                        📈 Urgente: Reducir gastos o aumentar precios
+                                    </span>
+                                    <span *ngIf="estado_resultados.ratios?.margen_neto >= 0">
+                                        ✅ Mantener control de gastos operativos
+                                    </span>
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <!-- Análisis adicional de gastos -->
+                        <div class="row mt-3" *ngIf="estado_resultados.gastos_operacionales?.length > 0">
+                            <div class="col-12">
+                                <div class="border-top pt-3">
+                                    <h6 class="text-info mb-2">
+                                        <i class="fa fa-chart-bar"></i> Análisis de Gastos
+                                    </h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <small class="text-muted">
+                                                <strong>Mayor gasto:</strong> {{ obtener_mayor_gasto() }}
+                                            </small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <small class="text-muted">
+                                                <strong>Eficiencia:</strong> {{ calcular_eficiencia() }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

@@ -10,11 +10,10 @@ declare var iziToast: any;
 })
 export class BalanceGeneralComponent implements OnInit {
 
-  public token;
+  public token: string;
   public balance: any = {};
   public load_data = true;
   public fecha_corte = new Date().toISOString().split('T')[0];
-  public mostrar_detalle = false;
 
   constructor(
     private _financieroService: FinancieroService
@@ -47,22 +46,5 @@ export class BalanceGeneralComponent implements OnInit {
 
   actualizar_balance() {
     this.cargar_balance();
-  }
-
-  imprimir_balance() {
-    window.print();
-  }
-
-  exportar_excel() {
-    // Implementar exportación a Excel
-    iziToast.info({
-      title: 'Información',
-      message: 'Función de exportación en desarrollo',
-      position: 'topRight'
-    });
-  }
-
-  toggle_detalle() {
-    this.mostrar_detalle = !this.mostrar_detalle;
   }
 }

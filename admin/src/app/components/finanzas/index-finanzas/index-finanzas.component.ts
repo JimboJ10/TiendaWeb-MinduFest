@@ -30,23 +30,66 @@ export class IndexFinanzasComponent implements OnInit {
 
   cargar_resumen() {
     this.load_resumen = true;
+    console.log('Cargando resumen con fechas:', this.fecha_desde, this.fecha_hasta);
+    
     this._financieroService.obtener_resumen_flujo_caja(this.fecha_desde, this.fecha_hasta, this.token).subscribe(
       response => {
+        console.log('Respuesta del servidor:', response);
         this.resumen_caja = response;
         this.load_resumen = false;
       },
       error => {
-        console.log(error);
+        console.error('Error al cargar resumen:', error);
         this.load_resumen = false;
+        iziToast.error({
+          title: 'Error',
+          message: 'Error al cargar el resumen financiero',
+          position: 'topRight'
+        });
       }
     );
   }
 
   filtrar_resumen() {
+    console.log('Filtrando resumen...');
     this.cargar_resumen();
   }
 
   navegar_a(ruta: string) {
     this._router.navigate([ruta]);
+  }
+
+  // ✅ Nueva función para contar movimientos por tipo
+  contar_movimientos_por_tipo(tipo: string): number {
+    if (!this.resumen_caja.ingresos_por_categoria && !this.resumen_caja.egresos_por_categoria) {
+      return 0;
+    }
+    
+    if (tipo === 'Ingreso') {
+      return this.resumen_caja.ingresos_por_categoria?.length || 0;
+    } else if (tipo === 'Egreso') {
+      return this.resumen_caja.egresos_por_categoria?.length || 0;
+    }
+    
+    return 0;
+  }
+
+  // Métodos de formateo
+  formatear_numero(valor: number | string): string {
+    const numero = typeof valor === 'string' ? parseFloat(valor) : valor;
+    
+    if (numero >= 1000000) {
+      return (numero / 1000000).toFixed(1) + 'M';
+    } else if (numero >= 1000) {
+      return (numero / 1000).toFixed(1) + 'K';
+    }
+    return numero?.toFixed(0) || '0';
+  }
+
+  formatear_fecha(fecha: string): string {
+    return new Date(fecha).toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: 'short'
+    });
   }
 }

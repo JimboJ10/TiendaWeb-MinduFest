@@ -44,6 +44,7 @@ import { ReporteMovimientosInventarioComponent } from "./components/reportes/rep
 import { ReporteCuentasPagarComponent } from "./components/reportes/reporte-cuentas-pagar/reporte-cuentas-pagar.component";
 import { ReporteActividadUsuariosComponent } from "./components/reportes/reporte-actividad-usuarios/reporte-actividad-usuarios.component";
 import { ReporteEstadoPagosComponent } from "./components/reportes/reporte-estado-pagos/reporte-estado-pagos.component";
+import { VerAsientoComponent } from "./components/finanzas/ver-asiento/ver-asiento.component";
 
 const appRoutes : Routes = [
     {path:'', redirectTo: 'admin', pathMatch:'full'},
@@ -77,6 +78,7 @@ const appRoutes : Routes = [
         { path: 'finanzas/plan-cuentas/editar/:id', component: EditarCuentaComponent, canActivate: [AuthGuard] },
         { path: 'finanzas/asientos', component: AsientosContablesComponent, canActivate: [AuthGuard] },
         { path: 'finanzas/asientos/crear', component: CrearAsientoComponent, canActivate: [AuthGuard] },
+        { path: 'finanzas/asientos/ver/:id', component: VerAsientoComponent, canActivate: [AuthGuard] }, 
         { path: 'finanzas/flujo-caja', component: FlujoCajaComponent, canActivate: [AuthGuard] },
         { path: 'finanzas/flujo-caja/registrar', component: RegistrarMovimientoComponent, canActivate: [AuthGuard] },
         { path: 'finanzas/balance-general', component: BalanceGeneralComponent, canActivate: [AuthGuard] },

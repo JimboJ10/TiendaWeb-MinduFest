@@ -54,6 +54,7 @@ import { ReporteMovimientosInventarioComponent } from './components/reportes/rep
 import { ReporteCuentasPagarComponent } from './components/reportes/reporte-cuentas-pagar/reporte-cuentas-pagar.component';
 import { ReporteActividadUsuariosComponent } from './components/reportes/reporte-actividad-usuarios/reporte-actividad-usuarios.component';
 import { ReporteEstadoPagosComponent } from './components/reportes/reporte-estado-pagos/reporte-estado-pagos.component';
+import { VerAsientoComponent } from './components/finanzas/ver-asiento/ver-asiento.component';
 
 
 @NgModule({
@@ -102,6 +103,7 @@ import { ReporteEstadoPagosComponent } from './components/reportes/reporte-estad
     ReporteCuentasPagarComponent,
     ReporteActividadUsuariosComponent,
     ReporteEstadoPagosComponent,
+    VerAsientoComponent,
     
   ],
   imports: [

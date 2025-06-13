@@ -2,160 +2,173 @@
 
 <!-- Page title-->
 <div class="border-bottom pt-5 mt-2 mb-5">
-    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Balance General</h1>
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">
+        <i class="fa fa-balance-scale text-primary"></i> Balance General
+    </h1>
     <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
-      <p class="text-muted">Estado de situación financiera</p>
+      <p class="text-muted">Estado de situación financiera de tu ecommerce</p>
       <p class="font-size-sm font-weight-medium pl-md-4">
-        <a class="text-nowrap" [routerLink]="['/panel/finanzas']">Regresar<i class="fa fa-angle-right font-size-base align-middle ml-1"></i></a>
+        <a class="text-nowrap" [routerLink]="['/panel/finanzas']">
+            <i class="fa fa-arrow-left"></i> Regresar
+        </a>
       </p>
     </div>
 </div>
 
-<!-- Controles -->
-<div class="card box-shadow-sm mb-4">
-    <div class="card-body">
-        <div class="row align-items-end">
-            <div class="col-lg-3">
-                <label>Fecha de corte</label>
+<!-- Controles simplificados -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-light">
+            <div class="card-body">
+                <label class="form-label text-primary">
+                    <i class="fa fa-calendar"></i> Fecha de corte
+                </label>
                 <input type="date" class="form-control" [(ngModel)]="fecha_corte">
+                <button class="btn btn-primary mt-2 w-100" (click)="actualizar_balance()">
+                    <i class="fa fa-refresh"></i> Actualizar Balance
+                </button>
             </div>
-            <div class="col-lg-9">
-                <button class="btn btn-primary mr-2" (click)="actualizar_balance()">
-                    <i class="fa fa-refresh"></i> Actualizar
-                </button>
-                <button class="btn btn-secondary mr-2" (click)="toggle_detalle()">
-                    <i class="fa fa-list"></i> {{ mostrar_detalle ? 'Ocultar' : 'Mostrar' }} Detalle
-                </button>
-                <button class="btn btn-info mr-2" (click)="imprimir_balance()">
-                    <i class="fa fa-print"></i> Imprimir
-                </button>
-                <button class="btn btn-success" (click)="exportar_excel()">
-                    <i class="fa fa-download"></i> Excel
-                </button>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <!-- Resumen rápido -->
+        <div class="row" *ngIf="!load_data && balance">
+            <div class="col-md-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <h6><i class="fa fa-plus-circle"></i> Total Activos</h6>
+                        <h4>${{ balance.totales?.total_activos | number:'1.2-2' }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-warning text-white">
+                    <div class="card-body text-center">
+                        <h6><i class="fa fa-minus-circle"></i> Total Pasivos</h6>
+                        <h4>${{ balance.totales?.total_pasivos | number:'1.2-2' }}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <h6><i class="fa fa-trophy"></i> Patrimonio</h6>
+                        <h4>${{ balance.totales?.total_patrimonio | number:'1.2-2' }}</h4>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <div *ngIf="load_data" class="text-center py-5">
-    <div class="spinner-border" role="status">
+    <div class="spinner-border text-primary" role="status">
         <span class="sr-only">Cargando...</span>
     </div>
+    <p class="mt-3 text-muted">Calculando balance...</p>
 </div>
 
 <!-- Balance General -->
-<div *ngIf="!load_data && balance" class="card box-shadow-sm">
-    <div class="card-header text-center">
-        <h4 class="mb-0">BALANCE GENERAL</h4>
-        <p class="text-muted mb-0">Al {{ fecha_corte | date:'dd/MM/yyyy' }}</p>
+<div *ngIf="!load_data && balance" class="card shadow-sm">
+    <div class="card-header bg-primary text-white text-center">
+        <h4 class="mb-0"><i class="fa fa-balance-scale"></i> BALANCE GENERAL</h4>
+        <p class="mb-0">Al {{ fecha_corte | date:'dd/MM/yyyy' }}</p>
     </div>
     <div class="card-body">
         <div class="row">
             <!-- ACTIVOS -->
             <div class="col-lg-6">
-                <h5 class="text-success border-bottom pb-2">ACTIVOS</h5>
-                
-                <!-- Activos Corrientes -->
                 <div class="mb-4">
-                    <h6 class="text-primary">Activos Corrientes</h6>
-                    <div *ngIf="balance.activos_corrientes" class="ml-3">
-                        <div *ngFor="let cuenta of balance.activos_corrientes" class="d-flex justify-content-between">
-                            <span>{{ cuenta.nombre }}</span>
-                            <span>${{ cuenta.saldo | number:'1.2-2' }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between font-weight-bold border-top pt-2 mt-2">
-                            <span>Total Activos Corrientes</span>
-                            <span>${{ balance.totales?.total_activos_corrientes | number:'1.2-2' }}</span>
+                    <h5 class="text-success border-bottom pb-2">
+                        <i class="fa fa-arrow-up"></i> ACTIVOS
+                    </h5>
+                    
+                    <!-- Activos Corrientes -->
+                    <div class="mb-3">
+                        <h6 class="text-primary mb-3">
+                            <i class="fa fa-coins"></i> Activos Corrientes
+                        </h6>
+                        <div class="ml-3">
+                            <div *ngFor="let cuenta of balance.activos_corrientes" 
+                                 class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="d-flex align-items-center">
+                                    <i class="fa fa-dot-circle text-success mr-2"></i>
+                                    {{ cuenta.nombre }}
+                                </span>
+                                <span class="font-weight-bold">${{ cuenta.saldo | number:'1.2-2' }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between font-weight-bold pt-3 text-primary">
+                                <span>Total Activos Corrientes</span>
+                                <span>${{ balance.totales?.total_activos_corrientes | number:'1.2-2' }}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Activos No Corrientes -->
-                <div class="mb-4">
-                    <h6 class="text-primary">Activos No Corrientes</h6>
-                    <div *ngIf="balance.activos_no_corrientes" class="ml-3">
-                        <div *ngFor="let cuenta of balance.activos_no_corrientes" class="d-flex justify-content-between">
-                            <span>{{ cuenta.nombre }}</span>
-                            <span>${{ cuenta.saldo | number:'1.2-2' }}</span>
+                    <!-- Total Activos -->
+                    <div class="bg-success text-white p-3 rounded">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fa fa-plus"></i> TOTAL ACTIVOS</h5>
+                            <h5 class="mb-0">${{ balance.totales?.total_activos | number:'1.2-2' }}</h5>
                         </div>
-                        <div class="d-flex justify-content-between font-weight-bold border-top pt-2 mt-2">
-                            <span>Total Activos No Corrientes</span>
-                            <span>${{ balance.totales?.total_activos_no_corrientes | number:'1.2-2' }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Total Activos -->
-                <div class="bg-success text-white p-3 rounded">
-                    <div class="d-flex justify-content-between">
-                        <h5 class="mb-0">TOTAL ACTIVOS</h5>
-                        <h5 class="mb-0">${{ balance.totales?.total_activos | number:'1.2-2' }}</h5>
                     </div>
                 </div>
             </div>
 
             <!-- PASIVOS Y PATRIMONIO -->
             <div class="col-lg-6">
-                <h5 class="text-danger border-bottom pb-2">PASIVOS Y PATRIMONIO</h5>
-                
-                <!-- Pasivos Corrientes -->
                 <div class="mb-4">
-                    <h6 class="text-warning">Pasivos Corrientes</h6>
-                    <div *ngIf="balance.pasivos_corrientes" class="ml-3">
-                        <div *ngFor="let cuenta of balance.pasivos_corrientes" class="d-flex justify-content-between">
-                            <span>{{ cuenta.nombre }}</span>
-                            <span>${{ cuenta.saldo | number:'1.2-2' }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between font-weight-bold border-top pt-2 mt-2">
-                            <span>Total Pasivos Corrientes</span>
-                            <span>${{ balance.totales?.total_pasivos_corrientes | number:'1.2-2' }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Pasivos No Corrientes -->
-                <div class="mb-4">
-                    <h6 class="text-warning">Pasivos No Corrientes</h6>
-                    <div *ngIf="balance.pasivos_no_corrientes" class="ml-3">
-                        <div *ngFor="let cuenta of balance.pasivos_no_corrientes" class="d-flex justify-content-between">
-                            <span>{{ cuenta.nombre }}</span>
-                            <span>${{ cuenta.saldo | number:'1.2-2' }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between font-weight-bold border-top pt-2 mt-2">
-                            <span>Total Pasivos No Corrientes</span>
-                            <span>${{ balance.totales?.total_pasivos_no_corrientes | number:'1.2-2' }}</span>
+                    <h5 class="text-danger border-bottom pb-2">
+                        <i class="fa fa-arrow-down"></i> PASIVOS Y PATRIMONIO
+                    </h5>
+                    
+                    <!-- Pasivos Corrientes -->
+                    <div class="mb-3">
+                        <h6 class="text-warning mb-3">
+                            <i class="fa fa-credit-card"></i> Pasivos Corrientes
+                        </h6>
+                        <div class="ml-3">
+                            <div *ngFor="let cuenta of balance.pasivos_corrientes" 
+                                 class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="d-flex align-items-center">
+                                    <i class="fa fa-dot-circle text-warning mr-2"></i>
+                                    {{ cuenta.nombre }}
+                                </span>
+                                <span class="font-weight-bold">${{ cuenta.saldo | number:'1.2-2' }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between font-weight-bold pt-3 text-warning">
+                                <span>Total Pasivos Corrientes</span>
+                                <span>${{ balance.totales?.total_pasivos_corrientes | number:'1.2-2' }}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Total Pasivos -->
-                <div class="bg-warning text-dark p-2 rounded mb-3">
-                    <div class="d-flex justify-content-between">
-                        <strong>TOTAL PASIVOS</strong>
-                        <strong>${{ balance.totales?.total_pasivos | number:'1.2-2' }}</strong>
-                    </div>
-                </div>
-
-                <!-- Patrimonio -->
-                <div class="mb-4">
-                    <h6 class="text-info">Patrimonio</h6>
-                    <div *ngIf="balance.patrimonio" class="ml-3">
-                        <div *ngFor="let cuenta of balance.patrimonio" class="d-flex justify-content-between">
-                            <span>{{ cuenta.nombre }}</span>
-                            <span>${{ cuenta.saldo | number:'1.2-2' }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between font-weight-bold border-top pt-2 mt-2">
-                            <span>Total Patrimonio</span>
-                            <span>${{ balance.totales?.total_patrimonio | number:'1.2-2' }}</span>
+                    <!-- Patrimonio -->
+                    <div class="mb-3">
+                        <h6 class="text-info mb-3">
+                            <i class="fa fa-user-tie"></i> Patrimonio
+                        </h6>
+                        <div class="ml-3">
+                            <div *ngFor="let cuenta of balance.patrimonio" 
+                                 class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="d-flex align-items-center">
+                                    <i class="fa fa-dot-circle text-info mr-2"></i>
+                                    {{ cuenta.nombre }}
+                                </span>
+                                <span class="font-weight-bold">${{ cuenta.saldo | number:'1.2-2' }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between font-weight-bold pt-3 text-info">
+                                <span>Total Patrimonio</span>
+                                <span>${{ balance.totales?.total_patrimonio | number:'1.2-2' }}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Total Pasivos y Patrimonio -->
-                <div class="bg-danger text-white p-3 rounded">
-                    <div class="d-flex justify-content-between">
-                        <h5 class="mb-0">TOTAL PASIVOS Y PATRIMONIO</h5>
-                        <h5 class="mb-0">${{ balance.totales?.total_pasivos_patrimonio | number:'1.2-2' }}</h5>
+                    <!-- Total Pasivos y Patrimonio -->
+                    <div class="bg-danger text-white p-3 rounded">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fa fa-minus"></i> TOTAL PASIVOS Y PATRIMONIO</h5>
+                            <h5 class="mb-0">${{ balance.totales?.total_pasivos_patrimonio | number:'1.2-2' }}</h5>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -166,19 +179,47 @@
             <div class="col-12">
                 <div class="alert" [ngClass]="{
                     'alert-success': balance.balanceado,
-                    'alert-danger': !balance.balanceado
+                    'alert-warning': !balance.balanceado
                 }">
                     <div class="d-flex justify-content-between align-items-center">
                         <span>
                             <i [ngClass]="{
-                                'fa fa-check': balance.balanceado,
-                                'fa fa-close': !balance.balanceado
+                                'fa fa-check-circle': balance.balanceado,
+                                'fa fa-exclamation-triangle': !balance.balanceado
                             }"></i>
-                            {{ balance.balanceado ? 'Balance cuadrado' : 'Balance descuadrado' }}
+                            {{ balance.balanceado ? '✅ Balance cuadrado correctamente' : '⚠️ Revisión necesaria' }}
                         </span>
-                        <span *ngIf="balance.diferencia">
+                        <span *ngIf="balance.diferencia && balance.diferencia !== 0" class="font-weight-bold">
                             Diferencia: ${{ balance.diferencia | number:'1.2-2' }}
                         </span>
+                    </div>
+                    <small class="text-muted d-block mt-2" *ngIf="balance.balanceado">
+                        El balance está correctamente cuadrado. Total Activos = Total Pasivos + Patrimonio
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Explicación para ecommerce -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6 class="text-primary"><i class="fa fa-info-circle"></i> ¿Qué significa esto para tu ecommerce?</h6>
+                        <div class="row text-sm">
+                            <div class="col-md-4">
+                                <strong>💰 Bancos (PayPal):</strong><br>
+                                <small class="text-muted">Dinero disponible de tus ventas</small>
+                            </div>
+                            <div class="col-md-4">
+                                <strong>📦 Inventarios:</strong><br>
+                                <small class="text-muted">Valor de productos en stock</small>
+                            </div>
+                            <div class="col-md-4">
+                                <strong>🏆 Patrimonio:</strong><br>
+                                <small class="text-muted">Tu ganancia acumulada real</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

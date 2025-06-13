@@ -1,0 +1,69 @@
+.bg-gradient-success {
+    background: linear-gradient(45deg, #28a745, #34ce57);
+}
+
+.bg-gradient-danger {
+    background: linear-gradient(45deg, #dc3545, #e74c3c);
+}
+
+.bg-gradient-info {
+    background: linear-gradient(45deg, #17a2b8, #20c997);
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+}
+
+.card {
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.border-bottom {
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+
+.bg-gradient-success {
+    background: linear-gradient(45deg, #28a745, #34ce57);
+}
+
+.bg-gradient-danger {
+    background: linear-gradient(45deg, #dc3545, #e74c3c);
+}
+
+.bg-gradient-info {
+    background: linear-gradient(45deg, #17a2b8, #20c997);
+}
+
+.bg-gradient-secondary {
+    background: linear-gradient(45deg, #6c757d, #868e96);
+}
+
+.card {
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.border-bottom {
+    border-bottom: 1px solid #dee2e6 !important;
+}
+
+.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+}

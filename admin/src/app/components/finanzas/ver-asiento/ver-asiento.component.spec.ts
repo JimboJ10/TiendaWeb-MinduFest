@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PlanCuentasComponent } from './plan-cuentas.component';
+import { VerAsientoComponent } from './ver-asiento.component';
 
-describe('PlanCuentasComponent', () => {
-  let component: PlanCuentasComponent;
-  let fixture: ComponentFixture<PlanCuentasComponent>;
+describe('VerAsientoComponent', () => {
+  let component: VerAsientoComponent;
+  let fixture: ComponentFixture<VerAsientoComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [PlanCuentasComponent]
+      declarations: [VerAsientoComponent]
     })
     .compileComponents();
     
-    fixture = TestBed.createComponent(PlanCuentasComponent);
+    fixture = TestBed.createComponent(VerAsientoComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

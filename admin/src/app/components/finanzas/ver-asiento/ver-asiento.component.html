@@ -1,0 +1,140 @@
+<!-- admin/src/app/components/finanzas/ver-asiento/ver-asiento.component.html -->
+<app-sidebar></app-sidebar>
+
+<!-- Page title-->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Detalle del Asiento Contable</h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+      <p class="text-muted">Información detallada del registro contable</p>
+      <p class="font-size-sm font-weight-medium pl-md-4">
+        <a class="text-nowrap" (click)="regresar()">Regresar<i class="fa fa-angle-right font-size-base align-middle ml-1"></i></a>
+      </p>
+    </div>
+</div>
+
+<div *ngIf="load_data" class="text-center py-5">
+    <div class="spinner-border" role="status">
+        <span class="sr-only">Cargando...</span>
+    </div>
+</div>
+
+<div *ngIf="!load_data">
+    <!-- Información del asiento -->
+    <div class="card box-shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 style="margin-bottom: 0px;">Información del Asiento</h5>
+            <div>
+                <span class="badge mr-2" [ngClass]="getBadgeEstado(asiento.estado)">
+                    {{ asiento.estado }}
+                </span>
+                <span class="badge" [ngClass]="getBadgeTipoAsiento(asiento.tipo_asiento)">
+                    {{ asiento.tipo_asiento }}
+                </span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <strong>Número de Asiento:</strong>
+                    <p><code>{{ asiento.numero_asiento }}</code></p>
+                </div>
+                <div class="col-md-3">
+                    <strong>Fecha:</strong>
+                    <p>{{ asiento.fecha_asiento | date:'dd/MM/yyyy' }}</p>
+                </div>
+                <div class="col-md-3">
+                    <strong>Tipo de Documento:</strong>
+                    <p>{{ asiento.tipo_documento || 'N/A' }}</p>
+                </div>
+                <div class="col-md-3">
+                    <strong>Total:</strong>
+                    <p><strong>${{ asiento.total_debe | number:'1.2-2' }}</strong></p>
+                </div>
+                <div class="col-md-6">
+                    <strong>Descripción:</strong>
+                    <p>{{ asiento.descripcion }}</p>
+                </div>
+                <div class="col-md-6">
+                    <strong>Referencia:</strong>
+                    <p>{{ asiento.referencia_documento || 'N/A' }}</p>
+                </div>
+                <div class="col-md-6" *ngIf="asiento.usuario_nombres">
+                    <strong>Creado por:</strong>
+                    <p>{{ asiento.usuario_nombres }} {{ asiento.usuario_apellidos }}</p>
+                </div>
+                <div class="col-md-6">
+                    <strong>Fecha de creación:</strong>
+                    <p>{{ asiento.fecha_creacion | date:'dd/MM/yyyy HH:mm' }}</p>
+                </div>
+                <div class="col-md-12" *ngIf="asiento.fecha_aprobacion">
+                    <strong>Fecha de aprobación:</strong>
+                    <p>{{ asiento.fecha_aprobacion | date:'dd/MM/yyyy HH:mm' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalle del asiento -->
+    <div class="card box-shadow-sm">
+        <div class="card-header">
+            <h5 style="margin-bottom: 0px;">Detalle Contable</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="thead-light">
+                        <tr>
+                            <th width="25%">Cuenta</th>
+                            <th width="35%">Descripción</th>
+                            <th width="15%" class="text-right">Debe</th>
+                            <th width="15%" class="text-right">Haber</th>
+                            <th width="10%">Ref.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let detalle of asiento.detalles">
+                            <td>
+                                <strong>{{ detalle.cuenta_codigo }}</strong><br>
+                                <small class="text-muted">{{ detalle.cuenta_nombre }}</small>
+                            </td>
+                            <td>{{ detalle.descripcion || '-' }}</td>
+                            <td class="text-right">
+                                <span *ngIf="detalle.debe > 0">
+                                    ${{ detalle.debe | number:'1.2-2' }}
+                                </span>
+                                <span *ngIf="detalle.debe <= 0" class="text-muted">-</span>
+                            </td>
+                            <td class="text-right">
+                                <span *ngIf="detalle.haber > 0">
+                                    ${{ detalle.haber | number:'1.2-2' }}
+                                </span>
+                                <span *ngIf="detalle.haber <= 0" class="text-muted">-</span>
+                            </td>
+                            <td>
+                                <small>{{ detalle.referencia || '-' }}</small>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot class="thead-light">
+                        <tr>
+                            <th colspan="2">TOTALES</th>
+                            <th class="text-right">${{ asiento.total_debe | number:'1.2-2' }}</th>
+                            <th class="text-right">${{ asiento.total_haber | number:'1.2-2' }}</th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button *ngIf="asiento.estado === 'Pendiente'" 
+                    class="btn btn-success mr-2" 
+                    (click)="aprobar_asiento()">
+                <i class="fa fa-check"></i> Aprobar Asiento
+            </button>
+            <button class="btn btn-secondary" (click)="regresar()">
+                <i class="fa fa-arrow-left"></i> Regresar
+            </button>
+        </div>
+    </div>
+</div>

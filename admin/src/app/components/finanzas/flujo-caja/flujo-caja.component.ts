@@ -21,6 +21,7 @@ export class FlujoCajaComponent implements OnInit {
   public tipos = ['Ingreso', 'Egreso'];
   public categorias = ['Ventas', 'Compras', 'Gastos Administrativos', 'Gastos de Ventas', 'Otros Ingresos', 'Otros Gastos'];
   public resumen: any = null;
+  public Math = Math; // ✅ Agregado para usar en template
 
   // Paginación
   public page: number = 1;

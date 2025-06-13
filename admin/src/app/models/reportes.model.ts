@@ -1,4 +1,3 @@
-//////////////////////// Ventas ////////////////////////
 export interface ResumenVentas {
   total_ventas: number;
   total_facturado: number;

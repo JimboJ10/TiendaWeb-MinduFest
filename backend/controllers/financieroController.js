@@ -487,45 +487,93 @@ const obtenerBalanceGeneral = async (req, res) => {
         const { fecha_corte } = req.query;
         const fechaCorte = fecha_corte || new Date().toISOString().split('T')[0];
         
+        // VERSIÓN SIMPLIFICADA BASADA EN FLUJO DE CAJA
         const result = await pool.query(`
+            WITH saldos_caja AS (
+                SELECT 
+                    SUM(CASE WHEN tipo = 'Ingreso' THEN monto ELSE -monto END) as efectivo_bancos
+                FROM flujo_caja 
+                WHERE fecha <= $1 AND estado = 'Confirmado'
+            ),
+            valor_inventario AS (
+                SELECT 
+                    COALESCE(SUM(p.precio * p.stock), 0) as inventario
+                FROM producto p 
+                WHERE p.stock > 0
+            ),
+            cuentas_por_pagar AS (
+                SELECT 
+                    COALESCE(SUM(
+                        oc.total - COALESCE(
+                            (SELECT SUM(fc.monto) 
+                             FROM flujo_caja fc 
+                             WHERE fc.referencia_documento = oc.numero_orden 
+                             AND fc.tipo = 'Egreso' 
+                             AND fc.categoria = 'Compras'
+                             AND fc.estado = 'Confirmado'), 0)
+                    ), 0) as deudas_proveedores
+                FROM orden_compra oc
+                WHERE oc.estado NOT IN ('Cancelada', 'Devuelta')
+                AND oc.fecha_orden <= $1
+            )
             SELECT 
-                pc.tipo,
-                pc.subtipo,
-                pc.codigo,
-                pc.nombre,
-                COALESCE(SUM(
-                    CASE 
-                        WHEN pc.tipo IN ('Activo', 'Gasto') THEN da.debe - da.haber
-                        ELSE da.haber - da.debe
-                    END
-                ), 0) as saldo
-            FROM plan_cuentas pc
-            LEFT JOIN detalle_asiento da ON pc.cuentaid = da.cuentaid
-            LEFT JOIN asiento_contable ac ON da.asientoid = ac.asientoid 
-                AND ac.fecha_asiento <= $1 AND ac.estado = 'Aprobado'
-            WHERE pc.estado = 'Activo'
-            GROUP BY pc.cuentaid, pc.tipo, pc.subtipo, pc.codigo, pc.nombre
-            HAVING COALESCE(SUM(
-                CASE 
-                    WHEN pc.tipo IN ('Activo', 'Gasto') THEN da.debe - da.haber
-                    ELSE da.haber - da.debe
-                END
-            ), 0) != 0
-            ORDER BY pc.codigo
+                sc.efectivo_bancos,
+                vi.inventario,
+                ccp.deudas_proveedores,
+                (sc.efectivo_bancos + vi.inventario) as total_activos,
+                ccp.deudas_proveedores as total_pasivos,
+                ((sc.efectivo_bancos + vi.inventario) - ccp.deudas_proveedores) as patrimonio_neto
+            FROM saldos_caja sc
+            CROSS JOIN valor_inventario vi
+            CROSS JOIN cuentas_por_pagar ccp
         `, [fechaCorte]);
         
-        // Organizar por tipo de cuenta
-        const balance = {
-            activos: result.rows.filter(row => row.tipo === 'Activo'),
-            pasivos: result.rows.filter(row => row.tipo === 'Pasivo'),
-            patrimonio: result.rows.filter(row => row.tipo === 'Patrimonio'),
-            fecha_corte: fechaCorte
-        };
+        const datos = result.rows[0];
         
-        // Calcular totales
-        balance.total_activos = balance.activos.reduce((sum, cuenta) => sum + parseFloat(cuenta.saldo), 0);
-        balance.total_pasivos = balance.pasivos.reduce((sum, cuenta) => sum + parseFloat(cuenta.saldo), 0);
-        balance.total_patrimonio = balance.patrimonio.reduce((sum, cuenta) => sum + parseFloat(cuenta.saldo), 0);
+        // Organizar datos para el frontend
+        const balance = {
+            activos_corrientes: [
+                {
+                    codigo: '1102',
+                    nombre: 'Bancos (PayPal)',
+                    saldo: parseFloat(datos.efectivo_bancos || 0)
+                },
+                {
+                    codigo: '1104',
+                    nombre: 'Inventarios',
+                    saldo: parseFloat(datos.inventario || 0)
+                }
+            ],
+            activos_no_corrientes: [],
+            pasivos_corrientes: [
+                {
+                    codigo: '2101',
+                    nombre: 'Cuentas por Pagar',
+                    saldo: parseFloat(datos.deudas_proveedores || 0)
+                }
+            ],
+            pasivos_no_corrientes: [],
+            patrimonio: [
+                {
+                    codigo: '3101',
+                    nombre: 'Patrimonio Neto',
+                    saldo: parseFloat(datos.patrimonio_neto || 0)
+                }
+            ],
+            totales: {
+                total_activos_corrientes: parseFloat(datos.efectivo_bancos || 0) + parseFloat(datos.inventario || 0),
+                total_activos_no_corrientes: 0,
+                total_activos: parseFloat(datos.total_activos || 0),
+                total_pasivos_corrientes: parseFloat(datos.deudas_proveedores || 0),
+                total_pasivos_no_corrientes: 0,
+                total_pasivos: parseFloat(datos.deudas_proveedores || 0),
+                total_patrimonio: parseFloat(datos.patrimonio_neto || 0),
+                total_pasivos_patrimonio: parseFloat(datos.deudas_proveedores || 0) + parseFloat(datos.patrimonio_neto || 0)
+            },
+            fecha_corte: fechaCorte,
+            balanceado: Math.abs(parseFloat(datos.total_activos || 0) - (parseFloat(datos.deudas_proveedores || 0) + parseFloat(datos.patrimonio_neto || 0))) < 0.01,
+            diferencia: parseFloat(datos.total_activos || 0) - (parseFloat(datos.deudas_proveedores || 0) + parseFloat(datos.patrimonio_neto || 0))
+        };
         
         res.status(200).json(balance);
     } catch (err) {
@@ -541,34 +589,70 @@ const obtenerEstadoResultados = async (req, res) => {
         const fechaInicio = fecha_inicio || new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
         const fechaFin = fecha_fin || new Date().toISOString().split('T')[0];
         
+        // VERSIÓN SIMPLIFICADA BASADA EN FLUJO DE CAJA
         const result = await pool.query(`
             SELECT 
-                pc.tipo,
-                pc.subtipo,
-                pc.codigo,
-                pc.nombre,
-                COALESCE(SUM(da.haber - da.debe), 0) as saldo
-            FROM plan_cuentas pc
-            LEFT JOIN detalle_asiento da ON pc.cuentaid = da.cuentaid
-            LEFT JOIN asiento_contable ac ON da.asientoid = ac.asientoid 
-                AND ac.fecha_asiento BETWEEN $1 AND $2 AND ac.estado = 'Aprobado'
-            WHERE pc.tipo IN ('Ingreso', 'Gasto') AND pc.estado = 'Activo'
-            GROUP BY pc.cuentaid, pc.tipo, pc.subtipo, pc.codigo, pc.nombre
-            HAVING COALESCE(SUM(da.haber - da.debe), 0) != 0
-            ORDER BY pc.codigo
+                categoria,
+                tipo,
+                SUM(monto) as total
+            FROM flujo_caja 
+            WHERE fecha BETWEEN $1 AND $2 
+            AND estado = 'Confirmado'
+            AND categoria IN ('Ventas', 'Ingresos por Envío', 'Comisiones PayPal', 'Gastos Administrativos', 'Compras')
+            GROUP BY categoria, tipo
+            ORDER BY tipo DESC, categoria
         `, [fechaInicio, fechaFin]);
         
-        // Organizar por tipo
-        const estadoResultados = {
-            ingresos: result.rows.filter(row => row.tipo === 'Ingreso'),
-            gastos: result.rows.filter(row => row.tipo === 'Gasto'),
-            periodo: { fecha_inicio: fechaInicio, fecha_fin: fechaFin }
-        };
+        // Organizar datos
+        const ingresos_operacionales = [];
+        const gastos_operacionales = [];
+        
+        result.rows.forEach(row => {
+            if (row.tipo === 'Ingreso') {
+                ingresos_operacionales.push({
+                    codigo: row.categoria === 'Ventas' ? '4101' : '4103',
+                    nombre: row.categoria,
+                    total: parseFloat(row.total)
+                });
+            } else {
+                gastos_operacionales.push({
+                    codigo: row.categoria === 'Comisiones PayPal' ? '5105' : '5102',
+                    nombre: row.categoria,
+                    total: parseFloat(row.total)
+                });
+            }
+        });
         
         // Calcular totales
-        estadoResultados.total_ingresos = estadoResultados.ingresos.reduce((sum, cuenta) => sum + parseFloat(cuenta.saldo), 0);
-        estadoResultados.total_gastos = estadoResultados.gastos.reduce((sum, cuenta) => sum + Math.abs(parseFloat(cuenta.saldo)), 0);
-        estadoResultados.utilidad_neta = estadoResultados.total_ingresos - estadoResultados.total_gastos;
+        const total_ingresos_operacionales = ingresos_operacionales.reduce((sum, item) => sum + item.total, 0);
+        const total_gastos_operacionales = gastos_operacionales.reduce((sum, item) => sum + item.total, 0);
+        const utilidad_neta = total_ingresos_operacionales - total_gastos_operacionales;
+        
+        const estadoResultados = {
+            ingresos_operacionales,
+            ingresos_no_operacionales: [],
+            costo_ventas: [],
+            gastos_operacionales,
+            gastos_no_operacionales: [],
+            totales: {
+                total_ingresos_operacionales,
+                total_ingresos_no_operacionales: 0,
+                total_ingresos: total_ingresos_operacionales,
+                total_costo_ventas: 0,
+                utilidad_bruta: total_ingresos_operacionales,
+                total_gastos_operacionales,
+                utilidad_operacional: total_ingresos_operacionales - total_gastos_operacionales,
+                total_gastos_no_operacionales: 0,
+                total_gastos: total_gastos_operacionales,
+                utilidad_neta
+            },
+            ratios: {
+                margen_bruto: total_ingresos_operacionales > 0 ? (total_ingresos_operacionales / total_ingresos_operacionales) * 100 : 0,
+                margen_operacional: total_ingresos_operacionales > 0 ? ((total_ingresos_operacionales - total_gastos_operacionales) / total_ingresos_operacionales) * 100 : 0,
+                margen_neto: total_ingresos_operacionales > 0 ? (utilidad_neta / total_ingresos_operacionales) * 100 : 0
+            },
+            periodo: { fecha_inicio: fechaInicio, fecha_fin: fechaFin }
+        };
         
         res.status(200).json(estadoResultados);
     } catch (err) {
@@ -581,6 +665,23 @@ const obtenerEstadoResultados = async (req, res) => {
 
 // Crear asiento automático para venta
 const crearAsientoVenta = async (ventaid) => {
+    try {
+        // 1. Crear movimientos de flujo de caja
+        await crearMovimientosFlujoCajaVenta(ventaid);
+        
+        // 2. Crear asiento contable
+        await crearAsientoContableVenta(ventaid);
+        
+        console.log(`✅ Venta ${ventaid} procesada: flujo de caja + asiento contable`);
+        
+    } catch (error) {
+        console.error(`❌ Error al procesar venta ${ventaid}:`, error);
+        throw error;
+    }
+};
+
+// Crear movimientos de flujo de caja para venta
+const crearMovimientosFlujoCajaVenta = async (ventaid) => {
     const client = await pool.connect();
     
     try {
@@ -608,49 +709,259 @@ const crearAsientoVenta = async (ventaid) => {
         }
         
         const venta = ventaResult.rows[0];
-        const total_venta = parseFloat(venta.subtotal) + parseFloat(venta.envioprecio || 0);
+        
+        // SEPARAR CONCEPTOS PARA MEJOR CONTROL CONTABLE
+        const total_venta = parseFloat(venta.subtotal);
+        const costo_envio = parseFloat(venta.envioprecio || 0);
+        const comision_paypal = (total_venta + costo_envio) * 0.035; // 3.5% sobre el total
         
         // OBTENER EL ID DEL USUARIO CLIENTE
         const usuarioid_cliente = venta.usuarioid;
         
-        // Crear movimiento de flujo de caja para INGRESO de venta AUTOMÁTICAMENTE
-        await client.query(`
-            INSERT INTO flujo_caja (
-                fecha, tipo, categoria, concepto, monto,
-                metodo_pago, referencia_documento, usuarioid, estado
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        `, [
-            venta.fecha.toISOString().split('T')[0],
-            'Ingreso',
-            'Ventas', 
-            `Venta ${venta.nventa} - ${venta.nombres} ${venta.apellidos}`,
-            total_venta,
-            'PayPal',                 // Método de pago CORRECTO
-            venta.transaccion,        // Referencia de PayPal CORRECTA  
-            usuarioid_cliente,        // USAR EL ID DEL CLIENTE QUE COMPRÓ
-            'Confirmado'              // Estado confirmado automáticamente
-        ]);
+        // 1. REGISTRAR INGRESO BRUTO POR VENTA DE PRODUCTOS
+        if (total_venta > 0) {
+            await client.query(`
+                INSERT INTO flujo_caja (
+                    fecha, tipo, categoria, concepto, monto,
+                    metodo_pago, referencia_documento, usuarioid, estado
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            `, [
+                venta.fecha.toISOString().split('T')[0],
+                'Ingreso',
+                'Ventas', 
+                `Venta productos ${venta.nventa} - ${venta.nombres} ${venta.apellidos}`,
+                total_venta,
+                'PayPal',                 
+                venta.transaccion,        
+                usuarioid_cliente,        
+                'Confirmado'              
+            ]);
+        }
         
-        console.log(`✅ Movimiento de caja creado automáticamente para venta ${ventaid}: $${total_venta} - PayPal: ${venta.transaccion}`);
+        // 2. REGISTRAR INGRESO POR ENVÍO (si existe)
+        if (costo_envio > 0) {
+            await client.query(`
+                INSERT INTO flujo_caja (
+                    fecha, tipo, categoria, concepto, monto,
+                    metodo_pago, referencia_documento, usuarioid, estado
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            `, [
+                venta.fecha.toISOString().split('T')[0],
+                'Ingreso',
+                'Ingresos por Envío', 
+                `Costo envío ${venta.nventa} - ${venta.nombres} ${venta.apellidos}`,
+                costo_envio,
+                'PayPal',                 
+                venta.transaccion,        
+                usuarioid_cliente,        
+                'Confirmado'              
+            ]);
+        }
+        
+        // 3. REGISTRAR GASTO POR COMISIÓN PAYPAL
+        if (comision_paypal > 0) {
+            await client.query(`
+                INSERT INTO flujo_caja (
+                    fecha, tipo, categoria, concepto, monto,
+                    metodo_pago, referencia_documento, usuarioid, estado
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            `, [
+                venta.fecha.toISOString().split('T')[0],
+                'Egreso',
+                'Comisiones PayPal', 
+                `Comisión PayPal ${venta.nventa} (3.5%)`,
+                comision_paypal,
+                'PayPal',                 
+                venta.transaccion,        
+                usuarioid_cliente,        
+                'Confirmado'              
+            ]);
+        }
+        
+        console.log(`✅ Movimientos de caja creados automáticamente para venta ${ventaid}:`);
+        console.log(`   💰 Venta productos: $${total_venta.toFixed(2)}`);
+        if (costo_envio > 0) {
+            console.log(`   📦 Costo envío: $${costo_envio.toFixed(2)}`);
+        }
+        console.log(`   💳 Comisión PayPal: -$${comision_paypal.toFixed(2)}`);
         
         await client.query('COMMIT');
         
     } catch (err) {
         await client.query('ROLLBACK');
-        console.error('❌ Error al crear asiento de venta:', err);
+        console.error('❌ Error al crear movimientos de flujo de caja para venta:', err);
         throw err;
     } finally {
         client.release();
     }
 };
 
-// Crear asiento automático para compra
+// Crear asiento contable para venta
+const crearAsientoContableVenta = async (ventaid) => {
+    const client = await pool.connect();
+    
+    try {
+        await client.query('BEGIN');
+        
+        // Obtener información de la venta
+        const ventaResult = await client.query(`
+            SELECT 
+                v.ventaid, 
+                v.nventa, 
+                v.subtotal, 
+                v.envioprecio,
+                v.fecha,
+                v.transaccion,
+                u.nombres, 
+                u.apellidos
+            FROM venta v
+            JOIN usuario u ON v.usuarioid = u.usuarioid
+            WHERE v.ventaid = $1
+        `, [ventaid]);
+        
+        if (ventaResult.rows.length === 0) {
+            throw new Error('Venta no encontrada');
+        }
+        
+        const venta = ventaResult.rows[0];
+        const total_venta = parseFloat(venta.subtotal);
+        const costo_envio = parseFloat(venta.envioprecio || 0);
+        const total_general = total_venta + costo_envio;
+        const comision_paypal = total_general * 0.035;
+        
+        // Generar número de asiento
+        const numero_asiento = `AS-VENTA-${venta.nventa}`;
+        
+        // Obtener el usuario administrador
+        const adminResult = await client.query(`
+            SELECT u.usuarioid 
+            FROM usuario u 
+            JOIN rol_usuario ru ON u.usuarioid = ru.usuarioid 
+            WHERE ru.rolid = 2
+            LIMIT 1
+        `);
+        
+        const usuarioAdmin = adminResult.rows.length > 0 ? adminResult.rows[0].usuarioid : null;
+
+        // Crear el asiento contable
+        const asientoResult = await client.query(`
+            INSERT INTO asiento_contable (
+                numero_asiento, fecha_asiento, descripcion,
+                tipo_asiento, referencia_documento, tipo_documento,
+                total_debe, total_haber, usuarioid, estado
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            RETURNING asientoid
+        `, [
+            numero_asiento,
+            venta.fecha.toISOString().split('T')[0],
+            `Venta ${venta.nventa} - ${venta.nombres} ${venta.apellidos}`,
+            'Automatico',
+            venta.transaccion,  
+            'Venta',
+            total_general,      
+            total_general,      
+            usuarioAdmin,       // ✅ USAR TU USUARIO ADMIN
+            'Aprobado'          
+        ]);
+        
+        const asientoid = asientoResult.rows[0].asientoid;
+        
+        // Obtener IDs de cuentas necesarias
+        const cuentasResult = await client.query(`
+            SELECT cuentaid, codigo, nombre FROM plan_cuentas 
+            WHERE codigo IN ('1102', '4101', '4103', '5105')
+        `);
+        
+        const cuentas = {};
+        cuentasResult.rows.forEach(cuenta => {
+            cuentas[cuenta.codigo] = cuenta;
+        });
+        
+        // DETALLE 1: DEBE - Bancos (ingreso neto)
+        const ingreso_neto = total_general - comision_paypal;
+        if (cuentas['1102']) {
+            await client.query(`
+                INSERT INTO detalle_asiento (
+                    asientoid, cuentaid, debe, haber, descripcion, referencia
+                ) VALUES ($1, $2, $3, $4, $5, $6)
+            `, [
+                asientoid,
+                cuentas['1102'].cuentaid, // Bancos
+                ingreso_neto,
+                0,
+                `Ingreso neto venta ${venta.nventa} (después comisión PayPal)`,
+                venta.transaccion
+            ]);
+        }
+        
+        // DETALLE 2: DEBE - Gastos comisión PayPal
+        if (comision_paypal > 0 && cuentas['5105']) {
+            await client.query(`
+                INSERT INTO detalle_asiento (
+                    asientoid, cuentaid, debe, haber, descripcion, referencia
+                ) VALUES ($1, $2, $3, $4, $5, $6)
+            `, [
+                asientoid,
+                cuentas['5105'].cuentaid, // Comisiones PayPal
+                comision_paypal,
+                0,
+                `Comisión PayPal 3.5% - Venta ${venta.nventa}`,
+                venta.transaccion
+            ]);
+        }
+        
+        // DETALLE 3: HABER - Ventas productos
+        if (total_venta > 0 && cuentas['4101']) {
+            await client.query(`
+                INSERT INTO detalle_asiento (
+                    asientoid, cuentaid, debe, haber, descripcion, referencia
+                ) VALUES ($1, $2, $3, $4, $5, $6)
+            `, [
+                asientoid,
+                cuentas['4101'].cuentaid, // Ventas
+                0,
+                total_venta,
+                `Venta productos ${venta.nventa}`,
+                venta.nventa
+            ]);
+        }
+        
+        // DETALLE 4: HABER - Ingresos por envío (si existe)
+        if (costo_envio > 0 && cuentas['4103']) {
+            await client.query(`
+                INSERT INTO detalle_asiento (
+                    asientoid, cuentaid, debe, haber, descripcion, referencia
+                ) VALUES ($1, $2, $3, $4, $5, $6)
+            `, [
+                asientoid,
+                cuentas['4103'].cuentaid, // Ingresos por Envío
+                0,
+                costo_envio,
+                `Ingreso por envío ${venta.nventa}`,
+                venta.nventa
+            ]);
+        }
+        
+        await client.query('COMMIT');
+        
+        console.log(`✅ Asiento contable creado: ${numero_asiento} para venta ${ventaid}`);
+        
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('❌ Error al crear asiento contable de venta:', err);
+        throw err;
+    } finally {
+        client.release();
+    }
+};
+
+// Función para compras (deshabilitada)
 const crearAsientoCompra = async (ordencompraid) => {
-    // COMENTAR TODO EL CONTENIDO - Las órdenes no deben crear movimientos automáticamente
-    // Solo se debe crear movimiento cuando se PAGUE la orden manualmente
     console.log('Creación automática de asiento de compra deshabilitada - usar flujo de caja manual');
     return;
 };
+
+
 
 const listarOrdenesPendientesPago = async (req, res) => {
     try {
@@ -739,6 +1050,8 @@ module.exports = {
     
     // Asientos automáticos
     crearAsientoVenta,
+    crearMovimientosFlujoCajaVenta,
+    crearAsientoContableVenta,
     crearAsientoCompra,
 
     listarOrdenesPendientesPago

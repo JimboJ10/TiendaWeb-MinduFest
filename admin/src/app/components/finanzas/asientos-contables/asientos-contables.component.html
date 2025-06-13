@@ -2,151 +2,317 @@
 
 <!-- Page title-->
 <div class="border-bottom pt-5 mt-2 mb-5">
-    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Asientos Contables</h1>
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">
+        <i class="fa fa-book text-primary"></i> Asientos Contables
+    </h1>
     <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
-      <p class="text-muted">Gestión de registros contables</p>
+      <p class="text-muted">Gestión completa de registros contables automáticos y manuales</p>
       <p class="font-size-sm font-weight-medium pl-md-4">
-        <a class="text-nowrap" [routerLink]="['/panel/finanzas']">Regresar<i class="fa fa-angle-right font-size-base align-middle ml-1"></i></a>
+        <a class="text-nowrap" [routerLink]="['/panel/finanzas']">
+            <i class="fa fa-arrow-left"></i> Regresar a Finanzas
+        </a>
       </p>
     </div>
 </div>
 
-<!-- Filtros -->
-<div class="card box-shadow-sm mb-4">
-    <div class="card-header">
-        <h5 style="margin-bottom: 0px;">Filtros de búsqueda</h5>
+<!-- Resumen rápido -->
+<div class="row mb-4" *ngIf="!load_data">
+    <div class="col-md-3">
+        <div class="card bg-gradient-primary text-white">
+            <div class="card-body text-center">
+                <i class="fa fa-calculator fa-2x mb-2"></i>
+                <h6>Total Asientos</h6>
+                <h4>{{ asientos.length }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-gradient-success text-white">
+            <div class="card-body text-center">
+                <i class="fa fa-check-circle fa-2x mb-2"></i>
+                <h6>Aprobados</h6>
+                <h4>{{ getContadorEstado('Aprobado') }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-gradient-warning text-white">
+            <div class="card-body text-center">
+                <i class="fa fa-clock fa-2x mb-2"></i>
+                <h6>Pendientes</h6>
+                <h4>{{ getContadorEstado('Pendiente') }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-gradient-info text-white">
+            <div class="card-body text-center">
+                <i class="fa fa-robot fa-2x mb-2"></i>
+                <h6>Automáticos</h6>
+                <h4>{{ getContadorTipo('Automatico') }}</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros mejorados -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fa fa-filter text-primary"></i> Filtros de Búsqueda</h5>
+        <div>
+            <button class="btn btn-success btn-sm" (click)="crear_asiento()">
+                <i class="fa fa-plus"></i> Nuevo Asiento Manual
+            </button>
+        </div>
     </div>
     <div class="card-body">
-        <div class="row">
+        <div class="row align-items-end">
             <div class="col-lg-2">
-                <label>Desde</label>
+                <label class="form-label text-primary">
+                    <i class="fa fa-calendar"></i> Fecha desde
+                </label>
                 <input type="date" class="form-control" [(ngModel)]="fecha_desde">
             </div>
             <div class="col-lg-2">
-                <label>Hasta</label>
+                <label class="form-label text-primary">
+                    <i class="fa fa-calendar"></i> Fecha hasta
+                </label>
                 <input type="date" class="form-control" [(ngModel)]="fecha_hasta">
             </div>
-            <div class="col-lg-3">
-                <label>Tipo documento</label>
+            <div class="col-lg-2">
+                <label class="form-label text-primary">
+                    <i class="fa fa-file-alt"></i> Tipo documento
+                </label>
                 <select class="form-control" [(ngModel)]="tipo_documento">
-                    <option value="">Todos los tipos</option>
-                    <option *ngFor="let tipo of tipos_documento" [value]="tipo">{{ tipo }}</option>
+                    <option value="">📋 Todos los tipos</option>
+                    <option value="Venta">💰 Venta</option>
+                    <option value="Compra">🛒 Compra</option>
+                    <option value="Pago">💳 Pago</option>
+                    <option value="Cobro">💵 Cobro</option>
+                    <option value="Ajuste">⚙️ Ajuste</option>
+                    <option value="Otro">📝 Otro</option>
                 </select>
             </div>
             <div class="col-lg-2">
-                <label>Estado</label>
+                <label class="form-label text-primary">
+                    <i class="fa fa-flag"></i> Estado
+                </label>
                 <select class="form-control" [(ngModel)]="estado_filtro">
-                    <option value="">Todos</option>
-                    <option *ngFor="let estado of estados" [value]="estado">{{ estado }}</option>
+                    <option value="">🏷️ Todos</option>
+                    <option value="Pendiente">⏳ Pendiente</option>
+                    <option value="Aprobado">✅ Aprobado</option>
+                    <option value="Anulado">❌ Anulado</option>
                 </select>
             </div>
-            <div class="col-lg-3 d-flex align-items-end">
-                <button class="btn btn-primary mr-2" (click)="filtrar()">
-                    <i class="fa fa-search"></i> Filtrar
+            <div class="col-lg-2">
+                <label class="form-label text-primary">
+                    <i class="fa fa-cog"></i> Tipo asiento
+                </label>
+                <select class="form-control" [(ngModel)]="tipo_asiento_filtro">
+                    <option value="">🔄 Todos</option>
+                    <option value="Manual">✏️ Manual</option>
+                    <option value="Automatico">🤖 Automático</option>
+                    <option value="Ajuste">⚖️ Ajuste</option>
+                </select>
+            </div>
+            <div class="col-lg-2">
+                <button class="btn btn-primary btn-block mb-1" (click)="filtrar()">
+                    <i class="fa fa-search"></i> Buscar
                 </button>
-                <button class="btn btn-secondary mr-2" (click)="resetear()">
+                <button class="btn btn-outline-secondary btn-block" (click)="resetear()">
                     <i class="fa fa-refresh"></i> Limpiar
-                </button>
-                <button class="btn btn-success" (click)="crear_asiento()">
-                    <i class="fa fa-plus"></i> Nuevo
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Lista de asientos -->
-<div class="card box-shadow-sm">
-    <div class="card-header">
-        <h5 style="margin-bottom: 0px;">Registros Contables</h5>
+<!-- Lista de asientos mejorada -->
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fa fa-list"></i> Registros Contables</h5>
+        <span class="badge badge-light">{{ asientos.length }} registros</span>
     </div>
-    <div class="card-body">
+    <div class="card-body p-0">
         <div *ngIf="load_data" class="text-center py-5">
-            <div class="spinner-border" role="status">
+            <div class="spinner-border text-primary" role="status">
                 <span class="sr-only">Cargando...</span>
             </div>
+            <p class="mt-3 text-muted">Cargando asientos contables...</p>
         </div>
 
-        <div *ngIf="!load_data">
+        <div *ngIf="!load_data && asientos.length === 0" class="text-center py-5">
+            <i class="fa fa-search fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No se encontraron asientos</h5>
+            <p class="text-muted">Prueba modificando los filtros o crea un nuevo asiento manual</p>
+            <button class="btn btn-primary" (click)="crear_asiento()">
+                <i class="fa fa-plus"></i> Crear Primer Asiento
+            </button>
+        </div>
+
+        <div *ngIf="!load_data && asientos.length > 0">
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
                         <tr>
-                            <th>Número</th>
-                            <th>Fecha</th>
-                            <th>Descripción</th>
-                            <th>Tipo</th>
-                            <th>Documento</th>
-                            <th>Total</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
+                            <th class="border-0">
+                                <i class="fa fa-hashtag text-primary"></i> Número
+                            </th>
+                            <th class="border-0">
+                                <i class="fa fa-calendar text-primary"></i> Fecha
+                            </th>
+                            <th class="border-0">
+                                <i class="fa fa-comment text-primary"></i> Descripción
+                            </th>
+                            <th class="border-0">
+                                <i class="fa fa-tag text-primary"></i> Tipo
+                            </th>
+                            <th class="border-0">
+                                <i class="fa fa-file text-primary"></i> Documento
+                            </th>
+                            <th class="border-0">
+                                <i class="fa fa-dollar-sign text-primary"></i> Total
+                            </th>
+                            <th class="border-0">
+                                <i class="fa fa-flag text-primary"></i> Estado
+                            </th>
+                            <th class="border-0">
+                                <i class="fa fa-cogs text-primary"></i> Acciones
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let asiento of asientos | slice: (page-1) * pageSize : page * pageSize">
-                            <td>
-                                <code>{{ asiento.numero_asiento }}</code>
+                        <tr *ngFor="let asiento of asientos | slice: (page-1) * pageSize : page * pageSize; trackBy: trackByAsiento"
+                            class="border-bottom">
+                            <td class="align-middle">
+                                <div class="d-flex align-items-center">
+                                    <i class="fa fa-circle text-primary mr-2" style="font-size: 8px;"></i>
+                                    <code class="bg-light px-2 py-1 rounded">{{ asiento.numero_asiento }}</code>
+                                </div>
                             </td>
-                            <td>{{ asiento.fecha_asiento | date:'dd/MM/yyyy' }}</td>
-                            <td>
-                                <strong>{{ asiento.descripcion }}</strong>
+                            <td class="align-middle">
+                                <strong>{{ asiento.fecha_asiento | date:'dd/MM/yyyy' }}</strong>
                                 <br>
-                                <small class="text-muted" *ngIf="asiento.usuario_nombres">
-                                    Por: {{ asiento.usuario_nombres }} {{ asiento.usuario_apellidos }}
-                                </small>
+                                <small class="text-muted">{{ asiento.fecha_creacion | date:'HH:mm' }}</small>
                             </td>
-                            <td>
-                                <span class="badge" [ngClass]="getBadgeTipoAsiento(asiento.tipo_asiento)">
+                            <td class="align-middle">
+                                <div>
+                                    <strong>{{ asiento.descripcion }}</strong>
+                                    <br>
+                                    <small class="text-muted" *ngIf="asiento.usuario_nombres">
+                                        <i class="fa fa-user"></i> {{ asiento.usuario_nombres }} {{ asiento.usuario_apellidos }}
+                                    </small>
+                                </div>
+                            </td>
+                            <td class="align-middle">
+                                <span class="badge badge-pill" [ngClass]="getBadgeTipoAsiento(asiento.tipo_asiento)">
+                                    <i [ngClass]="getIconoTipoAsiento(asiento.tipo_asiento)"></i>
                                     {{ asiento.tipo_asiento }}
                                 </span>
                             </td>
-                            <td>
-                                <span *ngIf="asiento.tipo_documento">{{ asiento.tipo_documento }}</span>
-                                <br>
-                                <small class="text-muted" *ngIf="asiento.referencia_documento">
-                                    Ref: {{ asiento.referencia_documento }}
-                                </small>
+                            <td class="align-middle">
+                                <div *ngIf="asiento.tipo_documento; else sinDocumento">
+                                    <span class="badge badge-outline-primary">{{ asiento.tipo_documento }}</span>
+                                    <br>
+                                    <small class="text-muted" *ngIf="asiento.referencia_documento">
+                                        <i class="fa fa-link"></i> {{ asiento.referencia_documento }}
+                                    </small>
+                                </div>
+                                <ng-template #sinDocumento>
+                                    <span class="text-muted">-</span>
+                                </ng-template>
                             </td>
-                            <td>
-                                <strong>${{ asiento.total_debe | number:'1.2-2' }}</strong>
+                            <td class="align-middle">
+                                <div class="text-right">
+                                    <strong class="text-success">${{ asiento.total_debe | number:'1.2-2' }}</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        <i class="fa fa-balance-scale"></i> 
+                                        {{ asiento.total_debe === asiento.total_haber ? 'Balanceado' : 'Desbalanceado' }}
+                                    </small>
+                                </div>
                             </td>
-                            <td>
-                                <span class="badge" [ngClass]="getBadgeEstado(asiento.estado)">
+                            <td class="align-middle">
+                                <span class="badge badge-pill" [ngClass]="getBadgeEstado(asiento.estado)">
+                                    <i [ngClass]="getIconoEstado(asiento.estado)"></i>
                                     {{ asiento.estado }}
                                 </span>
                             </td>
-                            <td>
-                                <button class="btn btn-info btn-sm mr-1" (click)="ver_asiento(asiento.asientoid)"
-                                        title="Ver detalle">
-                                    <i class="fa fa-eye"></i>
-                                </button>
-                                <button *ngIf="asiento.estado === 'Pendiente'" 
-                                        class="btn btn-success btn-sm" 
-                                        (click)="aprobar_asiento(asiento.asientoid)"
-                                        title="Aprobar asiento">
-                                    <i class="fa fa-check"></i>
-                                </button>
+                            <td class="align-middle">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button class="btn btn-outline-info" 
+                                            (click)="ver_asiento(asiento.asientoid)"
+                                            title="Ver detalle completo">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                    <button *ngIf="asiento.estado === 'Pendiente'" 
+                                            class="btn btn-outline-success" 
+                                            (click)="aprobar_asiento(asiento.asientoid)"
+                                            title="Aprobar asiento">
+                                        <i class="fa fa-check"></i>
+                                    </button>
+                                    <button *ngIf="asiento.estado === 'Pendiente' && asiento.tipo_asiento === 'Manual'" 
+                                            class="btn btn-outline-warning" 
+                                            (click)="editar_asiento(asiento.asientoid)"
+                                            title="Editar asiento">
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
             
-            <!-- Paginación -->
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <div>
-                    <small class="text-muted">
-                        Mostrando {{ (page-1) * pageSize + 1 }} a {{ page * pageSize > asientos.length ? asientos.length : page * pageSize }} 
-                        de {{ asientos.length }} asientos
-                    </small>
+            <!-- Paginación mejorada -->
+            <div class="card-footer bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted">
+                            <i class="fa fa-info-circle"></i>
+                            Mostrando {{ (page-1) * pageSize + 1 }} a {{ Math.min(page * pageSize, asientos.length) }} 
+                            de {{ asientos.length }} asientos
+                        </small>
+                    </div>
+                    <div>
+                        <ngb-pagination
+                            [(page)]="page"
+                            [pageSize]="pageSize"
+                            [collectionSize]="asientos.length"
+                            [maxSize]="5"
+                            [boundaryLinks]="true"
+                            [rotate]="true"
+                            size="sm">
+                        </ngb-pagination>
+                    </div>
                 </div>
-                <ngb-pagination
-                    [(page)]="page"
-                    [pageSize]="pageSize"
-                    [collectionSize]="asientos.length"
-                    [maxSize]="5"
-                    [boundaryLinks]="true">
-                </ngb-pagination>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Leyenda informativa -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6 class="text-primary mb-3">
+                    <i class="fa fa-info-circle"></i> Información sobre Asientos Contables
+                </h6>
+                <div class="row text-sm">
+                    <div class="col-md-4">
+                        <strong>🤖 Automáticos:</strong><br>
+                        <small class="text-muted">Generados por ventas de PayPal</small>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>✏️ Manuales:</strong><br>
+                        <small class="text-muted">Gastos, ajustes y operaciones especiales</small>
+                    </div>
+                    <div class="col-md-4">
+                        <strong>⚖️ Balance:</strong><br>
+                        <small class="text-muted">Total Debe = Total Haber siempre</small>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

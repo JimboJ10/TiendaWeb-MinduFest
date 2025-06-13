@@ -1,0 +1,160 @@
+/* Gradientes modernos */
+.bg-gradient-success {
+    background: linear-gradient(45deg, #28a745, #20c997);
+}
+
+.bg-gradient-danger {
+    background: linear-gradient(45deg, #dc3545, #e74c3c);
+}
+
+.bg-gradient-info {
+    background: linear-gradient(45deg, #17a2b8, #20c997);
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(45deg, #ffc107, #e0a800);
+}
+
+/* Cards mejorados */
+.card {
+    transition: all 0.3s ease;
+    border: none;
+    border-radius: 15px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.module-card {
+    transition: all 0.3s ease;
+}
+
+.module-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
+
+/* Efectos en headers */
+.card-header {
+    border-radius: 15px 15px 0 0 !important;
+    border: none;
+}
+
+/* Display mejorado para números */
+.display-4 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+/* Opacidad para elementos */
+.opacity-75 {
+    opacity: 0.75;
+}
+
+/* Corregir bg-opacity */
+.bg-white-opacity {
+    background-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Botones mejorados */
+.btn {
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.btn-group-vertical .btn {
+    border-radius: 8px !important;
+    margin-bottom: 0.5rem;
+}
+
+.btn-group-vertical .btn:last-child {
+    margin-bottom: 0;
+}
+
+/* Progress bars mejoradas */
+.progress {
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: rgba(0,0,0,0.1);
+}
+
+.progress-bar {
+    transition: width 0.6s ease;
+}
+
+/* Badges mejorados */
+.badge {
+    font-weight: 500;
+    padding: 0.5em 0.75em;
+    border-radius: 6px;
+}
+
+/* Loading spinner */
+.spinner-border {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .display-4 {
+        font-size: 1.5rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .btn-group-vertical .btn {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
+}
+
+/* Efectos hover para módulos */
+.module-card .card-header {
+    transition: all 0.3s ease;
+}
+
+.module-card:hover .card-header {
+    transform: scale(1.02);
+}
+
+/* Espaciado mejorado */
+.module-stats {
+    border-top: 1px solid rgba(0,0,0,0.1);
+    padding-top: 0.75rem;
+}
+
+/* Mejoras en tipografía */
+.font-weight-medium {
+    font-weight: 500;
+}
+
+/* Gap utility para flex */
+.gap-2 > * + * {
+    margin-left: 0.5rem;
+}
+
+/* Sombras suaves */
+.shadow-sm {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075), 
+                0 0.25rem 0.5rem rgba(0, 0, 0, 0.05) !important;
+}

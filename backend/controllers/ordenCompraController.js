@@ -1,5 +1,4 @@
 const pool = require('../db/pool');
-const { crearAsientoCompra } = require('./financieroController');
 
 const listarOrdenesCompra = async (req, res) => {
     try {

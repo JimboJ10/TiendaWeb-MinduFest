@@ -2,214 +2,369 @@
 
 <!-- Page title-->
 <div class="border-bottom pt-5 mt-2 mb-5">
-    <h1 class="mt-2 mt-md-4 mb-3 pt-5">Flujo de Caja</h1>
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">
+        <i class="fa fa-exchange-alt text-primary"></i> Flujo de Caja
+    </h1>
     <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
-        <p class="text-muted">Movimientos de ingresos y egresos</p>
+        <p class="text-muted">Control completo de ingresos y egresos de tu ecommerce</p>
         <div class="d-flex gap-2">
             <button class="btn btn-success" (click)="nuevo_movimiento()">
                 <i class="fa fa-plus"></i> Nuevo Movimiento
             </button>
-            <button class="btn btn-secondary" (click)="regresar()">
+            <button class="btn btn-outline-secondary" (click)="regresar()">
                 <i class="fa fa-arrow-left"></i> Regresar
             </button>
         </div>
     </div>
 </div>
 
-<!-- Resumen -->
+<!-- Resumen mejorado -->
 <div class="row mb-4" *ngIf="resumen">
     <div class="col-md-3">
-        <div class="card bg-success text-white">
+        <div class="card bg-gradient-success text-white shadow-sm">
             <div class="card-body text-center">
-                <i class="fa fa-arrow-up fa-2x mb-2"></i>
-                <h4>{{formatear_moneda(resumen.resumen.total_ingresos)}}</h4>
-                <p class="mb-0">Total Ingresos</p>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <i class="fa fa-arrow-up fa-2x mb-2"></i>
+                        <h4 class="mb-1">{{formatear_moneda(resumen.resumen.total_ingresos)}}</h4>
+                        <p class="mb-0 small">Total Ingresos</p>
+                    </div>
+                    <span class="badge badge-light text-success">
+                        <i class="fa fa-plus"></i>
+                    </span>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card bg-danger text-white">
+        <div class="card bg-gradient-danger text-white shadow-sm">
             <div class="card-body text-center">
-                <i class="fa fa-arrow-down fa-2x mb-2"></i>
-                <h4>{{formatear_moneda(resumen.resumen.total_egresos)}}</h4>
-                <p class="mb-0">Total Egresos</p>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <i class="fa fa-arrow-down fa-2x mb-2"></i>
+                        <h4 class="mb-1">{{formatear_moneda(resumen.resumen.total_egresos)}}</h4>
+                        <p class="mb-0 small">Total Egresos</p>
+                    </div>
+                    <span class="badge badge-light text-danger">
+                        <i class="fa fa-minus"></i>
+                    </span>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card" [class]="resumen.resumen.saldo_neto >= 0 ? 'bg-primary' : 'bg-warning'">
+        <div class="card shadow-sm" [ngClass]="resumen.resumen.saldo_neto >= 0 ? 'bg-gradient-primary' : 'bg-gradient-warning'">
             <div class="card-body text-center text-white">
-                <i class="fa fa-balance-scale fa-2x mb-2"></i>
-                <h4>{{formatear_moneda(resumen.resumen.saldo_neto)}}</h4>
-                <p class="mb-0">Saldo Neto</p>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <i class="fa fa-balance-scale fa-2x mb-2"></i>
+                        <h4 class="mb-1">{{formatear_moneda(resumen.resumen.saldo_neto)}}</h4>
+                        <p class="mb-0 small">Saldo Neto</p>
+                    </div>
+                    <span class="badge badge-light" [ngClass]="resumen.resumen.saldo_neto >= 0 ? 'text-primary' : 'text-warning'">
+                        <i [ngClass]="resumen.resumen.saldo_neto >= 0 ? 'fa fa-check' : 'fa fa-exclamation'"></i>
+                    </span>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card bg-info text-white">
+        <div class="card bg-gradient-info text-white shadow-sm">
             <div class="card-body text-center">
-                <i class="fa fa-list fa-2x mb-2"></i>
-                <h4>{{resumen.resumen.total_movimientos}}</h4>
-                <p class="mb-0">Total Movimientos</p>
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <i class="fa fa-list fa-2x mb-2"></i>
+                        <h4 class="mb-1">{{resumen.resumen.total_movimientos}}</h4>
+                        <p class="mb-0 small">Total Movimientos</p>
+                    </div>
+                    <span class="badge badge-light text-info">
+                        <i class="fa fa-chart-bar"></i>
+                    </span>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Filtros -->
-<div class="card box-shadow-sm mb-4">
-    <div class="card-header">
-        <h6 class="mb-0">
-            <i class="fa fa-filter"></i> Filtros
-        </h6>
+<!-- Filtros mejorados -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fa fa-filter text-primary"></i> Filtros de Búsqueda
+        </h5>
+        <small class="text-muted">
+            <i class="fa fa-info-circle"></i> Filtra por fechas, tipo y categoría
+        </small>
     </div>
     <div class="card-body">
-        <div class="row">
-            <div class="col-md-3">
-                <label>Fecha Desde:</label>
+        <div class="row align-items-end">
+            <div class="col-md-2">
+                <label class="form-label text-primary font-weight-bold">
+                    <i class="fa fa-calendar"></i> Fecha Desde
+                </label>
                 <input type="date" 
                        class="form-control" 
                        [(ngModel)]="fecha_desde">
             </div>
-            <div class="col-md-3">
-                <label>Fecha Hasta:</label>
+            <div class="col-md-2">
+                <label class="form-label text-primary font-weight-bold">
+                    <i class="fa fa-calendar"></i> Fecha Hasta
+                </label>
                 <input type="date" 
                        class="form-control" 
                        [(ngModel)]="fecha_hasta">
             </div>
             <div class="col-md-2">
-                <label>Tipo:</label>
+                <label class="form-label text-primary font-weight-bold">
+                    <i class="fa fa-tag"></i> Tipo
+                </label>
                 <select class="form-control" [(ngModel)]="tipo_filtro">
-                    <option value="">Todos</option>
-                    <option *ngFor="let tipo of tipos" [value]="tipo">{{tipo}}</option>
+                    <option value="">🔄 Todos los tipos</option>
+                    <option value="Ingreso">💰 Ingresos</option>
+                    <option value="Egreso">💸 Egresos</option>
                 </select>
             </div>
-            <div class="col-md-2">
-                <label>Categoría:</label>
+            <div class="col-md-3">
+                <label class="form-label text-primary font-weight-bold">
+                    <i class="fa fa-folder"></i> Categoría
+                </label>
                 <select class="form-control" [(ngModel)]="categoria_filtro">
-                    <option value="">Todas</option>
-                    <option *ngFor="let categoria of categorias" [value]="categoria">{{categoria}}</option>
+                    <option value="">📂 Todas las categorías</option>
+                    <option value="Ventas">🛒 Ventas</option>
+                    <option value="Compras">📦 Compras</option>
+                    <option value="Gastos Administrativos">🏢 Gastos Administrativos</option>
+                    <option value="Gastos de Ventas">📈 Gastos de Ventas</option>
+                    <option value="Otros Ingresos">💵 Otros Ingresos</option>
+                    <option value="Otros Gastos">💸 Otros Gastos</option>
                 </select>
             </div>
-            <div class="col-md-2">
-                <label>&nbsp;</label>
-                <div class="d-flex gap-2">
+            <div class="col-md-3">
+                <div class="btn-group w-100">
                     <button type="button" 
-                            class="btn btn-primary btn-block" 
+                            class="btn btn-primary" 
                             (click)="aplicar_filtros()">
                         <i class="fa fa-search"></i> Buscar
+                    </button>
+                    <button type="button" 
+                            class="btn btn-outline-secondary" 
+                            (click)="limpiar_filtros()">
+                        <i class="fa fa-times"></i> Limpiar
                     </button>
                 </div>
             </div>
         </div>
-        <div class="row mt-2">
-            <div class="col-md-12">
-                <button type="button" 
-                        class="btn btn-secondary btn-sm" 
-                        (click)="limpiar_filtros()">
-                    <i class="fa fa-times"></i> Limpiar Filtros
+    </div>
+</div>
+
+<!-- Lista de movimientos mejorada -->
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fa fa-list"></i> Movimientos de Caja
+        </h5>
+        <span class="badge badge-light text-primary">
+            {{movimientos.length}} movimientos
+        </span>
+    </div>
+
+    <!-- Tabla responsive mejorada -->
+    <div class="card-body p-0" *ngIf="movimientos.length > 0 && !load_data">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="border-0">
+                            <i class="fa fa-calendar text-primary"></i> Fecha
+                        </th>
+                        <th class="border-0">
+                            <i class="fa fa-comment-alt text-primary"></i> Concepto
+                        </th>
+                        <th class="border-0">
+                            <i class="fa fa-tag text-primary"></i> Tipo
+                        </th>
+                        <th class="border-0">
+                            <i class="fa fa-folder text-primary"></i> Categoría
+                        </th>
+                        <th class="border-0">
+                            <i class="fa fa-dollar-sign text-primary"></i> Monto
+                        </th>
+                        <th class="border-0">
+                            <i class="fa fa-credit-card text-primary"></i> Método
+                        </th>
+                        <th class="border-0">
+                            <i class="fa fa-file-alt text-primary"></i> Referencia
+                        </th>
+                        <th class="border-0">
+                            <i class="fa fa-user text-primary"></i> Usuario
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let movimiento of movimientos | slice: (page-1) * pageSize : page * pageSize"
+                        class="border-bottom">
+                        <td class="align-middle">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-light p-2 mr-2">
+                                    <i class="fa fa-calendar-day text-primary"></i>
+                                </div>
+                                <div>
+                                    <strong class="d-block">{{formatear_fecha(movimiento.fecha)}}</strong>
+                                    <small class="text-muted">{{ movimiento.fecha | date:'HH:mm' }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="align-middle">
+                            <div>
+                                <strong class="d-block">{{movimiento.concepto}}</strong>
+                                <small class="text-muted" *ngIf="movimiento.observaciones">
+                                    <i class="fa fa-comment"></i> {{movimiento.observaciones}}
+                                </small>
+                            </div>
+                        </td>
+                        <td class="align-middle">
+                            <span class="badge badge-pill" [ngClass]="get_badge_tipo(movimiento.tipo)">
+                                <i [ngClass]="movimiento.tipo === 'Ingreso' ? 'fa fa-arrow-up' : 'fa fa-arrow-down'"></i>
+                                {{movimiento.tipo}}
+                            </span>
+                        </td>
+                        <td class="align-middle">
+                            <span class="badge badge-outline-primary">
+                                {{movimiento.categoria}}
+                            </span>
+                        </td>
+                        <td class="align-middle">
+                            <div class="text-right">
+                                <span class="font-weight-bold h6" 
+                                      [ngClass]="movimiento.tipo === 'Ingreso' ? 'text-success' : 'text-danger'">
+                                    {{formatear_moneda(movimiento.monto)}}
+                                </span>
+                                <br>
+                                <small class="text-muted">
+                                    {{ movimiento.tipo === 'Ingreso' ? '💰 Entrada' : '💸 Salida' }}
+                                </small>
+                            </div>
+                        </td>
+                        <td class="align-middle">
+                            <div class="d-flex align-items-center">
+                                <i class="fa fa-credit-card text-info mr-2"></i>
+                                <span class="badge badge-light">{{movimiento.metodo_pago || 'N/A'}}</span>
+                            </div>
+                        </td>
+                        <td class="align-middle">
+                            <div *ngIf="movimiento.referencia_documento; else sinReferencia">
+                                <i class="fa fa-link text-muted mr-1"></i>
+                                <code class="bg-light px-2 py-1 rounded">{{movimiento.referencia_documento}}</code>
+                            </div>
+                            <ng-template #sinReferencia>
+                                <span class="text-muted">-</span>
+                            </ng-template>
+                        </td>
+                        <td class="align-middle">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mr-2" 
+                                     style="width: 32px; height: 32px; font-size: 12px;">
+                                    {{(movimiento.usuario_nombres || '').charAt(0)}}{{(movimiento.usuario_apellidos || '').charAt(0)}}
+                                </div>
+                                <div>
+                                    <small class="d-block font-weight-bold">
+                                        {{movimiento.usuario_nombres}} {{movimiento.usuario_apellidos}}
+                                    </small>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación en footer -->
+        <div class="card-footer bg-light" *ngIf="movimientos.length > pageSize">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="text-muted">
+                        <i class="fa fa-info-circle"></i>
+                        Mostrando {{ (page-1) * pageSize + 1 }} a {{ Math.min(page * pageSize, movimientos.length) }} 
+                        de {{ movimientos.length }} movimientos
+                    </small>
+                </div>
+                <div>
+                    <ngb-pagination 
+                        [(page)]="page" 
+                        [pageSize]="pageSize" 
+                        [collectionSize]="movimientos.length"
+                        [maxSize]="5"
+                        [rotate]="true"
+                        [boundaryLinks]="true"
+                        size="sm">
+                    </ngb-pagination>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading mejorado -->
+    <div *ngIf="load_data" class="card-body text-center py-5">
+        <div class="d-flex flex-column align-items-center">
+            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                <span class="sr-only">Cargando...</span>
+            </div>
+            <h5 class="text-muted">Cargando movimientos...</h5>
+            <p class="text-muted mb-0">Analizando flujo de caja</p>
+        </div>
+    </div>
+
+    <!-- No hay datos mejorado -->
+    <div class="card-body text-center py-5" *ngIf="movimientos.length === 0 && !load_data">
+        <div class="d-flex flex-column align-items-center">
+            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mb-4" 
+                 style="width: 80px; height: 80px;">
+                <i class="fa fa-inbox fa-2x text-muted"></i>
+            </div>
+            <h4 class="text-muted mb-2">No hay movimientos registrados</h4>
+            <p class="text-muted mb-4">Comienza registrando tu primer movimiento de caja</p>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary btn-lg" (click)="nuevo_movimiento()">
+                    <i class="fa fa-plus"></i> Registrar Primer Movimiento
+                </button>
+                <button class="btn btn-outline-secondary" (click)="regresar()">
+                    <i class="fa fa-arrow-left"></i> Regresar
                 </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Lista de movimientos -->
-<div class="card box-shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="mb-0">
-            <i class="fa fa-list"></i> 
-            Movimientos de Caja ({{movimientos.length}})
-        </h6>
-    </div>
-
-    <div class="table-responsive" *ngIf="movimientos.length > 0 && !load_data">
-        <table class="table table-hover">
-            <thead class="thead-light">
-                <tr>
-                    <th>Fecha</th>
-                    <th>Concepto</th>
-                    <th>Tipo</th>
-                    <th>Categoría</th>
-                    <th>Monto</th>
-                    <th>Método</th>
-                    <th>Referencia</th>
-                    <th>Usuario</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let movimiento of movimientos | slice: (page-1) * pageSize : page * pageSize">
-                    <td>
-                        <small>{{formatear_fecha(movimiento.fecha)}}</small>
-                    </td>
-                    <td>
-                        <strong>{{movimiento.concepto}}</strong>
-                        <div *ngIf="movimiento.observaciones" class="small text-muted">
-                            {{movimiento.observaciones}}
-                        </div>
-                    </td>
-                    <td>
-                        <span class="badge" [class]="'badge ' + get_badge_tipo(movimiento.tipo)">
-                            {{movimiento.tipo}}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="badge" [class]="'badge ' + get_badge_categoria(movimiento.categoria)">
-                            {{movimiento.categoria}}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="font-weight-bold" 
-                              [class]="movimiento.tipo === 'Ingreso' ? 'text-success' : 'text-danger'">
-                            {{formatear_moneda(movimiento.monto)}}
-                        </span>
-                    </td>
-                    <td>
-                        <small>{{movimiento.metodo_pago || 'N/A'}}</small>
-                    </td>
-                    <td>
-                        <small>{{movimiento.referencia_documento || 'N/A'}}</small>
-                    </td>
-                    <td>
-                        <small>{{movimiento.usuario_nombres}} {{movimiento.usuario_apellidos}}</small>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Loading -->
-    <div *ngIf="load_data" class="card-body text-center">
-        <div class="spinner-border text-primary" role="status">
-            <span class="sr-only">Cargando...</span>
-        </div>
-        <p class="mt-3 text-muted">Cargando movimientos...</p>
-    </div>
-
-    <!-- No hay datos -->
-    <div class="card-body text-center" *ngIf="movimientos.length === 0 && !load_data">
-        <i class="fa fa-inbox fa-3x text-muted mb-3"></i>
-        <h5 class="text-muted">No hay movimientos registrados</h5>
-        <p class="text-muted">Registre el primer movimiento de caja</p>
-        <div class="d-flex justify-content-center gap-2">
-            <button class="btn btn-primary" (click)="nuevo_movimiento()">
-                <i class="fa fa-plus"></i> Nuevo Movimiento
-            </button>
-            <button class="btn btn-secondary" (click)="regresar()">
-                <i class="fa fa-arrow-left"></i> Regresar
-            </button>
+<!-- Información adicional -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6 class="text-primary mb-3">
+                    <i class="fa fa-info-circle"></i> Información sobre Flujo de Caja
+                </h6>
+                <div class="row text-sm">
+                    <div class="col-md-3 text-center">
+                        <i class="fa fa-arrow-up text-success fa-2x mb-2"></i><br>
+                        <strong>Ingresos</strong><br>
+                        <small class="text-muted">Dinero que entra al negocio</small>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <i class="fa fa-arrow-down text-danger fa-2x mb-2"></i><br>
+                        <strong>Egresos</strong><br>
+                        <small class="text-muted">Dinero que sale del negocio</small>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <i class="fa fa-balance-scale text-primary fa-2x mb-2"></i><br>
+                        <strong>Saldo Neto</strong><br>
+                        <small class="text-muted">Diferencia entre ingresos y egresos</small>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <i class="fa fa-chart-line text-info fa-2x mb-2"></i><br>
+                        <strong>Control</strong><br>
+                        <small class="text-muted">Seguimiento de tu liquidez</small>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
-
-<!-- Paginación -->
-<nav *ngIf="!load_data && movimientos.length > pageSize" class="mt-4">
-    <ngb-pagination 
-        [(page)]="page" 
-        [pageSize]="pageSize" 
-        [collectionSize]="movimientos.length"
-        [maxSize]="5"
-        [rotate]="true"
-        [boundaryLinks]="true">
-    </ngb-pagination>
-</nav>
