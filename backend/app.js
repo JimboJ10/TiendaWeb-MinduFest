@@ -60,6 +60,7 @@ app.use(require('./routes/proveedor'));
 app.use(require('./routes/ordenCompra'));
 app.use(require('./routes/financiero'));
 app.use(require('./routes/reportes'));
+app.use(require('./routes/empleados'));
 
 server.listen(port, () => {
     console.log("Puerto ==> ", port);

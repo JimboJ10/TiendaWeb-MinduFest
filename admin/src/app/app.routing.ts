@@ -45,6 +45,11 @@ import { ReporteCuentasPagarComponent } from "./components/reportes/reporte-cuen
 import { ReporteActividadUsuariosComponent } from "./components/reportes/reporte-actividad-usuarios/reporte-actividad-usuarios.component";
 import { ReporteEstadoPagosComponent } from "./components/reportes/reporte-estado-pagos/reporte-estado-pagos.component";
 import { VerAsientoComponent } from "./components/finanzas/ver-asiento/ver-asiento.component";
+import { IndexEmpleadosComponent } from "./components/empleados/index-empleados/index-empleados.component";
+import { CreateEmpleadosComponent } from "./components/empleados/create-empleados/create-empleados.component";
+import { RolesEmpleadosComponent } from "./components/empleados/roles-empleados/roles-empleados.component";
+import { EditEmpleadosComponent } from "./components/empleados/edit-empleados/edit-empleados.component";
+import { ShowEmpleadosComponent } from "./components/empleados/show-empleados/show-empleados.component";
 
 const appRoutes : Routes = [
     {path:'', redirectTo: 'admin', pathMatch:'full'},
@@ -93,6 +98,12 @@ const appRoutes : Routes = [
         { path: 'reportes/estado-pagos', component: ReporteEstadoPagosComponent, canActivate: [AuthGuard] },
         { path: 'reportes/cuentas-pagar', component: ReporteCuentasPagarComponent, canActivate: [AuthGuard] },
         { path: 'reportes/actividad-usuarios', component: ReporteActividadUsuariosComponent, canActivate: [AuthGuard] },
+        
+        { path: 'empleados', component: IndexEmpleadosComponent, canActivate: [AuthGuard] },
+        { path: 'empleados/registro', component: CreateEmpleadosComponent, canActivate: [AuthGuard] },
+        { path: 'empleados/roles', component: RolesEmpleadosComponent, canActivate: [AuthGuard] },
+        { path: 'empleados/edit/:id', component: EditEmpleadosComponent, canActivate: [AuthGuard] },
+        { path: 'empleados/:id', component: ShowEmpleadosComponent, canActivate: [AuthGuard] },
 
         {path: 'direcciones', component:DireccionClienteComponent, canActivate:[AuthGuard]},
         {path: 'ventas', component:IndexVentasComponent, canActivate:[AuthGuard]},

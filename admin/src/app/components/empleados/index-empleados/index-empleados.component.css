@@ -1,0 +1,142 @@
+/* Estilos para la tabla */
+.table td, .table th {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.table td:first-child,
+.table td:nth-child(2) {
+    text-align: left;
+}
+
+/* Badges personalizados */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 4px;
+}
+
+/* Cards de estadísticas */
+.card {
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Progress bars */
+.progress {
+    height: 8px;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.progress-bar {
+    border-radius: 4px;
+    transition: width 0.6s ease;
+}
+
+/* Botones mejorados */
+.btn-group-vertical .btn {
+    border-radius: 4px !important;
+    margin-bottom: 2px;
+}
+
+.btn-group-vertical .btn:last-child {
+    margin-bottom: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+    
+    .btn-group-vertical {
+        flex-direction: row;
+    }
+    
+    .btn-group-vertical .btn {
+        margin-bottom: 0;
+        margin-right: 2px;
+    }
+    
+    .btn-group-vertical .btn:last-child {
+        margin-right: 0;
+    }
+}
+
+/* Estados de empleados */
+.badge-success {
+    background-color: #28a745;
+}
+
+.badge-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-danger {
+    background-color: #dc3545;
+}
+
+.badge-secondary {
+    background-color: #6c757d;
+}
+
+.badge-primary {
+    background-color: #007bff;
+}
+
+.badge-info {
+    background-color: #17a2b8;
+}
+
+/* Loading animation */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Efectos hover para filas */
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* Form controls mejorados */
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Estilos personalizados para SweetAlert2 */
+:global(.swal2-popup) {
+    font-family: inherit;
+}
+
+:global(.swal2-html-container) {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+:global(.swal2-input),
+:global(.swal2-textarea) {
+    border: 1px solid #ced4da !important;
+    border-radius: 4px !important;
+    font-size: 0.875rem !important;
+}
+
+:global(.swal2-input:focus),
+:global(.swal2-textarea:focus) {
+    border-color: #007bff !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+}

@@ -1,0 +1,550 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title -->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">
+        <i class="fa fa-user-plus text-success"></i> Nuevo Empleado
+    </h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+        <p class="text-muted">Registro completo de nuevo empleado en el sistema</p>
+        <p class="font-size-sm font-weight-medium pl-md-4">
+            <a class="text-nowrap" (click)="cancelar()" style="cursor: pointer;">
+                <i class="fa fa-arrow-left"></i> Volver a empleados
+                <i class="fa fa-angle-right font-size-base align-middle ml-1"></i>
+            </a>
+        </p>
+    </div>
+</div>
+
+<!-- Loading inicial -->
+<div *ngIf="load_data" class="text-center py-5">
+    <div class="spinner-border spinner-border-lg" role="status">
+        <span class="sr-only">Cargando formulario...</span>
+    </div>
+    <p class="text-muted mt-3">Cargando datos del formulario...</p>
+</div>
+
+<!-- Formulario -->
+<div *ngIf="!load_data" class="row">
+    <div class="col-12">
+        
+        <!-- Progress indicator -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="step-indicator active">
+                            <i class="fa fa-user fa-2x text-primary"></i>
+                            <h6 class="mt-2">Datos Personales</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="step-indicator active">
+                            <i class="fa fa-briefcase fa-2x text-primary"></i>
+                            <h6 class="mt-2">Datos Laborales</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="step-indicator active">
+                            <i class="fa fa-user-tag fa-2x text-primary"></i>
+                            <h6 class="mt-2">Roles</h6>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="step-indicator active">
+                            <i class="fa fa-key fa-2x text-primary"></i>
+                            <h6 class="mt-2">Permisos</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form (ngSubmit)="crear_empleado()">
+            
+            <!-- Datos Personales -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fa fa-user"></i> Datos Personales
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label required">DNI/Cédula</label>
+                                <input 
+                                    type="text" 
+                                    class="form-control"
+                                    [class.is-invalid]="errores.dni"
+                                    [(ngModel)]="empleado.dni"
+                                    name="dni"
+                                    placeholder="1234567890"
+                                    maxlength="13"
+                                >
+                                <div class="invalid-feedback" *ngIf="errores.dni">
+                                    {{ errores.dni }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label required">Nombres</label>
+                                <input 
+                                    type="text" 
+                                    class="form-control"
+                                    [class.is-invalid]="errores.nombres"
+                                    [(ngModel)]="empleado.nombres"
+                                    name="nombres"
+                                    placeholder="Juan Carlos"
+                                    (blur)="generar_email_automatico()"
+                                >
+                                <div class="invalid-feedback" *ngIf="errores.nombres">
+                                    {{ errores.nombres }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label required">Apellidos</label>
+                                <input 
+                                    type="text" 
+                                    class="form-control"
+                                    [class.is-invalid]="errores.apellidos"
+                                    [(ngModel)]="empleado.apellidos"
+                                    name="apellidos"
+                                    placeholder="Pérez García"
+                                    (blur)="generar_email_automatico()"
+                                >
+                                <div class="invalid-feedback" *ngIf="errores.apellidos">
+                                    {{ errores.apellidos }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required">Email</label>
+                                <div class="input-group">
+                                    <input 
+                                        type="email" 
+                                        class="form-control"
+                                        [class.is-invalid]="errores.email"
+                                        [(ngModel)]="empleado.email"
+                                        name="email"
+                                        placeholder="juan.perez@empresa.com"
+                                    >
+                                    <div class="input-group-append">
+                                        <button 
+                                            type="button" 
+                                            class="btn btn-outline-secondary"
+                                            (click)="generar_email_automatico()"
+                                            title="Generar email automático">
+                                            <i class="fa fa-magic"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="invalid-feedback" *ngIf="errores.email">
+                                    {{ errores.email }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Teléfono</label>
+                                <input 
+                                    type="text" 
+                                    class="form-control"
+                                    [(ngModel)]="empleado.telefono"
+                                    name="telefono"
+                                    placeholder="+593987654321"
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">País</label>
+                                <select class="form-control" [(ngModel)]="empleado.pais" name="pais">
+                                    <option *ngFor="let pais of paises" [value]="pais">{{ pais }}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Fecha de Nacimiento</label>
+                                <input 
+                                    type="date" 
+                                    class="form-control"
+                                    [(ngModel)]="empleado.fNacimiento"
+                                    name="fNacimiento"
+                                >
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Género</label>
+                                <select class="form-control" [(ngModel)]="empleado.genero" name="genero">
+                                    <option value="M">Masculino</option>
+                                    <option value="F">Femenino</option>
+                                    <option value="O">Otro</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required">Contraseña</label>
+                                <div class="input-group">
+                                    <input 
+                                        type="password" 
+                                        class="form-control"
+                                        [class.is-invalid]="errores.password"
+                                        [(ngModel)]="empleado.password"
+                                        name="password"
+                                        placeholder="••••••••"
+                                    >
+                                    <div class="input-group-append">
+                                        <button 
+                                            type="button" 
+                                            class="btn btn-outline-secondary"
+                                            (click)="generar_password_temporal()"
+                                            title="Generar contraseña temporal">
+                                            <i class="fa fa-random"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="invalid-feedback" *ngIf="errores.password">
+                                    {{ errores.password }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required">Confirmar Contraseña</label>
+                                <input 
+                                    type="password" 
+                                    class="form-control"
+                                    [class.is-invalid]="errores.confirm_password"
+                                    [(ngModel)]="empleado.confirm_password"
+                                    name="confirm_password"
+                                    placeholder="••••••••"
+                                >
+                                <div class="invalid-feedback" *ngIf="errores.confirm_password">
+                                    {{ errores.confirm_password }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Datos Laborales -->
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fa fa-briefcase"></i> Datos Laborales
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Código de Empleado</label>
+                                <input 
+                                    type="text" 
+                                    class="form-control"
+                                    [(ngModel)]="empleado.codigo_empleado"
+                                    name="codigo_empleado"
+                                    placeholder="EMP0001 (Autogenerado si está vacío)"
+                                >
+                                <small class="text-muted">
+                                    <i class="fa fa-info-circle"></i> Se generará automáticamente si está vacío
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label required">Fecha de Ingreso</label>
+                                <input 
+                                    type="date" 
+                                    class="form-control"
+                                    [class.is-invalid]="errores.fecha_ingreso"
+                                    [(ngModel)]="empleado.fecha_ingreso"
+                                    name="fecha_ingreso"
+                                >
+                                <div class="invalid-feedback" *ngIf="errores.fecha_ingreso">
+                                    {{ errores.fecha_ingreso }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Tipo de Contrato</label>
+                                <select class="form-control" [(ngModel)]="empleado.tipo_contrato" name="tipo_contrato">
+                                    <option *ngFor="let tipo of tipos_contrato" [value]="tipo">{{ tipo }}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required">Departamento</label>
+                                <select 
+                                    class="form-control"
+                                    [class.is-invalid]="errores.departamentoid"
+                                    [(ngModel)]="empleado.departamentoid"
+                                    name="departamentoid"
+                                    (change)="cambiar_departamento()"
+                                >
+                                    <option value="">Seleccionar departamento...</option>
+                                    <option *ngFor="let dept of departamentos" [value]="dept.departamentoid">
+                                        {{ dept.nombre }}
+                                    </option>
+                                </select>
+                                <div class="invalid-feedback" *ngIf="errores.departamentoid">
+                                    {{ errores.departamentoid }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required">Cargo</label>
+                                <select 
+                                    class="form-control"
+                                    [class.is-invalid]="errores.cargoid"
+                                    [(ngModel)]="empleado.cargoid"
+                                    name="cargoid"
+                                    (change)="cambiar_cargo()"
+                                >
+                                    <option value="">Seleccionar cargo...</option>
+                                    <option *ngFor="let cargo of cargos_filtrados" [value]="cargo.cargoid">
+                                        {{ cargo.nombre }} - ${{ cargo.salario_base }}
+                                    </option>
+                                </select>
+                                <div class="invalid-feedback" *ngIf="errores.cargoid">
+                                    {{ errores.cargoid }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required">Salario Actual</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">$</span>
+                                    </div>
+                                    <input 
+                                        type="number" 
+                                        class="form-control"
+                                        [class.is-invalid]="errores.salario_actual"
+                                        [(ngModel)]="empleado.salario_actual"
+                                        name="salario_actual"
+                                        placeholder="1500.00"
+                                        step="0.01"
+                                        min="0"
+                                    >
+                                </div>
+                                <div class="invalid-feedback" *ngIf="errores.salario_actual">
+                                    {{ errores.salario_actual }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Supervisor</label>
+                                <select class="form-control" [(ngModel)]="empleado.supervisor_id" name="supervisor_id">
+                                    <option value="">Sin supervisor...</option>
+                                    <option *ngFor="let supervisor of empleados_supervisores" [value]="supervisor.empleadoid">
+                                        {{ supervisor.nombres }} {{ supervisor.apellidos }} - {{ supervisor.codigo_empleado }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Dirección de Trabajo</label>
+                                <input 
+                                    type="text" 
+                                    class="form-control"
+                                    [(ngModel)]="empleado.direccion_trabajo"
+                                    name="direccion_trabajo"
+                                    placeholder="Oficina Central, Piso 2, Cubículo 15"
+                                >
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Observaciones</label>
+                                <textarea 
+                                    class="form-control"
+                                    [(ngModel)]="empleado.observaciones"
+                                    name="observaciones"
+                                    rows="3"
+                                    placeholder="Observaciones adicionales sobre el empleado..."
+                                ></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Roles -->
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fa fa-user-tag"></i> Asignación de Roles
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fa fa-info-circle"></i>
+                        <strong>Importante:</strong> Debe asignar al menos un rol al empleado.
+                    </div>
+                    
+                    <div class="row" *ngIf="errores.roles">
+                        <div class="col-12">
+                            <div class="alert alert-danger">
+                                {{ errores.roles }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6" *ngFor="let rol of roles">
+                            <div class="custom-control custom-checkbox mb-3">
+                                <input 
+                                    type="checkbox" 
+                                    class="custom-control-input" 
+                                    [id]="'rol_' + rol.rolid"
+                                    [checked]="es_rol_seleccionado(rol.rolid)"
+                                    (change)="toggle_rol(rol.rolid)"
+                                >
+                                <label class="custom-control-label" [for]="'rol_' + rol.rolid">
+                                    <strong>{{ rol.nombre }}</strong>
+                                    <span class="badge badge-primary ml-2">Nivel {{ rol.nivel_acceso }}</span>
+                                    <br>
+                                    <small class="text-muted">{{ rol.descripcion }}</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Permisos Específicos -->
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fa fa-key"></i> Permisos Específicos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fa fa-exclamation-triangle"></i>
+                        <strong>Opcional:</strong> Los permisos específicos complementan los roles asignados.
+                    </div>
+
+                    <div class="accordion" id="permisosAccordion">
+                        <div class="card" *ngFor="let modulo of modulos_disponibles; let i = index">
+                            <div class="card-header" [id]="'heading' + i">
+                                <h6 class="mb-0">
+                                    <button 
+                                        class="btn btn-link text-left" 
+                                        type="button" 
+                                        data-toggle="collapse" 
+                                        [attr.data-target]="'#collapse' + i"
+                                        [attr.aria-expanded]="i === 0 ? 'true' : 'false'"
+                                        [attr.aria-controls]="'collapse' + i"
+                                    >
+                                        <i class="fa" [ngClass]="obtener_icono_modulo(modulo)"></i>
+                                        {{ obtener_nombre_modulo(modulo) }}
+                                        <span class="badge badge-light ml-2" *ngIf="permisos_por_modulo[modulo]">
+                                            {{ permisos_por_modulo[modulo].length }} permisos
+                                        </span>
+                                    </button>
+                                </h6>
+                            </div>
+                            <div 
+                                [id]="'collapse' + i" 
+                                class="collapse" 
+                                [class.show]="i === 0"
+                                [attr.aria-labelledby]="'heading' + i" 
+                                data-parent="#permisosAccordion"
+                            >
+                                <div class="card-body">
+                                    <div class="row" *ngIf="permisos_por_modulo[modulo]">
+                                        <div class="col-md-6" *ngFor="let permiso of permisos_por_modulo[modulo]">
+                                            <div class="custom-control custom-checkbox mb-2">
+                                                <input 
+                                                    type="checkbox" 
+                                                    class="custom-control-input" 
+                                                    [id]="'permiso_' + permiso.permisoid"
+                                                    [checked]="es_permiso_seleccionado(permiso.permisoid)"
+                                                    (change)="toggle_permiso(permiso.permisoid)"
+                                                >
+                                                <label class="custom-control-label" [for]="'permiso_' + permiso.permisoid">
+                                                    <strong>{{ permiso.nombre }}</strong><br>
+                                                    <small class="text-muted">{{ permiso.descripcion }}</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div *ngIf="!permisos_por_modulo[modulo] || permisos_por_modulo[modulo].length === 0" class="text-muted">
+                                        No hay permisos disponibles para este módulo.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <button 
+                            type="button" 
+                            class="btn btn-secondary"
+                            (click)="cancelar()"
+                            [disabled]="load_btn"
+                        >
+                            <i class="fa fa-times"></i> Cancelar
+                        </button>
+                        
+                        <button 
+                            type="submit" 
+                            class="btn btn-success"
+                            [disabled]="load_btn"
+                        >
+                            <span *ngIf="load_btn">
+                                <span class="spinner-border spinner-border-sm mr-2"></span>
+                                Creando empleado...
+                            </span>
+                            <span *ngIf="!load_btn">
+                                <i class="fa fa-save"></i> Crear Empleado
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>

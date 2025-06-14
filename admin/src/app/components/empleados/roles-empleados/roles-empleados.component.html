@@ -1,0 +1,631 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title -->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">
+        <i class="fa fa-shield-alt text-warning"></i> Gestión de Roles y Permisos
+    </h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+        <p class="text-muted">Administración de roles del sistema y permisos de acceso</p>
+        <p class="font-size-sm font-weight-medium pl-md-4">
+            <a class="text-nowrap" routerLink="/panel/empleados" style="cursor: pointer;">
+                <i class="fa fa-arrow-left"></i> Volver a empleados
+                <i class="fa fa-angle-right font-size-base align-middle ml-1"></i>
+            </a>
+        </p>
+    </div>
+</div>
+
+<!-- Loading inicial -->
+<div *ngIf="load_data" class="text-center py-5">
+    <div class="spinner-border spinner-border-lg" role="status">
+        <span class="sr-only">Cargando roles y permisos...</span>
+    </div>
+    <p class="text-muted mt-3">Cargando información del sistema...</p>
+</div>
+
+<!-- Contenido principal -->
+<div *ngIf="!load_data">
+    
+    <!-- Estadísticas rápidas -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-gradient-primary text-white">
+                <div class="card-body text-center">
+                    <div class="display-4 font-weight-bold">{{ roles.length }}</div>
+                    <p class="mb-0"><i class="fa fa-user-tag mr-1"></i> Roles Activos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-gradient-success text-white">
+                <div class="card-body text-center">
+                    <div class="display-4 font-weight-bold">{{ permisos.length }}</div>
+                    <p class="mb-0"><i class="fa fa-key mr-1"></i> Permisos Disponibles</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-gradient-info text-white">
+                <div class="card-body text-center">
+                    <div class="display-4 font-weight-bold">{{ modulos_disponibles.length }}</div>
+                    <p class="mb-0"><i class="fa fa-th-large mr-1"></i> Módulos del Sistema</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pestañas principales -->
+    <div class="card">
+        <div class="card-header bg-light">
+            <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link" 
+                       [class.active]="tab_activa === 'roles'"
+                       (click)="cambiar_tab('roles')"
+                       style="cursor: pointer;">
+                        <i class="fa fa-user-tag"></i> 
+                        Gestión de Roles
+                        <span class="badge badge-primary ml-2">{{ roles.length }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" 
+                       [class.active]="tab_activa === 'permisos'"
+                       (click)="cambiar_tab('permisos')"
+                       style="cursor: pointer;">
+                        <i class="fa fa-key"></i> 
+                        Gestión de Permisos
+                        <span class="badge badge-success ml-2">{{ permisos.length }}</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card-body">
+            
+            <!-- ================================ TAB ROLES ================================ -->
+            <div *ngIf="tab_activa === 'roles'">
+                
+                <!-- Header con acciones -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0">
+                        <i class="fa fa-user-tag text-primary"></i> Lista de Roles
+                    </h5>
+                    <button class="btn btn-primary" (click)="abrir_modal_rol()">
+                        <i class="fa fa-plus"></i> Nuevo Rol
+                    </button>
+                </div>
+
+                <!-- Filtros -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">
+                                    <i class="fa fa-search"></i>
+                                </span>
+                            </div>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                placeholder="Buscar roles..."
+                                [(ngModel)]="filtro_roles"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de roles -->
+                <div class="row">
+                    <div class="col-md-6" *ngFor="let rol of obtener_roles_filtrados()">
+                        <div class="card role-card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h6 class="card-title mb-1">{{ rol.nombre }}</h6>
+                                        <span class="badge" [ngClass]="obtener_badge_nivel(rol.nivel_acceso)">
+                                            Nivel {{ rol.nivel_acceso }} - {{ obtener_descripcion_nivel(rol.nivel_acceso) }}
+                                        </span>
+                                    </div>
+                                    <span class="badge" [ngClass]="obtener_badge_estado(rol.estado)">
+                                        {{ rol.estado }}
+                                    </span>
+                                </div>
+                                
+                                <p class="card-text text-muted small">{{ rol.descripcion }}</p>
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        <i class="fa fa-calendar mr-1"></i>
+                                        Creado: {{ rol.fecha_creacion | date:'dd/MM/yyyy' }}
+                                    </small>
+                                    <div class="btn-group btn-group-sm">
+                                        <button 
+                                            class="btn btn-outline-info"
+                                            (click)="ver_empleados_rol(rol)"
+                                            title="Ver empleados con este rol">
+                                            <i class="fa fa-users"></i>
+                                        </button>
+                                        <button 
+                                            class="btn btn-outline-primary"
+                                            (click)="abrir_modal_rol(rol)"
+                                            title="Editar rol">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                        <button 
+                                            class="btn btn-outline-danger"
+                                            (click)="eliminar_rol(rol)"
+                                            title="Eliminar rol">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- No hay roles -->
+                <div *ngIf="obtener_roles_filtrados().length === 0" class="text-center py-5">
+                    <i class="fa fa-user-tag fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay roles disponibles</h5>
+                    <p class="text-muted">Crea el primer rol para empezar a gestionar permisos</p>
+                    <button class="btn btn-primary" (click)="abrir_modal_rol()">
+                        <i class="fa fa-plus"></i> Crear Primer Rol
+                    </button>
+                </div>
+            </div>
+
+            <!-- ================================ TAB PERMISOS ================================ -->
+            <div *ngIf="tab_activa === 'permisos'">
+                
+                <!-- Header con acciones -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="mb-0">
+                        <i class="fa fa-key text-success"></i> Lista de Permisos
+                    </h5>
+                    <button class="btn btn-success" (click)="abrir_modal_permiso()">
+                        <i class="fa fa-plus"></i> Nuevo Permiso
+                    </button>
+                </div>
+
+                <!-- Filtros -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">
+                                    <i class="fa fa-search"></i>
+                                </span>
+                            </div>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                placeholder="Buscar permisos..."
+                                [(ngModel)]="filtro_permisos"
+                            >
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-control" [(ngModel)]="filtro_modulo">
+                            <option value="todos">Todos los módulos</option>
+                            <option *ngFor="let modulo of modulos_disponibles" [value]="modulo.codigo">
+                                {{ modulo.nombre }}
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Permisos por módulo -->
+                <div class="accordion" id="permisosAccordion">
+                    <div class="card" *ngFor="let modulo of modulos_disponibles; let i = index">
+                        <div class="card-header" [id]="'heading' + i">
+                            <h6 class="mb-0">
+                                <button 
+                                    class="btn btn-link text-left w-100" 
+                                    type="button" 
+                                    data-toggle="collapse" 
+                                    [attr.data-target]="'#collapse' + i"
+                                    [attr.aria-expanded]="i === 0 ? 'true' : 'false'"
+                                    [attr.aria-controls]="'collapse' + i"
+                                >
+                                    <i class="fa" [ngClass]="modulo.icono"></i>
+                                    {{ modulo.nombre }}
+                                    <span class="badge badge-info ml-2">
+                                        {{ obtener_cantidad_permisos_modulo(modulo.codigo) }} permisos
+                                    </span>
+                                    <i class="fa fa-chevron-down float-right mt-1"></i>
+                                </button>
+                            </h6>
+                        </div>
+                        <div 
+                            [id]="'collapse' + i" 
+                            class="collapse" 
+                            [class.show]="i === 0"
+                            [attr.aria-labelledby]="'heading' + i" 
+                            data-parent="#permisosAccordion"
+                        >
+                            <div class="card-body">
+                                <div *ngIf="permisos_por_modulo[modulo.codigo] && permisos_por_modulo[modulo.codigo].length > 0">
+                                    <div class="row">
+                                        <div class="col-md-6" *ngFor="let permiso of permisos_por_modulo[modulo.codigo]">
+                                            <div class="card permission-card mb-3">
+                                                <div class="card-body p-3">
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <h6 class="card-title mb-1">{{ permiso.nombre }}</h6>
+                                                        <span class="badge" [ngClass]="obtener_badge_estado(permiso.estado)">
+                                                            {{ permiso.estado }}
+                                                        </span>
+                                                    </div>
+                                                    
+                                                    <p class="card-text text-muted small">{{ permiso.descripcion }}</p>
+                                                    
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <code class="small">{{ permiso.codigo }}</code>
+                                                        <div class="btn-group btn-group-sm">
+                                                            <button 
+                                                                class="btn btn-outline-primary"
+                                                                (click)="abrir_modal_permiso(permiso)"
+                                                                title="Editar permiso">
+                                                                <i class="fa fa-edit"></i>
+                                                            </button>
+                                                            <button 
+                                                                class="btn btn-outline-danger"
+                                                                (click)="eliminar_permiso(permiso)"
+                                                                title="Eliminar permiso">
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- No hay permisos en este módulo -->
+                                <div *ngIf="!permisos_por_modulo[modulo.codigo] || permisos_por_modulo[modulo.codigo].length === 0" 
+                                     class="text-center py-3">
+                                    <i class="fa fa-key fa-2x text-muted mb-2"></i>
+                                    <p class="text-muted">No hay permisos para este módulo</p>
+                                    <button class="btn btn-outline-success btn-sm" (click)="abrir_modal_permiso()">
+                                        <i class="fa fa-plus"></i> Agregar Permiso
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================================ MODAL ROL ================================ -->
+<div class="modal fade" [class.show]="modal_rol" [style.display]="modal_rol ? 'block' : 'none'" 
+     tabindex="-1" role="dialog" *ngIf="modal_rol">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fa fa-user-tag"></i>
+                    {{ editando_rol ? 'Editar Rol' : 'Nuevo Rol' }}
+                </h5>
+                <button type="button" class="close text-white" (click)="cerrar_modales()">
+                    <span>&times;</span>
+                </button>
+            </div>
+            
+            <form (ngSubmit)="guardar_rol()">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <label class="form-label required">Nombre del Rol</label>
+                                <input 
+                                    type="text" 
+                                    class="form-control"
+                                    [class.is-invalid]="errores.nombre"
+                                    [(ngModel)]="rol_form.nombre"
+                                    name="nombre"
+                                    placeholder="Ej: Administrador, Vendedor, etc."
+                                    maxlength="50"
+                                >
+                                <div class="invalid-feedback" *ngIf="errores.nombre">
+                                    {{ errores.nombre }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Estado</label>
+                                <select class="form-control" [(ngModel)]="rol_form.estado" name="estado">
+                                    <option value="Activo">Activo</option>
+                                    <option value="Inactivo">Inactivo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">Descripción</label>
+                        <textarea 
+                            class="form-control"
+                            [class.is-invalid]="errores.descripcion"
+                            [(ngModel)]="rol_form.descripcion"
+                            name="descripcion"
+                            rows="3"
+                            placeholder="Describe las responsabilidades y alcance de este rol..."
+                        ></textarea>
+                        <div class="invalid-feedback" *ngIf="errores.descripcion">
+                            {{ errores.descripcion }}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">Nivel de Acceso</label>
+                        <select 
+                            class="form-control"
+                            [class.is-invalid]="errores.nivel_acceso"
+                            [(ngModel)]="rol_form.nivel_acceso"
+                            name="nivel_acceso"
+                        >
+                            <option value="">Seleccionar nivel...</option>
+                            <option *ngFor="let nivel of niveles_acceso" [value]="nivel.valor">
+                                Nivel {{ nivel.valor }} - {{ nivel.nombre }} ({{ nivel.descripcion }})
+                            </option>
+                        </select>
+                        <div class="invalid-feedback" *ngIf="errores.nivel_acceso">
+                            {{ errores.nivel_acceso }}
+                        </div>
+                        <small class="form-text text-muted">
+                            El nivel de acceso determina la jerarquía y alcance de permisos del rol
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" (click)="cerrar_modales()">
+                        <i class="fa fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary" [disabled]="load_btn">
+                        <span *ngIf="load_btn">
+                            <span class="spinner-border spinner-border-sm mr-2"></span>
+                            Guardando...
+                        </span>
+                        <span *ngIf="!load_btn">
+                            <i class="fa fa-save"></i> 
+                            {{ editando_rol ? 'Actualizar' : 'Crear' }} Rol
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ================================ MODAL PERMISO ================================ -->
+<div class="modal fade" [class.show]="modal_permiso" [style.display]="modal_permiso ? 'block' : 'none'" 
+     tabindex="-1" role="dialog" *ngIf="modal_permiso">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fa fa-key"></i>
+                    {{ editando_permiso ? 'Editar Permiso' : 'Nuevo Permiso' }}
+                </h5>
+                <button type="button" class="close text-white" (click)="cerrar_modales()">
+                    <span>&times;</span>
+                </button>
+            </div>
+            
+            <form (ngSubmit)="guardar_permiso()">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <label class="form-label required">Nombre del Permiso</label>
+                                <input 
+                                    type="text" 
+                                    class="form-control"
+                                    [class.is-invalid]="errores.nombre"
+                                    [(ngModel)]="permiso_form.nombre"
+                                    name="nombre"
+                                    placeholder="Ej: Ver Productos, Crear Usuario, etc."
+                                    maxlength="100"
+                                >
+                                <div class="invalid-feedback" *ngIf="errores.nombre">
+                                    {{ errores.nombre }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="form-label">Estado</label>
+                                <select class="form-control" [(ngModel)]="permiso_form.estado" name="estado">
+                                    <option value="Activo">Activo</option>
+                                    <option value="Inactivo">Inactivo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required">Descripción</label>
+                        <textarea 
+                            class="form-control"
+                            [class.is-invalid]="errores.descripcion"
+                            [(ngModel)]="permiso_form.descripcion"
+                            name="descripcion"
+                            rows="2"
+                            placeholder="Describe qué permite hacer este permiso..."
+                        ></textarea>
+                        <div class="invalid-feedback" *ngIf="errores.descripcion">
+                            {{ errores.descripcion }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required">Módulo</label>
+                                <select 
+                                    class="form-control"
+                                    [class.is-invalid]="errores.modulo"
+                                    [(ngModel)]="permiso_form.modulo"
+                                    name="modulo"
+                                    (change)="actualizar_codigo_permiso()"
+                                >
+                                    <option value="">Seleccionar módulo...</option>
+                                    <option *ngFor="let modulo of modulos_disponibles" [value]="modulo.codigo">
+                                        {{ modulo.nombre }}
+                                    </option>
+                                </select>
+                                <div class="invalid-feedback" *ngIf="errores.modulo">
+                                    {{ errores.modulo }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label required">Acción</label>
+                                <select 
+                                    class="form-control"
+                                    [class.is-invalid]="errores.accion"
+                                    [(ngModel)]="permiso_form.accion"
+                                    name="accion"
+                                    (change)="actualizar_codigo_permiso()"
+                                >
+                                    <option value="">Seleccionar acción...</option>
+                                    <option *ngFor="let accion of acciones_disponibles" [value]="accion">
+                                        {{ accion | titlecase }}
+                                    </option>
+                                </select>
+                                <div class="invalid-feedback" *ngIf="errores.accion">
+                                    {{ errores.accion }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Código del Permiso</label>
+                        <input 
+                            type="text" 
+                            class="form-control"
+                            [(ngModel)]="permiso_form.codigo"
+                            name="codigo"
+                            placeholder="Se genera automáticamente"
+                            readonly
+                            style="background-color: #f8f9fa;"
+                        >
+                        <small class="form-text text-muted">
+                            El código se genera automáticamente: módulo.acción
+                        </small>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" (click)="cerrar_modales()">
+                        <i class="fa fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success" [disabled]="load_btn">
+                        <span *ngIf="load_btn">
+                            <span class="spinner-border spinner-border-sm mr-2"></span>
+                            Guardando...
+                        </span>
+                        <span *ngIf="!load_btn">
+                            <i class="fa fa-save"></i> 
+                            {{ editando_permiso ? 'Actualizar' : 'Crear' }} Permiso
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ================================ MODAL EMPLEADOS POR ROL ================================ -->
+<div class="modal fade" [class.show]="modal_empleados_rol" [style.display]="modal_empleados_rol ? 'block' : 'none'" 
+     tabindex="-1" role="dialog" *ngIf="modal_empleados_rol">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
+                    <i class="fa fa-users"></i>
+                    Empleados con el rol: {{ rol_seleccionado?.nombre }}
+                </h5>
+                <button type="button" class="close text-white" (click)="cerrar_modales()">
+                    <span>&times;</span>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div *ngIf="load_empleados_rol" class="text-center py-4">
+                    <div class="spinner-border"></div>
+                    <p class="mt-2">Cargando empleados...</p>
+                </div>
+                
+                <div *ngIf="!load_empleados_rol && empleados_por_rol.length > 0">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Empleado</th>
+                                    <th>Email</th>
+                                    <th>Departamento</th>
+                                    <th>Cargo</th>
+                                    <th>Estado</th>
+                                    <th>Fecha Asignación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let empleado of empleados_por_rol">
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm bg-primary text-white rounded-circle mr-2 d-flex align-items-center justify-content-center">
+                                                <i class="fa fa-user"></i>
+                                            </div>
+                                            <div>
+                                                <strong>{{ empleado.nombres }} {{ empleado.apellidos }}</strong><br>
+                                                <small class="text-muted">{{ empleado.codigo_empleado }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ empleado.email }}</td>
+                                    <td>{{ empleado.departamento }}</td>
+                                    <td>{{ empleado.cargo }}</td>
+                                    <td>
+                                        <span class="badge" [ngClass]="obtener_badge_estado(empleado.estado_empleado)">
+                                            {{ empleado.estado_empleado }}
+                                        </span>
+                                    </td>
+                                    <td>{{ empleado.fecha_asignacion | date:'dd/MM/yyyy' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div *ngIf="!load_empleados_rol && empleados_por_rol.length === 0" class="text-center py-4">
+                    <i class="fa fa-users fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay empleados con este rol</h5>
+                    <p class="text-muted">Asigna este rol a empleados desde la sección de gestión de empleados</p>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="cerrar_modales()">
+                    <i class="fa fa-times"></i> Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal backdrop -->
+<div class="modal-backdrop fade show" 
+     *ngIf="modal_rol || modal_permiso || modal_empleados_rol"
+     (click)="cerrar_modales()">
+</div>

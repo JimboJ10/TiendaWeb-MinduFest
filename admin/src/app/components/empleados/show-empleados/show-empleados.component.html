@@ -1,0 +1,440 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title -->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">
+        <i class="fa fa-user text-info"></i> Perfil de Empleado
+    </h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+        <p class="text-muted">Información completa del empleado</p>
+        <p class="font-size-sm font-weight-medium pl-md-4">
+            <a class="text-nowrap" (click)="volver()" style="cursor: pointer;">
+                <i class="fa fa-arrow-left"></i> Volver a empleados
+                <i class="fa fa-angle-right font-size-base align-middle ml-1"></i>
+            </a>
+        </p>
+    </div>
+</div>
+
+<!-- Loading inicial -->
+<div *ngIf="load_data" class="text-center py-5">
+    <div class="spinner-border spinner-border-lg" role="status">
+        <span class="sr-only">Cargando información del empleado...</span>
+    </div>
+    <p class="text-muted mt-3">Cargando perfil del empleado...</p>
+</div>
+
+<!-- Contenido principal -->
+<div *ngIf="!load_data" class="row">
+    
+    <!-- Información principal del empleado -->
+    <div class="col-12 mb-4">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-circle bg-white text-primary mr-3">
+                                <i class="fa fa-user fa-2x"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-1">{{ empleado.nombres }} {{ empleado.apellidos }}</h4>
+                                <p class="mb-0 opacity-75">
+                                    <i class="fa fa-id-card mr-1"></i> {{ empleado.codigo_empleado }}
+                                    <span class="mx-2">|</span>
+                                    <i class="fa fa-briefcase mr-1"></i> {{ empleado.cargo }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-right">
+                        <span class="badge badge-lg" [ngClass]="obtener_badge_estado(empleado.estado_empleado)">
+                            <i class="fa fa-circle mr-1"></i> {{ empleado.estado_empleado }}
+                        </span>
+                        <div class="mt-2">
+                            <button class="btn btn-light btn-sm mr-2" (click)="editar_empleado()">
+                                <i class="fa fa-edit"></i> Editar
+                            </button>
+                            <button class="btn btn-outline-light btn-sm" (click)="exportar_perfil_empleado()">
+                                <i class="fa fa-download"></i> Exportar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información rápida -->
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="info-item">
+                            <i class="fa fa-envelope text-primary"></i>
+                            <div class="info-content">
+                                <span class="info-label">Email</span>
+                                <span class="info-value">{{ empleado.email }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-item">
+                            <i class="fa fa-phone text-success"></i>
+                            <div class="info-content">
+                                <span class="info-label">Teléfono</span>
+                                <span class="info-value">{{ empleado.telefono || 'No registrado' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-item">
+                            <i class="fa fa-calendar text-warning"></i>
+                            <div class="info-content">
+                                <span class="info-label">Fecha de Ingreso</span>
+                                <span class="info-value">{{ formatear_fecha(empleado.fecha_ingreso) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="info-item">
+                            <i class="fa fa-clock text-info"></i>
+                            <div class="info-content">
+                                <span class="info-label">Tiempo en la Empresa</span>
+                                <span class="info-value">{{ calcular_tiempo_empresa() }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas rápidas -->
+    <div class="col-12 mb-4">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card bg-gradient-primary text-white">
+                    <div class="card-body text-center">
+                        <div class="display-4 font-weight-bold">
+                            {{ formatear_salario(empleado.salario_actual) }}
+                        </div>
+                        <p class="mb-0">
+                            <i class="fa fa-dollar-sign mr-1"></i> Salario Actual
+                        </p>
+                        <small class="opacity-75">Mensual</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-gradient-success text-white">
+                    <div class="card-body text-center">
+                        <div class="display-4 font-weight-bold">
+                            {{ historial_salarios.length }}
+                        </div>
+                        <p class="mb-0">
+                            <i class="fa fa-history mr-1"></i> Cambios Salario
+                        </p>
+                        <small class="opacity-75">Total registrados</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-gradient-info text-white">
+                    <div class="card-body text-center">
+                        <div class="display-4 font-weight-bold">
+                            {{ historial_cargos.length }}
+                        </div>
+                        <p class="mb-0">
+                            <i class="fa fa-briefcase mr-1"></i> Cambios Cargo
+                        </p>
+                        <small class="opacity-75">Total registrados</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pestañas de contenido -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <ul class="nav nav-tabs card-header-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link" 
+                           [class.active]="tab_activa === 'general'"
+                           (click)="cambiar_tab('general')"
+                           style="cursor: pointer;">
+                            <i class="fa fa-user"></i> 
+                            Información General
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" 
+                           [class.active]="tab_activa === 'historial'"
+                           (click)="cambiar_tab('historial')"
+                           style="cursor: pointer;">
+                            <i class="fa fa-history"></i> 
+                            Historial
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card-body">
+                <!-- TAB: Información General -->
+                <div *ngIf="tab_activa === 'general'">
+                    <div class="row">
+                        <!-- Datos Personales -->
+                        <div class="col-md-6">
+                            <h5 class="mb-3">
+                                <i class="fa fa-user text-primary"></i> Datos Personales
+                            </h5>
+                            <div class="info-group">
+                                <div class="info-row">
+                                    <span class="info-label">DNI/Cédula:</span>
+                                    <span class="info-value">{{ empleado.dni }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Nombres:</span>
+                                    <span class="info-value">{{ empleado.nombres }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Apellidos:</span>
+                                    <span class="info-value">{{ empleado.apellidos }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Fecha de Nacimiento:</span>
+                                    <span class="info-value">{{ formatear_fecha(empleado.fNacimiento) }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Género:</span>
+                                    <span class="info-value">
+                                        {{ empleado.genero === 'M' ? 'Masculino' : empleado.genero === 'F' ? 'Femenino' : 'Otro' }}
+                                    </span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">País:</span>
+                                    <span class="info-value">{{ empleado.pais }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Datos Laborales -->
+                        <div class="col-md-6">
+                            <h5 class="mb-3">
+                                <i class="fa fa-briefcase text-success"></i> Datos Laborales
+                            </h5>
+                            <div class="info-group">
+                                <div class="info-row">
+                                    <span class="info-label">Departamento:</span>
+                                    <span class="info-value">
+                                        <span class="badge badge-info">{{ empleado.departamento }}</span>
+                                    </span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Cargo:</span>
+                                    <span class="info-value">{{ empleado.cargo }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Tipo de Contrato:</span>
+                                    <span class="info-value">
+                                        <span class="badge" [ngClass]="obtener_badge_contrato(empleado.tipo_contrato)">
+                                            {{ empleado.tipo_contrato }}
+                                        </span>
+                                    </span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Supervisor:</span>
+                                    <span class="info-value">{{ empleado.supervisor_nombres || 'Sin supervisor' }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Dirección de Trabajo:</span>
+                                    <span class="info-value">{{ empleado.direccion_trabajo || 'No especificada' }}</span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Fecha de Registro:</span>
+                                    <span class="info-value">{{ formatear_fecha(empleado.fecha_creacion) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Roles y Permisos -->
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h5 class="mb-3">
+                                <i class="fa fa-user-tag text-warning"></i> Roles Asignados
+                            </h5>
+                            <div *ngIf="empleado.roles && empleado.roles.length > 0">
+                                <div class="role-item" *ngFor="let rol of empleado.roles">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="font-weight-bold">{{ rol.nombre }}</span>
+                                        <span class="badge badge-primary">Nivel {{ rol.nivel_acceso || 1 }}</span>
+                                    </div>
+                                    <p class="text-muted small mb-3">{{ rol.descripcion || 'Sin descripción' }}</p>
+                                </div>
+                            </div>
+                            <div *ngIf="!empleado.roles || empleado.roles.length === 0" class="text-muted">
+                                <i class="fa fa-info-circle"></i> Sin roles asignados
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h5 class="mb-3">
+                                <i class="fa fa-key text-secondary"></i> Permisos Específicos
+                            </h5>
+                            <div *ngIf="empleado.permisos && empleado.permisos.length > 0">
+                                <div class="permission-item" *ngFor="let permiso of empleado.permisos">
+                                    <span class="badge badge-outline-secondary mr-2 mb-2">
+                                        {{ permiso.nombre }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div *ngIf="!empleado.permisos || empleado.permisos.length === 0" class="text-muted">
+                                <i class="fa fa-info-circle"></i> Sin permisos específicos
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Observaciones -->
+                    <div class="row mt-4" *ngIf="empleado.observaciones">
+                        <div class="col-12">
+                            <h5 class="mb-3">
+                                <i class="fa fa-sticky-note text-info"></i> Observaciones
+                            </h5>
+                            <div class="alert alert-light">
+                                {{ empleado.observaciones }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Acciones disponibles -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h5 class="mb-3">
+                                <i class="fa fa-cogs text-dark"></i> Acciones
+                            </h5>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-primary" (click)="editar_empleado()">
+                                    <i class="fa fa-edit"></i> Editar Información
+                                </button>
+                                <button class="btn btn-success" (click)="exportar_perfil_empleado()">
+                                    <i class="fa fa-download"></i> Exportar Perfil
+                                </button>
+                                <button 
+                                    class="btn btn-danger" 
+                                    (click)="confirmar_baja_empleado()"
+                                    *ngIf="empleado.estado_empleado === 'Activo'">
+                                    <i class="fa fa-user-times"></i> Dar de Baja
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: Historial -->
+                <div *ngIf="tab_activa === 'historial'">
+                    <div class="row">
+                        <!-- Historial de Salarios -->
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0">
+                                    <i class="fa fa-dollar-sign text-success"></i> Historial de Salarios
+                                </h5>
+                                <button 
+                                    class="btn btn-outline-primary btn-sm"
+                                    (click)="mostrar_historial_completo('salarios')"
+                                    *ngIf="historial_salarios.length > 3">
+                                    Ver Todo
+                                </button>
+                            </div>
+                            
+                            <div *ngIf="load_historial" class="text-center py-3">
+                                <div class="spinner-border spinner-border-sm"></div>
+                            </div>
+                            
+                            <div *ngIf="!load_historial && historial_salarios.length > 0">
+                                <div class="historial-item" *ngFor="let item of historial_salarios.slice(0, 3)">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="font-weight-bold text-success">
+                                                ${{ item.salario_nuevo }}
+                                            </span>
+                                            <small class="text-muted d-block">
+                                                Anterior: ${{ item.salario_anterior }}
+                                            </small>
+                                        </div>
+                                        <div class="text-right">
+                                            <small class="text-muted">
+                                                {{ formatear_fecha(item.fecha_cambio) }}
+                                            </small>
+                                            <div class="text-muted small">
+                                                {{ item.motivo || 'Sin motivo especificado' }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div *ngIf="!load_historial && historial_salarios.length === 0" class="text-muted text-center py-3">
+                                <i class="fa fa-info-circle"></i> Sin cambios de salario registrados
+                            </div>
+                        </div>
+
+                        <!-- Historial de Cargos -->
+                        <div class="col-md-6">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="mb-0">
+                                    <i class="fa fa-briefcase text-primary"></i> Historial de Cargos
+                                </h5>
+                                <button 
+                                    class="btn btn-outline-primary btn-sm"
+                                    (click)="mostrar_historial_completo('cargos')"
+                                    *ngIf="historial_cargos.length > 3">
+                                    Ver Todo
+                                </button>
+                            </div>
+                            
+                            <div *ngIf="historial_cargos.length > 0">
+                                <div class="historial-item" *ngFor="let item of historial_cargos.slice(0, 3)">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="font-weight-bold text-primary">
+                                                {{ item.cargo_nuevo }}
+                                            </span>
+                                            <small class="text-muted d-block">
+                                                Anterior: {{ item.cargo_anterior }}
+                                            </small>
+                                        </div>
+                                        <div class="text-right">
+                                            <small class="text-muted">
+                                                {{ formatear_fecha(item.fecha_cambio) }}
+                                            </small>
+                                            <div class="text-muted small">
+                                                {{ item.departamento }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div *ngIf="historial_cargos.length === 0" class="text-muted text-center py-3">
+                                <i class="fa fa-info-circle"></i> Sin cambios de cargo registrados
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información adicional del historial -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="fa fa-info-circle"></i>
+                                <strong>Información:</strong> 
+                                Los historiales muestran los cambios más recientes. 
+                                Utiliza el botón "Ver Todo" para consultar el historial completo.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

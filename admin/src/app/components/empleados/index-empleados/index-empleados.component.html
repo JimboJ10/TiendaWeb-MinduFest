@@ -1,0 +1,370 @@
+<app-sidebar></app-sidebar>
+
+<!-- Page title -->
+<div class="border-bottom pt-5 mt-2 mb-5">
+    <h1 class="mt-2 mt-md-4 mb-3 pt-5">
+        <i class="fa fa-users text-primary"></i> Gestión de Empleados
+    </h1>
+    <div class="d-flex flex-wrap flex-md-nowrap justify-content-between">
+        <p class="text-muted">Administración completa del personal de tu ecommerce</p>
+        <p class="font-size-sm font-weight-medium pl-md-4">
+            <a class="text-nowrap" (click)="crear_empleado()" style="cursor: pointer;">
+                <i class="fa fa-plus"></i> Nuevo empleado
+                <i class="fa fa-angle-right font-size-base align-middle ml-1"></i>
+            </a>
+        </p>
+    </div>
+</div>
+
+<!-- Estadísticas -->
+<div class="row mb-4" *ngIf="!load_estadisticas">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <i class="fa fa-users fa-2x mb-2"></i>
+                <h3>{{ estadisticas.estadisticas?.total_empleados || 0 }}</h3>
+                <p>Total Empleados</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <i class="fa fa-user-check fa-2x mb-2"></i>
+                <h3>{{ estadisticas.estadisticas?.empleados_activos || 0 }}</h3>
+                <p>Activos</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <i class="fa fa-user-plus fa-2x mb-2"></i>
+                <h3>{{ estadisticas.estadisticas?.nuevos_mes || 0 }}</h3>
+                <p>Nuevos este mes</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <i class="fa fa-dollar-sign fa-2x mb-2"></i>
+                <h3>{{ formatear_salario(obtener_salario_promedio()) }}</h3>
+                <p>Salario Promedio</p>
+                <small class="opacity-75" *ngIf="estadisticas.estadisticas?.empleados_activos">
+                    ({{ estadisticas.estadisticas.empleados_activos }} empleados activos)
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Empleados por departamento -->
+<div class="row mb-4" *ngIf="!load_estadisticas && estadisticas.por_departamento">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fa fa-chart-bar text-primary"></i> Distribución por Departamento
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6" *ngFor="let dept of estadisticas.por_departamento">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="font-weight-medium">{{ dept.departamento }}</span>
+                            <span class="badge badge-primary">{{ dept.cantidad }} empleados</span>
+                        </div>
+                        <div class="progress mb-3" style="height: 8px;">
+                            <div class="progress-bar" 
+                                 [style.width.%]="(dept.cantidad / (estadisticas.estadisticas?.total_empleados || 1)) * 100">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4" *ngIf="!load_estadisticas && estadisticas.por_cargo">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fa fa-briefcase text-primary"></i> Top Cargos (Empleados Activos)
+                </h6>
+            </div>
+            <div class="card-body">
+                <div *ngFor="let cargo of estadisticas.por_cargo.slice(0, 5)" class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <span class="font-weight-medium">{{ cargo.cargo }}</span>
+                        <small class="text-muted d-block">{{ cargo.cantidad }} empleados</small>
+                    </div>
+                    <span class="badge badge-success">
+                        {{ formatear_salario(cargo.salario_promedio_cargo) }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">
+                    <i class="fa fa-file-contract text-primary"></i> Tipos de Contrato
+                </h6>
+            </div>
+            <div class="card-body">
+                <div *ngFor="let tipo of estadisticas.por_tipo_contrato" class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <span class="font-weight-medium">{{ tipo.tipo_contrato }}</span>
+                        <small class="text-muted d-block">{{ tipo.cantidad }} empleados</small>
+                    </div>
+                    <span class="badge badge-primary">
+                        {{ formatear_salario(tipo.salario_promedio_tipo) }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card box-shadow-sm mb-4">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fa fa-filter text-primary"></i> Filtros de Búsqueda
+        </h5>
+        <button class="btn btn-success btn-sm" (click)="crear_empleado()">
+            <i class="fa fa-plus"></i> Nuevo Empleado
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="form-label">Departamento</label>
+                    <select class="form-control" [(ngModel)]="filtros.departamento" (change)="cambiar_departamento()">
+                        <option value="todos">Todos los departamentos</option>
+                        <option *ngFor="let dept of departamentos" [value]="dept.departamentoid">
+                            {{ dept.nombre }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="form-label">Cargo</label>
+                    <select class="form-control" [(ngModel)]="filtros.cargo" (change)="aplicar_filtros()">
+                        <option value="todos">Todos los cargos</option>
+                        <option *ngFor="let cargo of cargos" [value]="cargo.cargoid">
+                            {{ cargo.nombre }}
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label class="form-label">Estado</label>
+                    <select class="form-control" [(ngModel)]="filtros.estado" (change)="aplicar_filtros()">
+                        <option value="todos">Todos</option>
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+                        <option value="Suspendido">Suspendido</option>
+                        <option value="Retirado">Retirado</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="form-label">Buscar</label>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        placeholder="Nombre, email, código..."
+                        [(ngModel)]="filtros.filtro"
+                        (keyup.enter)="aplicar_filtros()"
+                    >
+                </div>
+            </div>
+            <div class="col-md-1">
+                <div class="form-group">
+                    <label class="form-label">&nbsp;</label><br>
+                    <button class="btn btn-outline-secondary btn-sm" (click)="limpiar_filtros()">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de empleados -->
+<div class="card box-shadow-sm">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="fa fa-list"></i> Lista de Empleados
+        </h5>
+        <span class="badge badge-light text-primary" *ngIf="paginacion">
+            {{ paginacion.total || 0 }} empleados
+        </span>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="load_data" class="text-center py-5">
+        <div class="spinner-border" role="status">
+            <span class="sr-only">Cargando...</span>
+        </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="card-body p-0" *ngIf="!load_data && empleados.length > 0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Código</th>
+                        <th>Empleado</th>
+                        <th>Departamento</th>
+                        <th>Cargo</th>
+                        <th>Salario</th>
+                        <th>Estado</th>
+                        <th>Contrato</th>
+                        <th>Ingreso</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let empleado of empleados">
+                        <td>
+                            <span class="font-weight-bold text-primary">
+                                {{ empleado.codigo_empleado }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-column">
+                                <span class="font-weight-medium">
+                                    {{ empleado.nombres }} {{ empleado.apellidos }}
+                                </span>
+                                <small class="text-muted">
+                                    <i class="fa fa-envelope mr-1"></i>{{ empleado.email }}
+                                </small>
+                                <small class="text-muted" *ngIf="empleado.telefono">
+                                    <i class="fa fa-phone mr-1"></i>{{ empleado.telefono }}
+                                </small>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge badge-info">
+                                {{ empleado.departamento || 'Sin asignar' }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="font-weight-medium">
+                                {{ empleado.cargo || 'Sin asignar' }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="font-weight-bold text-success">
+                                {{ formatear_salario(empleado.salario_actual) }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge" [ngClass]="obtener_badge_estado(empleado.estado_empleado)">
+                                {{ empleado.estado_empleado }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge" [ngClass]="obtener_badge_contrato(empleado.tipo_contrato)">
+                                {{ empleado.tipo_contrato }}
+                            </span>
+                        </td>
+                        <td>
+                            <small class="text-muted">
+                                {{ formatear_fecha(empleado.fecha_ingreso) }}
+                            </small>
+                        </td>
+                        <td>
+                            <div class="btn-group-vertical btn-group-sm">
+                                <button 
+                                    class="btn btn-outline-info btn-sm mb-1" 
+                                    (click)="mostrar_info_empleado(empleado)"
+                                    title="Ver información rápida">
+                                    <i class="fa fa-info-circle"></i>
+                                </button>
+                                <button 
+                                    class="btn btn-outline-primary btn-sm mb-1" 
+                                    (click)="ver_empleado(empleado.empleadoid)"
+                                    title="Ver detalles completos">
+                                    <i class="fa fa-eye"></i>
+                                </button>
+                                <button 
+                                    class="btn btn-outline-warning btn-sm mb-1" 
+                                    (click)="editar_empleado(empleado.empleadoid)"
+                                    title="Editar">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                                <button 
+                                    class="btn btn-outline-danger btn-sm" 
+                                    (click)="confirmar_baja_empleado(empleado)"
+                                    *ngIf="empleado.estado_empleado === 'Activo'"
+                                    title="Dar de baja">
+                                    <i class="fa fa-user-times"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Sin datos -->
+    <div *ngIf="!load_data && empleados.length === 0" class="card-body text-center py-5">
+        <i class="fa fa-users fa-3x text-muted mb-3"></i>
+        <h5 class="text-muted">No se encontraron empleados</h5>
+        <p class="text-muted">Intenta cambiar los filtros o crear un nuevo empleado</p>
+        <button class="btn btn-primary" (click)="crear_empleado()">
+            <i class="fa fa-plus"></i> Crear Primer Empleado
+        </button>
+    </div>
+
+    <!-- Paginación -->
+    <div class="card-footer bg-light" *ngIf="!load_data && empleados.length > 0 && paginacion">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <small class="text-muted">
+                    <i class="fa fa-info-circle"></i>
+                    Mostrando {{ ((paginacion.pagina - 1) * paginacion.limite) + 1 }} a 
+                    {{ Math.min(paginacion.pagina * paginacion.limite, paginacion.total) }} 
+                    de {{ paginacion.total }} empleados
+                </small>
+            </div>
+            <div>
+                <nav aria-label="Paginación empleados">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item" [class.disabled]="paginacion.pagina <= 1">
+                            <a class="page-link" (click)="cambiar_pagina(paginacion.pagina - 1)" style="cursor: pointer;">
+                                Anterior
+                            </a>
+                        </li>
+                        <li class="page-item" 
+                            *ngFor="let p of [].constructor(paginacion.total_paginas); let i = index"
+                            [class.active]="(i + 1) === paginacion.pagina">
+                            <a class="page-link" (click)="cambiar_pagina(i + 1)" style="cursor: pointer;">
+                                {{ i + 1 }}
+                            </a>
+                        </li>
+                        <li class="page-item" [class.disabled]="paginacion.pagina >= paginacion.total_paginas">
+                            <a class="page-link" (click)="cambiar_pagina(paginacion.pagina + 1)" style="cursor: pointer;">
+                                Siguiente
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>

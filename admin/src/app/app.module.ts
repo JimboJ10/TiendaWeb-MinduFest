@@ -55,6 +55,11 @@ import { ReporteCuentasPagarComponent } from './components/reportes/reporte-cuen
 import { ReporteActividadUsuariosComponent } from './components/reportes/reporte-actividad-usuarios/reporte-actividad-usuarios.component';
 import { ReporteEstadoPagosComponent } from './components/reportes/reporte-estado-pagos/reporte-estado-pagos.component';
 import { VerAsientoComponent } from './components/finanzas/ver-asiento/ver-asiento.component';
+import { CreateEmpleadosComponent } from './components/empleados/create-empleados/create-empleados.component';
+import { IndexEmpleadosComponent } from './components/empleados/index-empleados/index-empleados.component';
+import { EditEmpleadosComponent } from './components/empleados/edit-empleados/edit-empleados.component';
+import { ShowEmpleadosComponent } from './components/empleados/show-empleados/show-empleados.component';
+import { RolesEmpleadosComponent } from './components/empleados/roles-empleados/roles-empleados.component';
 
 
 @NgModule({
@@ -104,6 +109,11 @@ import { VerAsientoComponent } from './components/finanzas/ver-asiento/ver-asien
     ReporteActividadUsuariosComponent,
     ReporteEstadoPagosComponent,
     VerAsientoComponent,
+    CreateEmpleadosComponent,
+    IndexEmpleadosComponent,
+    EditEmpleadosComponent,
+    ShowEmpleadosComponent,
+    RolesEmpleadosComponent,
     
   ],
   imports: [

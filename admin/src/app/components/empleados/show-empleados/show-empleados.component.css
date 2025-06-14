@@ -1,0 +1,226 @@
+/* Avatar circle */
+.avatar-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Info items */
+.info-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-item i {
+    width: 30px;
+    text-align: center;
+    margin-right: 1rem;
+}
+
+.info-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.info-value {
+    font-size: 0.95rem;
+    color: #333;
+    font-weight: 500;
+}
+
+/* Info group */
+.info-group {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.info-row {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-row .info-label {
+    flex: 0 0 40%;
+    font-weight: 600;
+    color: #495057;
+}
+
+.info-row .info-value {
+    flex: 1;
+    text-align: right;
+    color: #333;
+}
+
+/* Badges */
+.badge-lg {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+}
+
+.badge-outline-secondary {
+    color: #6c757d;
+    border: 1px solid #6c757d;
+    background-color: transparent;
+}
+
+/* Cards */
+.card {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+}
+
+.bg-gradient-success {
+    background: linear-gradient(45deg, #28a745, #1e7e34);
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(45deg, #ffc107, #e0a800);
+}
+
+.bg-gradient-info {
+    background: linear-gradient(45deg, #17a2b8, #138496);
+}
+
+/* Tabs */
+.nav-tabs .nav-link {
+    border: none;
+    border-radius: 0;
+    color: #6c757d;
+    font-weight: 500;
+    padding: 1rem 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+    border-color: transparent;
+    color: #007bff;
+}
+
+.nav-tabs .nav-link.active {
+    color: #007bff;
+    background-color: transparent;
+    border-color: transparent;
+    border-bottom: 3px solid #007bff;
+}
+
+/* Historial items */
+.historial-item {
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.historial-item:hover {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+}
+
+/* Role items */
+.role-item {
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    background-color: #f8f9fa;
+}
+
+/* Permission items */
+.permission-item {
+    margin-bottom: 0.5rem;
+}
+
+/* Table styling */
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+/* Loading states */
+.spinner-border-lg {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+    
+    .info-item i {
+        margin-bottom: 0.5rem;
+    }
+    
+    .info-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .info-row .info-value {
+        text-align: left;
+        margin-top: 0.25rem;
+    }
+    
+    .avatar-circle {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .display-4 {
+        font-size: 2rem;
+    }
+    
+    .nav-tabs .nav-link {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Utilities */
+.opacity-75 {
+    opacity: 0.75;
+}
+
+.border-primary {
+    border-color: #007bff !important;
+}
+
+.text-gradient-primary {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
